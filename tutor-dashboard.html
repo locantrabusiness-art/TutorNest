@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tutor Dashboard | TutorNest</title>
+
+<link rel="stylesheet" href="style.css">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+background:#f5f7fb;
+}
+
+.sidebar{
+position:fixed;
+left:0;
+top:0;
+width:250px;
+height:100vh;
+background:#0f4c81;
+color:white;
+padding:25px;
+}
+
+.sidebar h2{
+margin-bottom:30px;
+}
+
+.sidebar a{
+display:block;
+color:white;
+text-decoration:none;
+padding:12px 0;
+}
+
+.sidebar a:hover{
+opacity:.8;
+}
+
+.main{
+margin-left:270px;
+padding:30px;
+}
+
+.card{
+background:white;
+padding:25px;
+border-radius:12px;
+box-shadow:0 5px 20px rgba(0,0,0,.08);
+margin-bottom:20px;
+}
+
+.profile{
+display:flex;
+align-items:center;
+gap:20px;
+}
+
+.profile img{
+width:90px;
+height:90px;
+border-radius:50%;
+object-fit:cover;
+}
+
+button{
+padding:12px 18px;
+background:#0f4c81;
+color:white;
+border:none;
+border-radius:8px;
+cursor:pointer;
+}
+
+.status{
+display:inline-block;
+padding:6px 12px;
+background:#ffe7a8;
+border-radius:20px;
+margin-top:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="sidebar">
+
+<h2>TutorNest</h2>
+
+<a href="#">Dashboard</a>
+<a href="#">My Profile</a>
+<a href="#">Students</a>
+<a href="#">Documents</a>
+<a href="#">Settings</a>
+
+<button id="logoutBtn">
+Logout
+</button>
+
+</div>
+
+<div class="main">
+
+<div class="card">
+
+<div class="profile">
+
+<img src="assets/logo/logo.png">
+
+<div>
+
+<h2 id="name">Loading...</h2>
+
+<p id="email"></p>
+
+<span class="status">
+Pending Verification
+</span>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="card">
+
+<h2>Welcome to TutorNest 🎉</h2>
+
+<p>
+
+Complete your profile to start receiving students.
+
+</p>
+
+</div>
+
+</div>
+
+<script type="module" src="js/dashboard.js"></script>
+
+</body>
+</html>
