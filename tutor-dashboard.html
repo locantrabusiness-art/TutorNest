@@ -70,6 +70,7 @@ width:90px;
 height:90px;
 border-radius:50%;
 object-fit:cover;
+border:2px solid #ddd;
 }
 
 button{
@@ -79,6 +80,7 @@ color:white;
 border:none;
 border-radius:8px;
 cursor:pointer;
+margin-top:20px;
 }
 
 .status{
@@ -99,11 +101,11 @@ margin-top:10px;
 
 <h2>TutorNest</h2>
 
-<a href="#">Dashboard</a>
-<a href="#">My Profile</a>
-<a href="#">Students</a>
-<a href="#">Documents</a>
-<a href="#">Settings</a>
+<a href="tutor-dashboard.html">Dashboard</a>
+<a href="tutor-profile.html">My Profile</a>
+<a href="#">Students (Coming Soon)</a>
+<a href="#">Documents (Coming Soon)</a>
+<a href="#">Settings (Coming Soon)</a>
 
 <button id="logoutBtn">
 Logout
@@ -117,7 +119,10 @@ Logout
 
 <div class="profile">
 
-<img src="assets/logo/logo.png">
+<img
+id="profilePhoto"
+src="assets/logo/logo.png"
+alt="Profile">
 
 <div>
 
@@ -140,9 +145,7 @@ Pending Verification
 <h2>Welcome to TutorNest 🎉</h2>
 
 <p>
-
 Complete your profile to start receiving students.
-
 </p>
 
 </div>

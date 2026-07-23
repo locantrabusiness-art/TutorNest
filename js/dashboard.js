@@ -14,15 +14,14 @@ const nameEl = document.getElementById("name");
 const emailEl = document.getElementById("email");
 const logoutBtn = document.getElementById("logoutBtn");
 const statusEl = document.querySelector(".status");
+const profilePhoto = document.getElementById("profilePhoto");
 
 // Check if tutor is logged in
 onAuthStateChanged(auth, async (user) => {
 
     if (!user) {
-
         window.location.href = "tutor-login.html";
         return;
-
     }
 
     try {
@@ -44,6 +43,11 @@ onAuthStateChanged(auth, async (user) => {
         nameEl.innerText = tutor.name || "Tutor";
         emailEl.innerText = tutor.email || user.email;
 
+        // Profile Photo
+        if (tutor.photo) {
+            profilePhoto.src = tutor.photo;
+        }
+
         // Status
         if (tutor.status === "approved") {
 
@@ -51,17 +55,13 @@ onAuthStateChanged(auth, async (user) => {
             statusEl.style.background = "#d4edda";
             statusEl.style.color = "#155724";
 
-        }
-
-        else if (tutor.status === "rejected") {
+        } else if (tutor.status === "rejected") {
 
             statusEl.innerText = "❌ Rejected";
             statusEl.style.background = "#f8d7da";
             statusEl.style.color = "#721c24";
 
-        }
-
-        else {
+        } else {
 
             statusEl.innerText = "🟡 Pending Verification";
             statusEl.style.background = "#fff3cd";
@@ -69,9 +69,7 @@ onAuthStateChanged(auth, async (user) => {
 
         }
 
-    }
-
-    catch (error) {
+    } catch (error) {
 
         console.error(error);
         alert("Something went wrong while loading profile.");
@@ -90,12 +88,9 @@ logoutBtn.addEventListener("click", async () => {
     try {
 
         await signOut(auth);
-
         window.location.href = "tutor-login.html";
 
-    }
-
-    catch (error) {
+    } catch (error) {
 
         alert(error.message);
 
