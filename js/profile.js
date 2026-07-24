@@ -1,152 +1,355 @@
 import { auth, db } from "./firebase.js";
+
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
 import {
-    doc,
-    getDoc,
-    updateDoc
+doc,
+getDoc,
+updateDoc,
+serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const form = document.getElementById("profileForm");
 
+const saveBtn = document.getElementById("saveBtn");
+
+const preview = document.getElementById("preview");
+
+const photoInput = document.getElementById("photo");
+
+const progressBar = document.getElementById("progressBar");
+
+const progressText = document.getElementById("progressText");
+
 let currentUser = null;
 
-// Image Preview
-document.getElementById("photo").addEventListener("change", function () {
+let currentPhoto = "";
 
-    const file = this.files[0];
+// ---------------------
+// Image Preview
+// ---------------------
+
+photoInput.addEventListener("change", () => {
+
+    const file = photoInput.files[0];
 
     if (!file) return;
 
-    document.getElementById("preview").src = URL.createObjectURL(file);
+    preview.src = URL.createObjectURL(file);
+
+    updateProgress();
 
 });
 
-// Upload Profile Photo
-async function uploadProfilePhoto() {
+// ---------------------
+// Checkbox Helpers
+// ---------------------
 
-    const file = document.getElementById("photo").files[0];
+function getCheckedValues(name){
 
-    if (!file) return null;
+return [...document.querySelectorAll(`input[name="${name}"]:checked`)]
+.map(item=>item.value);
 
-    const authRes = await fetch("/api/imagekit-auth");
-    const authData = await authRes.json();
-
-    const formData = new FormData();
-
-    formData.append("file", file);
-    formData.append("fileName", Date.now() + "-" + file.name);
-
-    formData.append("publicKey", "public_kKdD/tl6716JICjya52hltPI3kM=");
-
-    formData.append("token", authData.token);
-    formData.append("expire", authData.expire);
-    formData.append("signature", authData.signature);
-
-    const res = await fetch(
-        "https://upload.imagekit.io/api/v1/files/upload",
-        {
-            method: "POST",
-            body: formData
-        }
-    );
-
-    const data = await res.json();
-
-    if (!res.ok) {
-        throw new Error(data.message || "Upload failed");
-    }
-
-    return data.url;
 }
 
-// Check Login
-onAuthStateChanged(auth, async (user) => {
+function setCheckedValues(name,values=[]){
 
-    if (!user) {
-        window.location.href = "tutor-login.html";
-        return;
-    }
+document.querySelectorAll(`input[name="${name}"]`).forEach(item=>{
 
-    currentUser = user;
-
-    const tutorRef = doc(db, "tutors", user.uid);
-
-    const snap = await getDoc(tutorRef);
-
-    if (snap.exists()) {
-
-        const data = snap.data();
-
-        document.getElementById("name").value = data.name || "";
-        document.getElementById("phone").value = data.phone || "";
-        document.getElementById("qualification").value = data.qualification || "";
-        document.getElementById("experience").value = data.experience || "";
-        document.getElementById("subjects").value = (data.subjects || []).join(", ");
-        document.getElementById("classes").value = (data.classes || []).join(", ");
-        document.getElementById("board").value = (data.board || []).join(", ");
-        document.getElementById("mode").value = (data.mode || []).join(", ");
-        document.getElementById("area").value = data.area || "";
-        document.getElementById("fees").value = data.fees || "";
-        document.getElementById("about").value = data.about || "";
-
-        if (data.photo) {
-            document.getElementById("preview").src = data.photo;
-        }
-
-    }
+item.checked=values.includes(item.value);
 
 });
 
+}
+
+// ---------------------
+// Progress Bar
+// ---------------------
+
+function updateProgress(){
+
+let total=13;
+
+let filled=0;
+
+if(document.getElementById("name").value.trim()) filled++;
+if(document.getElementById("phone").value.trim()) filled++;
+if(document.getElementById("gender").value) filled++;
+if(document.getElementById("qualification").value) filled++;
+if(document.getElementById("experience").value) filled++;
+if(document.getElementById("city").value.trim()) filled++;
+if(document.getElementById("area").value.trim()) filled++;
+if(document.getElementById("fees").value) filled++;
+if(document.getElementById("about").value.trim()) filled++;
+if(phone.value.trim())filled++;
+
+if(gender.value)filled++;
+
+if(qualification.value)filled++;
+
+if(experience.value)filled++;
+
+if(city.value.trim())filled++;
+
+if(area.value.trim())filled++;
+
+if(fees.value)filled++;
+
+if(about.value.trim())filled++;
+
+if(getCheckedValues("subjects").length)filled++;
+
+if(getCheckedValues("classes").length)filled++;
+
+if(getCheckedValues("mode").length)filled++;
+
+if(currentPhoto || photoInput.files.length)filled++;
+
+const percent=Math.round((filled/total)*100);
+
+progressBar.style.width=percent+"%";
+
+progressText.innerText=percent+"% Complete";
+
+}
+
+document.querySelectorAll("input,select,textarea").forEach(el=>{
+
+el.addEventListener("input",updateProgress);
+
+el.addEventListener("change",updateProgress);
+
+});
+
+// ---------------------
+// Upload ImageKit
+// ---------------------
+
+async function uploadProfilePhoto(){
+
+const file=photoInput.files[0];
+
+if(!file){
+
+return currentPhoto;
+
+}
+
+const authRes=await fetch("/api/imagekit-auth");
+
+const authData=await authRes.json();
+
+const formData=new FormData();
+
+formData.append("file",file);
+
+formData.append("fileName",Date.now()+"-"+file.name);
+
+formData.append("publicKey","public_kKdD/tl6716JICjya52hltPI3kM=");
+
+formData.append("token",authData.token);
+
+formData.append("expire",authData.expire);
+
+formData.append("signature",authData.signature);
+
+const res=await fetch(
+
+"https://upload.imagekit.io/api/v1/files/upload",
+
+{
+
+method:"POST",
+
+body:formData
+
+}
+
+);
+
+const data=await res.json();
+
+if(!res.ok){
+
+throw new Error(data.message||"Upload Failed");
+
+}
+
+return data.url;
+
+}
+
+// ---------------------
+// Load Tutor
+// ---------------------
+
+onAuthStateChanged(auth,async(user)=>{
+
+if(!user){
+
+location.href="tutor-login.html";
+
+return;
+
+}
+
+currentUser=user;
+
+const snap=await getDoc(doc(db,"tutors",user.uid));
+
+if(!snap.exists()) return;
+
+const data=snap.data();
+
+name.value=data.name||"";
+
+phone.value=data.phone||"";
+
+gender.value=data.gender||"";
+
+qualification.value=data.qualification||"";
+
+experience.value=data.experience||"";
+
+city.value=data.city||"";
+
+area.value=data.area||"";
+
+fees.value=data.fees||"";
+
+about.value=data.about||"";
+
+demoAvailable.checked=data.demoAvailable||false;
+
+setCheckedValues("subjects",data.subjects||[]);
+
+setCheckedValues("classes",data.classes||[]);
+
+setCheckedValues("board",data.board||[]);
+
+setCheckedValues("mode",data.mode||[]);
+
+setCheckedValues("languages",data.languages||[]);
+
+if(data.photo){
+
+currentPhoto=data.photo;
+
+preview.src=data.photo;
+
+}
+
+updateProgress();
+
+});
+// ---------------------
 // Save Profile
+// ---------------------
+
 form.addEventListener("submit", async (e) => {
 
     e.preventDefault();
 
-const photoUrl = await uploadProfilePhoto();
-    const updateData = {
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = "Saving...";
 
-        name: document.getElementById("name").value,
+    try {
 
-        phone: document.getElementById("phone").value,
+        const phone = document.getElementById("phone").value.trim();
 
-        qualification: document.getElementById("qualification").value,
+        if (phone && !/^[6-9]\d{9}$/.test(phone)) {
+            alert("Enter a valid 10 digit mobile number.");
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = "💾 Save Profile";
+            return;
+        }
 
-        experience: document.getElementById("experience").value,
+        const photoUrl = await uploadProfilePhoto();
 
-        subjects: document.getElementById("subjects").value
-            .split(",")
-            .map(s => s.trim())
-            .filter(Boolean),
+        const updateData = {
 
-        classes: document.getElementById("classes").value
-            .split(",")
-            .map(s => s.trim())
-            .filter(Boolean),
+            name: document.getElementById("name").value.trim(),
 
-        board: document.getElementById("board").value
-            .split(",")
-            .map(s => s.trim())
-            .filter(Boolean),
+            phone: phone,
 
-        mode: document.getElementById("mode").value
-            .split(",")
-            .map(s => s.trim())
-            .filter(Boolean),
+            gender: document.getElementById("gender").value,
 
-        area: document.getElementById("area").value,
+            qualification: document.getElementById("qualification").value,
 
-        fees: Number(document.getElementById("fees").value),
+            experience: document.getElementById("experience").value,
 
-        about: document.getElementById("about").value
+            city: document.getElementById("city").value.trim(),
 
-    };
+            area: document.getElementById("area").value.trim(),
 
-    if (photoUrl) {
-        updateData.photo = photoUrl;
+            fees: Number(document.getElementById("fees").value) || 0,
+
+            about: document.getElementById("about").value.trim(),
+
+            subjects: getCheckedValues("subjects"),
+
+            classes: getCheckedValues("classes"),
+
+            board: getCheckedValues("board"),
+
+            mode: getCheckedValues("mode"),
+
+            languages: getCheckedValues("languages"),
+
+            demoAvailable:
+                document.getElementById("demoAvailable").checked,
+
+            updatedAt: serverTimestamp()
+
+        };
+
+        if (photoUrl) {
+            updateData.photo = photoUrl;
+            currentPhoto = photoUrl;
+        }
+
+        await updateDoc(
+
+            doc(db, "tutors", currentUser.uid),
+
+            updateData
+
+        );
+
+        updateProgress();
+
+        alert("✅ Profile Updated Successfully!");
+
     }
 
-    await updateDoc(doc(db, "tutors", currentUser.uid), updateData);
+    catch (error) {
 
-    alert("Profile Updated Successfully!");
+        console.error(error);
+
+        alert(error.message || "Something went wrong.");
+
+    }
+
+    finally {
+
+        saveBtn.disabled = false;
+
+        saveBtn.innerHTML = "💾 Save Profile";
+
+    }
 
 });
+
+// ---------------------
+// Live Progress
+// ---------------------
+
+document.querySelectorAll("input,select,textarea").forEach(el => {
+
+    el.addEventListener("input", updateProgress);
+
+    el.addEventListener("change", updateProgress);
+
+});
+
+updateProgress();

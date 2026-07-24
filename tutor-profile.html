@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Complete Tutor Profile</title>
+<title>Complete Tutor Profile | TutorNest</title>
+
+<link rel="stylesheet" href="css/style.css">
 
 <style>
 
@@ -17,22 +20,18 @@ font-family:Arial,sans-serif;
 }
 
 body{
-background:#f3f5f9;
+background:#f4f7fb;
+padding:30px;
 }
 
 .container{
 
-width:90%;
-max-width:900px;
-margin:40px auto;
-
-background:white;
-
+max-width:950px;
+margin:auto;
+background:#fff;
 padding:30px;
-
-border-radius:15px;
-
-box-shadow:0 5px 15px rgba(0,0,0,.1);
+border-radius:18px;
+box-shadow:0 10px 30px rgba(0,0,0,.08);
 
 }
 
@@ -40,17 +39,15 @@ h2{
 
 text-align:center;
 margin-bottom:25px;
-color:#0d6efd;
+color:#0f4c81;
 
 }
 
 .grid{
 
 display:grid;
-
-grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-
-gap:20px;
+grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+gap:18px;
 
 }
 
@@ -60,10 +57,19 @@ textarea{
 
 width:100%;
 padding:12px;
+border:1px solid #ddd;
+border-radius:10px;
+font-size:15px;
+outline:none;
+transition:.3s;
 
-border:1px solid #ccc;
+}
 
-border-radius:8px;
+input:focus,
+select:focus,
+textarea:focus{
+
+border-color:#0f4c81;
 
 }
 
@@ -74,31 +80,99 @@ resize:none;
 
 }
 
-button{
+.section{
 
 margin-top:30px;
 
-width:100%;
+}
 
-padding:15px;
+.section h3{
 
-background:#0d6efd;
+margin-bottom:12px;
+color:#0f4c81;
 
-color:white;
+}
 
-font-size:18px;
+.checkbox-grid{
 
-border:none;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+gap:10px;
 
+}
+
+.checkbox-grid label{
+
+background:#f8f9fa;
+padding:10px;
 border-radius:10px;
-
 cursor:pointer;
+transition:.25s;
+
+}
+
+.checkbox-grid label:hover{
+
+background:#eaf3ff;
+
+}
+
+.preview{
+
+margin-top:15px;
+width:150px;
+height:150px;
+border-radius:50%;
+object-fit:cover;
+border:4px solid #0f4c81;
+
+}
+
+.progress{
+
+margin-top:25px;
+background:#ddd;
+height:12px;
+border-radius:50px;
+overflow:hidden;
+
+}
+
+.progress div{
+
+width:0%;
+height:100%;
+background:#0f4c81;
+transition:.4s;
+
+}
+
+#progressText{
+
+margin-top:8px;
+font-weight:bold;
+color:#555;
+
+}
+
+button{
+
+margin-top:30px;
+width:100%;
+padding:15px;
+background:#0f4c81;
+color:white;
+font-size:17px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+transition:.3s;
 
 }
 
 button:hover{
 
-background:#0049b7;
+background:#08365c;
 
 }
 
@@ -116,33 +190,214 @@ background:#0049b7;
 
 <div class="grid">
 
-<input type="text" id="name" placeholder="Full Name" required>
+<input
+type="text"
+id="name"
+placeholder="Full Name"
+required>
 
-<input type="text" id="phone" placeholder="Mobile Number">
+<input
+type="tel"
+id="phone"
+placeholder="Mobile Number">
 
-<input type="text" id="qualification" placeholder="Qualification">
+<select id="gender">
 
-<input type="number" id="experience" placeholder="Experience (Years)">
+<option value="">Gender</option>
 
-<input type="text" id="subjects" placeholder="Subjects (Maths, Physics...)">
+<option>Male</option>
 
-<input type="text" id="classes" placeholder="Classes (6-10,11-12)">
+<option>Female</option>
 
-<input type="text" id="board" placeholder="Board (CBSE/ICSE/UP)">
+<option>Other</option>
 
-<input type="text" id="mode" placeholder="Home / Online / Both">
+</select>
 
-<input type="text" id="area" placeholder="Teaching Area">
+<select id="qualification">
 
-<input type="number" id="fees" placeholder="Fees Per Hour">
+<option value="">Qualification</option>
+
+<option>Graduation</option>
+
+<option>Post Graduation</option>
+
+<option>B.Ed</option>
+
+<option>M.Ed</option>
+
+<option>B.Tech</option>
+
+<option>M.Tech</option>
+
+<option>MBBS</option>
+
+<option>CA</option>
+
+<option>Other</option>
+
+</select>
+
+<select id="experience">
+
+<option value="">Experience</option>
+
+<option>0-1 Years</option>
+
+<option>1-3 Years</option>
+
+<option>3-5 Years</option>
+
+<option>5-10 Years</option>
+
+<option>10+ Years</option>
+
+</select>
+
+<input
+type="text"
+id="city"
+placeholder="City">
+
+<input
+type="text"
+id="area"
+placeholder="Teaching Area">
+
+<input
+type="number"
+id="fees"
+placeholder="Fees Per Hour">
 
 </div>
 
-<br>
+<<div class="section">
+
+<h3>Subjects</h3>
+
+<div class="checkbox-grid">
+
+<label><input type="checkbox" name="subjects" value="Maths"> Maths</label>
+
+<label><input type="checkbox" name="subjects" value="Physics"> Physics</label>
+
+<label><input type="checkbox" name="subjects" value="Chemistry"> Chemistry</label>
+
+<label><input type="checkbox" name="subjects" value="Biology"> Biology</label>
+
+<label><input type="checkbox" name="subjects" value="English"> English</label>
+
+<label><input type="checkbox" name="subjects" value="Science"> Science</label>
+
+<label><input type="checkbox" name="subjects" value="Social Science"> Social Science</label>
+
+<label><input type="checkbox" name="subjects" value="Computer"> Computer</label>
+
+<label><input type="checkbox" name="subjects" value="Hindi"> Hindi</label>
+
+<label><input type="checkbox" name="subjects" value="Accounts"> Accounts</label>
+
+<label><input type="checkbox" name="subjects" value="Economics"> Economics</label>
+
+<label><input type="checkbox" name="subjects" value="Business Studies"> Business Studies</label>
+
+</div>
+
+</div>
+
+
+<div class="section">
+
+<h3>Classes</h3>
+
+<div class="checkbox-grid">
+
+<label><input type="checkbox" name="classes" value="LKG-5"> LKG–5</label>
+
+<label><input type="checkbox" name="classes" value="6-8"> 6–8</label>
+
+<label><input type="checkbox" name="classes" value="9-10"> 9–10</label>
+
+<label><input type="checkbox" name="classes" value="11-12"> 11–12</label>
+
+<label><input type="checkbox" name="classes" value="College"> College</label>
+
+<label><input type="checkbox" name="classes" value="Competitive Exams"> Competitive Exams</label>
+
+</div>
+
+</div>
+
+
+<div class="section">
+
+<h3>Board</h3>
+
+<div class="checkbox-grid">
+
+<label><input type="checkbox" name="board" value="CBSE"> CBSE</label>
+
+<label><input type="checkbox" name="board" value="ICSE"> ICSE</label>
+
+<label><input type="checkbox" name="board" value="State Board"> State Board</label>
+
+<label><input type="checkbox" name="board" value="IB"> IB</label>
+
+<label><input type="checkbox" name="board" value="Cambridge"> Cambridge</label>
+
+</div>
+
+</div>
+
+
+<div class="section">
+
+<h3>Teaching Mode</h3>
+
+<div class="checkbox-grid">
+
+<label><input type="checkbox" name="mode" value="Home Tuition"> Home Tuition</label>
+
+<label><input type="checkbox" name="mode" value="Online"> Online</label>
+
+<label><input type="checkbox" name="mode" value="Institute"> Institute</label>
+
+</div>
+
+</div>
+
+
+<div class="section">
+
+<h3>Languages</h3>
+
+<div class="checkbox-grid">
+
+<label><input type="checkbox" name="languages" value="Hindi"> Hindi</label>
+
+<label><input type="checkbox" name="languages" value="English"> English</label>
+
+<label><input type="checkbox" name="languages" value="Urdu"> Urdu</label>
+
+<label><input type="checkbox" name="languages" value="Punjabi"> Punjabi</label>
+
+</div>
+
+</div>
+
+
+<div class="section">
+
+<h3>About Yourself</h3>
 
 <textarea
 id="about"
-placeholder="Write about yourself"></textarea>
+placeholder="Write about yourself..."></textarea>
+
+</div>
+
+
+<div class="section">
+
 <h3>Profile Photo</h3>
 
 <input
@@ -153,14 +408,59 @@ accept="image/*">
 <br><br>
 
 <img
+
 id="preview"
-src="assets/logo/logo.png"
-width="150"
-style="border-radius:50%;object-fit:cover;">
 
-<button type="submit">
+class="preview"
 
-Save Profile
+src="assets/logo/logo.png">
+
+</div>
+
+
+<div class="section">
+
+<h3>Free Demo</h3>
+
+<label>
+
+<input
+type="checkbox"
+id="demoAvailable">
+
+Free Demo Available
+
+</label>
+
+</div>
+
+
+<div class="section">
+
+<h3>Profile Completion</h3>
+
+<div class="progress">
+
+<div id="progressBar"></div>
+
+</div>
+
+<p id="progressText">
+
+0% Complete
+
+</p>
+
+</div>
+
+
+<button
+
+type="submit"
+
+id="saveBtn">
+
+💾 Save Profile
 
 </button>
 
@@ -171,4 +471,5 @@ Save Profile
 <script type="module" src="js/profile.js"></script>
 
 </body>
+
 </html>
