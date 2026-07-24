@@ -13,6 +13,7 @@ import {
 const form = document.getElementById("registerForm");
 
 form.addEventListener("submit", async (e) => {
+
   e.preventDefault();
 
   const name = document.getElementById("name").value.trim();
@@ -29,42 +30,56 @@ form.addEventListener("submit", async (e) => {
       password
     );
 
-    await setDoc(doc(db, "tutors", userCredential.user.uid), {
+    await setDoc(
+      doc(db, "tutors", userCredential.user.uid),
+      {
 
-      uid: userCredential.user.uid,
+        uid: userCredential.user.uid,
 
-      name,
-      email,
-      phone,
-      qualification,
+        name,
+        email,
+        phone,
+        qualification,
 
-      status: "pending",              // pending | approved | rejected
-      visibleOnWebsite: false,        // Homepage par nahi dikhega
-      featured: false,                // Featured badge
-      homepageOrder: 999,             // Last position
+        // Admin Approval
+        status: "Pending",
+        featured: false,
+        homepageOrder: 999,
 
-      photo: "",
-      experience: "",
-      area: "",
-      subjects: [],
-      classes: [],
-      board: [],
-      mode: [],
-      fees: 0,
+        // Profile
+        photo: "",
+        experience: "",
+        area: "",
+        about: "",
 
-      rating: 0,
-      students: 0,
+        subjects: [],
+        classes: [],
+        board: [],
+        mode: [],
 
-      createdAt: serverTimestamp()
+        fees: 0,
 
-    });
+        rating: 0,
+        students: 0,
 
-    alert("Registration Successful. Admin approval ke baad profile public hogi.");
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+
+      }
+    );
+
+    alert(
+      "Registration successful!\n\nYour profile is under admin review."
+    );
 
     window.location.href = "tutor-login.html";
 
   } catch (err) {
+
+    console.error(err);
+
     alert(err.message);
+
   }
 
 });
