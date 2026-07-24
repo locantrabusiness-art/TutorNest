@@ -5,19 +5,18 @@ import {
     getDoc
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
+// Get Tutor ID
 const params = new URLSearchParams(window.location.search);
-
 const uid = params.get("id");
 
 if (!uid) {
-
-    document.body.innerHTML =
-        "<h2 style='text-align:center;margin-top:80px;'>Tutor Not Found</h2>";
-
-    throw new Error("No Tutor ID");
-
+    document.body.innerHTML = `
+        <h2 style="text-align:center;margin-top:80px;">
+            Tutor Not Found
+        </h2>
+    `;
+    throw new Error("Tutor ID Missing");
 }
-
 
 async function loadTutor() {
 
@@ -27,18 +26,22 @@ async function loadTutor() {
 
         if (!snap.exists()) {
 
-            document.body.innerHTML =
-                "<h2 style='text-align:center;margin-top:80px;'>Tutor Not Found</h2>";
+            document.body.innerHTML = `
+                <h2 style="text-align:center;margin-top:80px;">
+                    Tutor Not Found
+                </h2>
+            `;
 
             return;
-
         }
 
         const tutor = snap.data();
 
+        // Profile Photo
         document.getElementById("photo").src =
             tutor.photo || "assets/logo/logo.png";
 
+        // Basic Details
         document.getElementById("name").textContent =
             tutor.name || "-";
 
@@ -55,7 +58,7 @@ async function loadTutor() {
             (tutor.experience || 0) + " Years";
 
         document.getElementById("fees").textContent =
-            "₹" + (tutor.fees || "-") + "/hr";
+            "₹" + (tutor.fees || "-") + "/hour";
 
         document.getElementById("area").textContent =
             tutor.area || "-";
@@ -66,24 +69,30 @@ async function loadTutor() {
         document.getElementById("about").textContent =
             tutor.about || "No description available.";
 
+        // Call Button
         document.getElementById("callBtn").href =
             "tel:" + tutor.phone;
 
+        // WhatsApp Button
         document.getElementById("whatsappBtn").href =
             "https://wa.me/91" +
             tutor.phone +
-            "?text=Hi " +
-            encodeURIComponent(tutor.name) +
-            ", I found your profile on TutorNest. I want to book a free demo.";
+            "?text=" +
+            encodeURIComponent(
+                `Hi ${tutor.name}, I found your profile on TutorNest. I would like to book a free demo class.`
+            );
 
     }
 
-    catch (err) {
+    catch (error) {
 
-        console.error(err);
+        console.error(error);
 
-        document.body.innerHTML =
-            "<h2 style='text-align:center;margin-top:80px;'>Something went wrong.</h2>";
+        document.body.innerHTML = `
+            <h2 style="text-align:center;margin-top:80px;">
+                Something went wrong.
+            </h2>
+        `;
 
     }
 

@@ -1,210 +1,343 @@
-import { db } from "./firebase.js";
+import { auth, db } from "./firebase.js";
 
 import {
-  collection,
-  getDocs,
-  updateDoc,
-  deleteDoc,
-  doc
+    signOut
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+import {
+    collection,
+    getDocs,
+    doc,
+    updateDoc,
+    deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-const teacherTable = document.getElementById("teacherTable");
-const searchBox = document.getElementById("searchBox");
-const filterStatus = document.getElementById("filterStatus");
+const pendingList = document.getElementById("pendingList");
+const approvedList = document.getElementById("approvedList");
+const rejectedList = document.getElementById("rejectedList");
+
+const totalTutors = document.getElementById("totalTutors");
+const pendingTutors = document.getElementById("pendingTutors");
+const approvedTutors = document.getElementById("approvedTutors");
+const featuredTutors = document.getElementById("featuredTutors");
+
+const searchInput = document.getElementById("searchInput");
 
 let tutors = [];
 
-async function loadTutors() {
+document
+.getElementById("logoutBtn")
+.onclick = () => signOut(auth);
 
-    const snap = await getDocs(collection(db, "tutors"));
+async function loadTutors(){
+
+    const snap = await getDocs(collection(db,"tutors"));
 
     tutors = [];
 
-    snap.forEach((d)=>{
+    snap.forEach(docSnap=>{
 
         tutors.push({
-            id:d.id,
-            ...d.data()
+
+            id:docSnap.id,
+
+            ...docSnap.data()
+
         });
 
     });
 
-    updateCounters();
+    updateStats();
 
-    renderTutors();
-
-}
-
-function updateCounters(){
-
-    document.getElementById("totalTutors").innerText=tutors.length;
-
-    document.getElementById("pendingTutors").innerText=
-        tutors.filter(t=>t.status==="pending").length;
-
-    document.getElementById("approvedTutors").innerText=
-        tutors.filter(t=>t.status==="approved").length;
-
-    document.getElementById("featuredTutors").innerText=
-        tutors.filter(t=>t.featured===true).length;
+    renderAll();
 
 }
 
-function renderTutors(){
+function updateStats(){
 
-    teacherTable.innerHTML="";
+    totalTutors.textContent = tutors.length;
 
-    let filtered=tutors.filter(t=>{
+    pendingTutors.textContent =
+        tutors.filter(x=>x.status==="Pending").length;
 
-        const search=searchBox.value.toLowerCase();
+    approvedTutors.textContent =
+        tutors.filter(x=>x.status==="Approved").length;
 
-        const matchSearch=
-        (t.name||"").toLowerCase().includes(search) ||
-        (t.email||"").toLowerCase().includes(search) ||
-        (t.phone||"").includes(search);
+    featuredTutors.textContent =
+        tutors.filter(x=>x.featured===true).length;
 
-        const matchStatus=
-        filterStatus.value==="" ||
-        t.status===filterStatus.value;
+}
 
-        return matchSearch && matchStatus;
+function renderAll(){
 
-    });
+    const keyword =
+        searchInput.value.toLowerCase();
 
-    filtered.forEach(t=>{
+    pendingList.innerHTML="";
+    approvedList.innerHTML="";
+    rejectedList.innerHTML="";
 
-        teacherTable.innerHTML+=`
+    tutors.forEach(tutor=>{
 
-<tr>
+        if(
+            keyword &&
+            !(tutor.name||"")
+            .toLowerCase()
+            .includes(keyword)
+        ){
+            return;
+        }
 
-<td>
+        const card = createCard(tutor);
 
-<img src="${t.photo || 'https://via.placeholder.com/60'}"
-style="width:60px;height:60px;border-radius:50%;object-fit:cover;">
+        if(tutor.status==="Pending")
+            pendingList.appendChild(card);
 
-</td>
+        else if(tutor.status==="Approved")
+            approvedList.appendChild(card);
 
-<td>${t.name}</td>
-
-<td>${t.email}</td>
-
-<td>${t.phone || "-"}</td>
-
-<td>${t.status}</td>
-
-<td>${t.visibleOnWebsite ? "Yes":"No"}</td>
-
-<td>${t.featured ? "Yes":"No"}</td>
-
-<td>
-
-<button class="approve"
-onclick="approveTutor('${t.id}')">
-
-Approve
-
-</button>
-
-<button class="reject"
-onclick="rejectTutor('${t.id}')">
-
-Reject
-
-</button>
-
-<button class="show"
-onclick="toggleVisible('${t.id}',${t.visibleOnWebsite})">
-
-${t.visibleOnWebsite?"Hide":"Show"}
-
-</button>
-
-<button class="feature"
-onclick="toggleFeatured('${t.id}',${t.featured})">
-
-${t.featured?"Unfeature":"Feature"}
-
-</button>
-
-<button class="delete"
-onclick="deleteTutor('${t.id}')">
-
-Delete
-
-</button>
-
-</td>
-
-</tr>
-
-`;
+        else
+            rejectedList.appendChild(card);
 
     });
 
 }
 
-window.approveTutor=async(id)=>{
+searchInput.addEventListener(
+    "input",
+    renderAll
+);
+function createCard(tutor){
 
-    await updateDoc(doc(db,"tutors",id),{
+    const div=document.createElement("div");
 
-        status:"approved"
+    div.className="tutor-card";
 
-    });
+    div.innerHTML=`
 
-    loadTutors();
+    <img src="${tutor.photo || 'assets/logo/logo.png'}">
+
+    <h3>${tutor.name}</h3>
+
+    <p><b>Qualification:</b> ${tutor.qualification || "-"}</p>
+
+    <p><b>Subjects:</b> ${(tutor.subjects || []).join(", ")}</p>
+
+    <p><b>Area:</b> ${tutor.area || "-"}</p>
+
+    <p><b>Status:</b> ${tutor.status}</p>
+
+    <div class="actions">
+
+    ${
+        tutor.status==="Pending"
+        ?
+        `
+        <button class="approve"
+        onclick="approveTutor('${tutor.id}')">
+        Approve
+        </button>
+
+        <button class="reject"
+        onclick="rejectTutor('${tutor.id}')">
+        Reject
+        </button>
+        `
+        :
+        ""
+    }
+
+    ${
+        tutor.status==="Approved"
+        ?
+        tutor.featured
+        ?
+        `
+        <button class="remove"
+        onclick="removeFeatured('${tutor.id}')">
+        Remove Featured
+        </button>
+        `
+        :
+        `
+        <button class="feature"
+        onclick="featureTutor('${tutor.id}')">
+        Feature
+        </button>
+        `
+        :
+        ""
+    }
+
+    <button class="delete"
+    onclick="deleteTutor('${tutor.id}')">
+
+    Delete
+
+    </button>
+
+    </div>
+
+    `;
+
+    return div;
 
 }
+// ----------------------
+// Approve Tutor
+// ----------------------
 
-window.rejectTutor=async(id)=>{
+window.approveTutor = async function(id){
 
-    await updateDoc(doc(db,"tutors",id),{
+    try{
 
-        status:"rejected"
+        await updateDoc(
+            doc(db,"tutors",id),
+            {
+                status:"Approved"
+            }
+        );
 
-    });
-
-    loadTutors();
-
-}
-
-window.toggleVisible=async(id,current)=>{
-
-    await updateDoc(doc(db,"tutors",id),{
-
-        visibleOnWebsite:!current
-
-    });
-
-    loadTutors();
-
-}
-
-window.toggleFeatured=async(id,current)=>{
-
-    await updateDoc(doc(db,"tutors",id),{
-
-        featured:!current
-
-    });
-
-    loadTutors();
-
-}
-
-window.deleteTutor=async(id)=>{
-
-    if(confirm("Delete this tutor?")){
-
-        await deleteDoc(doc(db,"tutors",id));
-
-        loadTutors();
+        await loadTutors();
 
     }
 
-}
+    catch(err){
 
-searchBox.addEventListener("keyup",renderTutors);
+        console.error(err);
 
-filterStatus.addEventListener("change",renderTutors);
+        alert("Unable to approve tutor.");
+
+    }
+
+};
+
+
+// ----------------------
+// Reject Tutor
+// ----------------------
+
+window.rejectTutor = async function(id){
+
+    try{
+
+        await updateDoc(
+            doc(db,"tutors",id),
+            {
+                status:"Rejected"
+            }
+        );
+
+        await loadTutors();
+
+    }
+
+    catch(err){
+
+        console.error(err);
+
+        alert("Unable to reject tutor.");
+
+    }
+
+};
+
+
+// ----------------------
+// Feature Tutor
+// ----------------------
+
+window.featureTutor = async function(id){
+
+    try{
+
+        await updateDoc(
+            doc(db,"tutors",id),
+            {
+                featured:true
+            }
+        );
+
+        await loadTutors();
+
+    }
+
+    catch(err){
+
+        console.error(err);
+
+        alert("Unable to feature tutor.");
+
+    }
+
+};
+
+
+// ----------------------
+// Remove Featured
+// ----------------------
+
+window.removeFeatured = async function(id){
+
+    try{
+
+        await updateDoc(
+            doc(db,"tutors",id),
+            {
+                featured:false
+            }
+        );
+
+        await loadTutors();
+
+    }
+
+    catch(err){
+
+        console.error(err);
+
+        alert("Unable to remove featured tutor.");
+
+    }
+
+};
+
+
+// ----------------------
+// Delete Tutor
+// ----------------------
+
+window.deleteTutor = async function(id){
+
+    const ok = confirm(
+        "Delete this tutor permanently?"
+    );
+
+    if(!ok) return;
+
+    try{
+
+        await deleteDoc(
+            doc(db,"tutors",id)
+        );
+
+        await loadTutors();
+
+    }
+
+    catch(err){
+
+        console.error(err);
+
+        alert("Unable to delete tutor.");
+
+    }
+
+};
+
+
+// ----------------------
+// Initial Load
+// ----------------------
 
 loadTutors();
