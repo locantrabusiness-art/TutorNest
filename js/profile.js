@@ -1,13 +1,5 @@
-import { auth, db, storage } from "./firebase.js";
-
+import { auth, db } from "./firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-
-import {
-    ref,
-    uploadBytes,
-    getDownloadURL
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
-
 import {
     doc,
     getDoc,
@@ -30,18 +22,41 @@ document.getElementById("photo").addEventListener("change", function () {
 });
 
 // Upload Profile Photo
-async function uploadProfilePhoto(uid) {
+async function uploadProfilePhoto() {
 
     const file = document.getElementById("photo").files[0];
 
     if (!file) return null;
 
-    const storageRef = ref(storage, "profilePhotos/" + uid);
+    const authRes = await fetch("/api/imagekit-auth");
+    const authData = await authRes.json();
 
-    await uploadBytes(storageRef, file);
+    const formData = new FormData();
 
-    return await getDownloadURL(storageRef);
+    formData.append("file", file);
+    formData.append("fileName", Date.now() + "-" + file.name);
 
+    formData.append("publicKey", "public_kKdD/tl6716JICjya52hltPI3kM=");
+
+    formData.append("token", authData.token);
+    formData.append("expire", authData.expire);
+    formData.append("signature", authData.signature);
+
+    const res = await fetch(
+        "https://upload.imagekit.io/api/v1/files/upload",
+        {
+            method: "POST",
+            body: formData
+        }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+        throw new Error(data.message || "Upload failed");
+    }
+
+    return data.url;
 }
 
 // Check Login
@@ -87,8 +102,7 @@ form.addEventListener("submit", async (e) => {
 
     e.preventDefault();
 
-    const photoUrl = await uploadProfilePhoto(currentUser.uid);
-
+const photoUrl = await uploadProfilePhoto();
     const updateData = {
 
         name: document.getElementById("name").value,
