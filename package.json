@@ -1,4 +1,6 @@
 {
+  "name": "tutornest",
+  "private": true,
   "type": "module",
   "dependencies": {
     "imagekit": "^5.2.0"
