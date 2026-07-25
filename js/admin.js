@@ -13,10 +13,6 @@ import {
     updateDoc,
     deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import {
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-
 const ADMIN_EMAIL = "shivangsingh0009@gmail.com";
 
 onAuthStateChanged(auth, async (user) => {
@@ -32,10 +28,13 @@ onAuthStateChanged(auth, async (user) => {
         return;
     }
 
+    // ✅ Admin verified, ab Firestore se data load karo
+    loadTutors();
+
 });
 
 
-});
+
 const pendingList = document.getElementById("pendingList");
 const approvedList = document.getElementById("approvedList");
 const rejectedList = document.getElementById("rejectedList");
@@ -55,9 +54,6 @@ document.getElementById("logoutBtn").onclick = async () => {
 };
 let tutors = [];
 
-document
-.getElementById("logoutBtn")
-.onclick = () => signOut(auth);
 
 async function loadTutors(){
 
@@ -365,9 +361,3 @@ window.deleteTutor = async function(id){
 
 };
 
-
-// ----------------------
-// Initial Load
-// ----------------------
-
-loadTutors();
