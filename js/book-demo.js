@@ -1,76 +1,60 @@
 import { db } from "./firebase.js";
 
 import {
-collection,
-addDoc,
-serverTimestamp
-}
-from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+  collection,
+  addDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-const form=document.getElementById("demoForm");
+// URL Parameters
+const params = new URLSearchParams(window.location.search);
 
-form.addEventListener("submit",async(e)=>{
+const tutorId = params.get("id") || "";
+const tutorName = decodeURIComponent(params.get("name") || "");
 
-e.preventDefault();
+const form = document.getElementById("demoForm");
 
-try{
+form.addEventListener("submit", async (e) => {
 
-await addDoc(
+  e.preventDefault();
 
-collection(db,"demoBookings"),
+  try {
 
-{
+    await addDoc(collection(db, "demoBookings"), {
 
-studentName:
+      studentName: document.getElementById("studentName").value.trim(),
 
-studentName.value,
+      parentName: document.getElementById("parentName").value.trim(),
 
-parentName:
+      phone: document.getElementById("phone").value.trim(),
 
-parentName.value,
+      city: document.getElementById("city").value.trim(),
 
-phone:
+      className: document.getElementById("class").value,
 
-phone.value,
+      subject: document.getElementById("subject").value.trim(),
 
-city:
+      message: document.getElementById("message").value.trim(),
 
-city.value,
+      tutorId: tutorId,
 
-className:
+      tutorName: tutorName,
 
-document.getElementById("class").value,
+      status: "Pending",
 
-subject:
+      createdAt: serverTimestamp()
 
-subject.value,
+    });
 
-message:
+    alert("✅ Demo booked successfully!");
 
-message.value,
+    form.reset();
 
-status:"Pending",
+  } catch (err) {
 
-createdAt:
+    console.error(err);
 
-serverTimestamp()
-
-}
-
-);
-
-alert("Demo booked successfully!");
-
-form.reset();
-
-}
-
-catch(err){
-
-console.error(err);
-
-alert("Something went wrong.");
-
-}
+    alert("❌ Something went wrong.");
+  }
 
 });

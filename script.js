@@ -1,8 +1,46 @@
-document.getElementById("tutorForm").addEventListener("submit",function(e){
+import { db } from "./firebase.js";
 
-e.preventDefault();
+import {
+  collection,
+  addDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-let msg=`*New Tutor Requirement*%0A%0A
+const form = document.getElementById("tutorForm");
+
+form.addEventListener("submit", async (e) => {
+
+  e.preventDefault();
+
+  try {
+
+    await addDoc(collection(db, "demoBookings"), {
+
+      studentName: document.getElementById("studentName").value,
+
+      parentName: document.getElementById("parentName").value,
+
+      phone: document.getElementById("mobile").value,
+
+      age: document.getElementById("age").value,
+
+      className: document.getElementById("class").value,
+
+      tutor: document.getElementById("tutor").value,
+
+      gender: document.getElementById("gender").value,
+
+      subjects: document.getElementById("subjects").value,
+
+      address: document.getElementById("address").value,
+
+      status: "Pending",
+
+      createdAt: serverTimestamp()
+
+    });
+
+    let msg = `*New Tutor Requirement*%0A%0A
 
 Student : ${studentName.value}%0A
 
@@ -22,38 +60,51 @@ Subjects : ${subjects.value}%0A
 
 Address : ${address.value}`;
 
-window.open(`https://wa.me/919511119120?text=${msg}`);
+    window.open(`https://wa.me/919511119120?text=${msg}`);
+
+    alert("Demo booked successfully!");
+
+    form.reset();
+
+  } catch (err) {
+
+    console.error(err);
+
+    alert("Something went wrong.");
+  }
 
 });
-// Navbar shadow on scroll
 
-window.addEventListener("scroll",()=>{
+// Navbar shadow
+window.addEventListener("scroll", () => {
 
-const header=document.querySelector("header");
+  const header = document.querySelector("header");
 
-if(window.scrollY>30){
+  if (window.scrollY > 30) {
 
-header.classList.add("active");
+    header.classList.add("active");
 
-}else{
+  } else {
 
-header.classList.remove("active");
+    header.classList.remove("active");
 
-}
-
-});
-const search=document.getElementById("searchTutor");
-
-search.addEventListener("keyup",()=>{
-
-const value=search.value.toLowerCase();
-
-document.querySelectorAll(".teacher-card").forEach(card=>{
-
-const text=card.innerText.toLowerCase();
-
-card.style.display=text.includes(value)?"block":"none";
+  }
 
 });
+
+// Search Tutors
+const search = document.getElementById("searchTutor");
+
+search.addEventListener("keyup", () => {
+
+  const value = search.value.toLowerCase();
+
+  document.querySelectorAll(".teacher-card").forEach(card => {
+
+    const text = card.innerText.toLowerCase();
+
+    card.style.display = text.includes(value) ? "block" : "none";
+
+  });
 
 });
