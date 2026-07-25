@@ -7,6 +7,12 @@ const imagekit = new ImageKit({
 });
 
 export default function handler(req, res) {
-  const authParams = imagekit.getAuthenticationParameters();
-  res.status(200).json(authParams);
+  try {
+    const authParams = imagekit.getAuthenticationParameters();
+    res.status(200).json(authParams);
+  } catch (err) {
+    res.status(500).json({
+      error: err.message
+    });
+  }
 }
