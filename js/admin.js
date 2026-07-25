@@ -1,8 +1,10 @@
 import { auth, db } from "./firebase.js";
-
 import {
-    signOut
+    signOut,
+    onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
 
 import {
     collection,
@@ -11,7 +13,29 @@ import {
     updateDoc,
     deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import {
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
+const ADMIN_EMAIL = "shivangsingh0009@gmail.com";
+
+onAuthStateChanged(auth, async (user) => {
+
+    if (!user) {
+        window.location.href = "admin-login.html";
+        return;
+    }
+
+    if (user.email !== ADMIN_EMAIL) {
+        await signOut(auth);
+        window.location.href = "admin-login.html";
+        return;
+    }
+
+});
+
+
+});
 const pendingList = document.getElementById("pendingList");
 const approvedList = document.getElementById("approvedList");
 const rejectedList = document.getElementById("rejectedList");
@@ -22,7 +46,13 @@ const approvedTutors = document.getElementById("approvedTutors");
 const featuredTutors = document.getElementById("featuredTutors");
 
 const searchInput = document.getElementById("searchInput");
+document.getElementById("logoutBtn").onclick = async () => {
 
+    await signOut(auth);
+
+    window.location.href = "admin-login.html";
+
+};
 let tutors = [];
 
 document
