@@ -1,0 +1,176 @@
+/* ==========================
+TUTOR PROFILE
+========================== */
+
+.profile-form{
+    max-width:1100px;
+    margin:40px auto;
+    padding:20px;
+}
+
+.profile-form h1{
+    text-align:center;
+    color:#0f4c81;
+    font-size:36px;
+    margin-bottom:10px;
+}
+
+.profile-form>p{
+    text-align:center;
+    color:#666;
+    margin-bottom:35px;
+}
+
+.form-card{
+    background:#fff;
+    border-radius:15px;
+    padding:25px;
+    margin-bottom:25px;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+.form-card h2{
+    color:#0f4c81;
+    margin-bottom:20px;
+}
+
+.form-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:20px;
+}
+
+.form-card label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:600;
+}
+
+.form-card input,
+.form-card select,
+.form-card textarea{
+    width:100%;
+    padding:12px 15px;
+    border:1px solid #ddd;
+    border-radius:10px;
+    font-size:15px;
+    transition:.3s;
+    box-sizing:border-box;
+}
+
+.form-card input:focus,
+.form-card select:focus,
+.form-card textarea:focus{
+    outline:none;
+    border-color:#0f4c81;
+}
+
+.form-card textarea{
+    resize:vertical;
+}
+
+.checkbox-group{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+}
+
+.checkbox-group label{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:#f5f7fb;
+    padding:10px 15px;
+    border-radius:30px;
+    cursor:pointer;
+}
+
+.checkbox-group input{
+    width:auto;
+}
+
+.primary-btn{
+    width:100%;
+    padding:16px;
+    border:none;
+    border-radius:10px;
+    background:#0f4c81;
+    color:#fff;
+    font-size:18px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.primary-btn:hover{
+    background:#0b3559;
+}
+
+@media(max-width:768px){
+
+.profile-form h1{
+    font-size:28px;
+}
+
+.form-card{
+    padding:20px;
+}
+
+.checkbox-group{
+    flex-direction:column;
+}
+
+}
+.subject-fee-row{
+display:flex;
+gap:15px;
+margin-bottom:15px;
+align-items:center;
+}
+
+.subject-fee-row select{
+flex:2;
+}
+
+.subject-fee-row input{
+flex:1;
+}
+
+.remove-row{
+width:45px;
+height:45px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+background:#ef4444;
+color:#fff;
+font-size:18px;
+}
+
+.secondary-btn{
+margin-top:10px;
+padding:12px 18px;
+background:#0f4c81;
+color:white;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:600;
+}
+
+.secondary-btn:hover{
+opacity:.9;
+}
+
+@media(max-width:768px){
+
+.subject-fee-row{
+flex-direction:column;
+align-items:stretch;
+}
+
+.remove-row{
+width:100%;
+}
+
+}

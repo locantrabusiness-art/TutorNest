@@ -9,274 +9,52 @@
 <title>Complete Tutor Profile | TutorNest</title>
 
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/tutor-profile.css">
 
-<style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,sans-serif;
-}
-
-body{
-background:#f4f7fb;
-padding:30px;
-}
-
-.container{
-
-max-width:950px;
-margin:auto;
-background:#fff;
-padding:30px;
-border-radius:18px;
-box-shadow:0 10px 30px rgba(0,0,0,.08);
-
-}
-
-h2{
-
-text-align:center;
-margin-bottom:25px;
-color:#0f4c81;
-
-}
-
-.grid{
-
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-gap:18px;
-
-}
-
-input,
-select,
-textarea{
-
-width:100%;
-padding:12px;
-border:1px solid #ddd;
-border-radius:10px;
-font-size:15px;
-outline:none;
-transition:.3s;
-
-}
-
-input:focus,
-select:focus,
-textarea:focus{
-
-border-color:#0f4c81;
-
-}
-
-textarea{
-
-height:120px;
-resize:none;
-
-}
-
-.section{
-
-margin-top:30px;
-
-}
-
-.section h3{
-
-margin-bottom:12px;
-color:#0f4c81;
-
-}
-
-.checkbox-grid{
-
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
-gap:10px;
-
-}
-
-.checkbox-grid label{
-
-background:#f8f9fa;
-padding:10px;
-border-radius:10px;
-cursor:pointer;
-transition:.25s;
-
-}
-
-.checkbox-grid label:hover{
-
-background:#eaf3ff;
-
-}
-
-.preview{
-
-margin-top:15px;
-width:150px;
-height:150px;
-border-radius:50%;
-object-fit:cover;
-border:4px solid #0f4c81;
-
-}
-
-.progress{
-
-margin-top:25px;
-background:#ddd;
-height:12px;
-border-radius:50px;
-overflow:hidden;
-
-}
-
-.progress div{
-
-width:0%;
-height:100%;
-background:#0f4c81;
-transition:.4s;
-
-}
-
-#progressText{
-
-margin-top:8px;
-font-weight:bold;
-color:#555;
-
-}
-
-button{
-
-margin-top:30px;
-width:100%;
-padding:15px;
-background:#0f4c81;
-color:white;
-font-size:17px;
-border:none;
-border-radius:10px;
-cursor:pointer;
-transition:.3s;
-
-}
-
-button:hover{
-
-background:#08365c;
-
-}
-
-</style>
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 
 </head>
 
 <body>
 
-<div class="container">
+<nav class="navbar">
 
-<h2>Complete Tutor Profile</h2>
-
-<form id="profileForm">
-
-<div class="grid">
-
-<input
-type="text"
-id="name"
-placeholder="Full Name"
-required>
-
-<input
-type="tel"
-id="phone"
-placeholder="Mobile Number">
-
-<select id="gender">
-
-<option value="">Gender</option>
-
-<option>Male</option>
-
-<option>Female</option>
-
-<option>Other</option>
-
-</select>
-
-<select id="qualification">
-
-<option value="">Qualification</option>
-
-<option>Graduation</option>
-
-<option>Post Graduation</option>
-
-<option>B.Ed</option>
-
-<option>M.Ed</option>
-
-<option>B.Tech</option>
-
-<option>M.Tech</option>
-
-<option>MBBS</option>
-
-<option>CA</option>
-
-<option>Other</option>
-
-</select>
-
-<select id="experience">
-
-<option value="">Experience</option>
-
-<option>0-1 Years</option>
-
-<option>1-3 Years</option>
-
-<option>3-5 Years</option>
-
-<option>5-10 Years</option>
-
-<option>10+ Years</option>
-
-</select>
-
-<input
-type="text"
-id="city"
-placeholder="City">
-
-<input
-type="text"
-id="area"
-placeholder="Teaching Area">
-
-<input
-type="number"
-id="fees"
-placeholder="Fees Per Hour">
-
+<div class="logo">
+<a href="index.html">TutorNest</a>
 </div>
 
-<<div class="section">
+<div class="nav-links">
+<a href="dashboard.html">Dashboard</a>
+<a href="index.html">Home</a>
+</div>
 
-<h3>Subjects</h3>
+</nav>
 
-<div class="checkbox-grid">
+<section class="profile-form">
 
-<label><input type="checkbox" name="subjects" value="Maths"> Maths</label>
+<h1>Complete Your Tutor Profile</h1>
+
+<p>
+Complete your profile to get verified and receive student enquiries.
+</p>
+
+<form id="profileForm">
+<!-- ================= TEACHING DETAILS ================= -->
+
+<div class="form-card">
+
+<h2>Teaching Details</h2>
+
+<div class="form-grid">
+
+<div>
+
+<label>Subjects</label>
+
+<div class="checkbox-group">
+
+<label><input type="checkbox" name="subjects" value="Mathematics"> Mathematics</label>
 
 <label><input type="checkbox" name="subjects" value="Physics"> Physics</label>
 
@@ -286,91 +64,328 @@ placeholder="Fees Per Hour">
 
 <label><input type="checkbox" name="subjects" value="English"> English</label>
 
-<label><input type="checkbox" name="subjects" value="Science"> Science</label>
-
-<label><input type="checkbox" name="subjects" value="Social Science"> Social Science</label>
-
-<label><input type="checkbox" name="subjects" value="Computer"> Computer</label>
-
 <label><input type="checkbox" name="subjects" value="Hindi"> Hindi</label>
 
-<label><input type="checkbox" name="subjects" value="Accounts"> Accounts</label>
+<label><input type="checkbox" name="subjects" value="Computer Science"> Computer Science</label>
 
-<label><input type="checkbox" name="subjects" value="Economics"> Economics</label>
-
-<label><input type="checkbox" name="subjects" value="Business Studies"> Business Studies</label>
+<label><input type="checkbox" name="subjects" value="Other"> Other</label>
 
 </div>
 
 </div>
 
+<div>
 
-<div class="section">
+<label>Classes</label>
 
-<h3>Classes</h3>
+<div class="checkbox-group">
 
-<div class="checkbox-grid">
+<label><input type="checkbox" name="classes" value="Nursery-UKG"> Nursery–UKG</label>
 
-<label><input type="checkbox" name="classes" value="LKG-5"> LKG–5</label>
+<label><input type="checkbox" name="classes" value="1"> Class 1</label>
 
-<label><input type="checkbox" name="classes" value="6-8"> 6–8</label>
+<label><input type="checkbox" name="classes" value="2"> Class 2</label>
 
-<label><input type="checkbox" name="classes" value="9-10"> 9–10</label>
+<label><input type="checkbox" name="classes" value="3"> Class 3</label>
 
-<label><input type="checkbox" name="classes" value="11-12"> 11–12</label>
+<label><input type="checkbox" name="classes" value="4"> Class 4</label>
 
-<label><input type="checkbox" name="classes" value="College"> College</label>
+<label><input type="checkbox" name="classes" value="5"> Class 5</label>
 
-<label><input type="checkbox" name="classes" value="Competitive Exams"> Competitive Exams</label>
+<label><input type="checkbox" name="classes" value="6"> Class 6</label>
 
-</div>
+<label><input type="checkbox" name="classes" value="7"> Class 7</label>
 
-</div>
+<label><input type="checkbox" name="classes" value="8"> Class 8</label>
 
+<label><input type="checkbox" name="classes" value="9"> Class 9</label>
 
-<div class="section">
+<label><input type="checkbox" name="classes" value="10"> Class 10</label>
 
-<h3>Board</h3>
+<label><input type="checkbox" name="classes" value="11"> Class 11</label>
 
-<div class="checkbox-grid">
+<label><input type="checkbox" name="classes" value="12"> Class 12</label>
 
-<label><input type="checkbox" name="board" value="CBSE"> CBSE</label>
+<label><input type="checkbox" name="classes" value="JEE"> JEE</label>
 
-<label><input type="checkbox" name="board" value="ICSE"> ICSE</label>
+<label><input type="checkbox" name="classes" value="NEET"> NEET</label>
 
-<label><input type="checkbox" name="board" value="State Board"> State Board</label>
+<label><input type="checkbox" name="classes" value="CUET"> CUET</label>
 
-<label><input type="checkbox" name="board" value="IB"> IB</label>
-
-<label><input type="checkbox" name="board" value="Cambridge"> Cambridge</label>
-
-</div>
-
-</div>
-
-
-<div class="section">
-
-<h3>Teaching Mode</h3>
-
-<div class="checkbox-grid">
-
-<label><input type="checkbox" name="mode" value="Home Tuition"> Home Tuition</label>
-
-<label><input type="checkbox" name="mode" value="Online"> Online</label>
-
-<label><input type="checkbox" name="mode" value="Institute"> Institute</label>
+<label><input type="checkbox" name="classes" value="Other"> Other</label>
 
 </div>
 
 </div>
 
+</div>
 
-<div class="section">
+</div>
 
-<h3>Languages</h3>
+<!-- ================= SUBJECT-WISE FEES ================= -->
 
-<div class="checkbox-grid">
+<!-- ================= SUBJECTS & FEES ================= -->
+
+<div class="form-card">
+
+<h2>Subjects & Monthly Fees</h2>
+
+<p>Add every subject you teach along with your monthly fee.</p>
+
+<div id="subjectFeeContainer">
+
+<div class="subject-fee-row">
+
+<select class="subject-select">
+
+<option value="">Select Subject</option>
+
+<option>Mathematics</option>
+<option>Physics</option>
+<option>Chemistry</option>
+<option>Biology</option>
+<option>English</option>
+<option>Hindi</option>
+<option>Computer Science</option>
+<option>Economics</option>
+<option>Accounts</option>
+<option>Business Studies</option>
+<option>Other</option>
+
+</select>
+
+<input
+type="number"
+class="subject-fee"
+placeholder="Monthly Fee">
+
+<button
+type="button"
+class="remove-row">
+
+<i class="fa-solid fa-trash"></i>
+
+</button>
+
+</div>
+
+</div>
+
+<button
+type="button"
+id="addSubjectBtn"
+class="secondary-btn">
+
+<i class="fa-solid fa-plus"></i>
+
+Add Another Subject
+
+</button>
+
+</div>
+<!-- ================= PERSONAL ================= -->
+
+<div class="form-card">
+
+<h2>Personal Information</h2>
+
+<div class="form-grid">
+
+<div>
+
+<label>Full Name</label>
+
+<input
+type="text"
+id="name"
+required>
+
+</div>
+
+<div>
+
+<label>Email</label>
+
+<input
+type="email"
+id="email"
+readonly>
+
+</div>
+
+<div>
+
+<label>Phone Number</label>
+
+<input
+type="tel"
+id="phone"
+required>
+
+</div>
+
+<div>
+
+<label>Date of Birth</label>
+
+<input
+type="date"
+id="dob">
+
+</div>
+
+</div>
+
+</div>
+
+<!-- ================= PROFESSIONAL ================= -->
+
+<div class="form-card">
+
+<h2>Professional Details</h2>
+
+<div class="form-grid">
+
+<div>
+
+<label>Qualification</label>
+
+<input
+type="text"
+id="qualification"
+placeholder="B.Tech / M.Sc / M.A">
+
+</div>
+
+<div>
+
+<label>College / University</label>
+
+<input
+type="text"
+id="college">
+
+</div>
+
+<div>
+
+<label>Experience (Years)</label>
+
+<input
+type="number"
+id="experience"
+min="0">
+
+</div>
+
+</div>
+
+</div>
+
+<!-- ================= ABOUT ================= -->
+
+<div class="form-card">
+
+<h2>About Tutor</h2>
+
+<textarea
+id="about"
+rows="6"
+placeholder="Write about yourself..."></textarea>
+
+</div>
+<!-- ================= LOCATION ================= -->
+
+<div class="form-card">
+
+<h2>Location</h2>
+
+<div class="form-grid">
+
+<div>
+
+<label>Area</label>
+
+<select id="area">
+
+<option value="">Select Area</option>
+
+<option>Gomti Nagar</option>
+<option>Indira Nagar</option>
+<option>Aliganj</option>
+<option>Jankipuram</option>
+<option>Hazratganj</option>
+<option>Alambagh</option>
+<option>Rajajipuram</option>
+<option>Ashiyana</option>
+<option>Chinhat</option>
+<option>Mahanagar</option>
+<option>Vrindavan Yojana</option>
+<option>Faizabad Road</option>
+<option>Other</option>
+
+</select>
+
+</div>
+
+<div>
+
+<label>Pincode (Optional)</label>
+
+<input
+type="text"
+id="pincode">
+
+</div>
+
+</div>
+
+</div>
+
+<!-- ================= TEACHING MODE ================= -->
+
+<div class="form-card">
+
+<h2>Teaching Mode</h2>
+
+<div class="checkbox-group">
+
+<label>
+<input type="radio"
+name="mode"
+value="Home Tuition"
+checked>
+
+Home Tuition
+</label>
+
+<label>
+<input type="radio"
+name="mode"
+value="Online">
+
+Online
+</label>
+
+<label>
+<input type="radio"
+name="mode"
+value="Both">
+
+Both
+</label>
+
+</div>
+
+</div>
+
+<!-- ================= LANGUAGES ================= -->
+
+<div class="form-card">
+
+<h2>Languages</h2>
+
+<div class="checkbox-group">
 
 <label><input type="checkbox" name="languages" value="Hindi"> Hindi</label>
 
@@ -378,97 +393,117 @@ placeholder="Fees Per Hour">
 
 <label><input type="checkbox" name="languages" value="Urdu"> Urdu</label>
 
-<label><input type="checkbox" name="languages" value="Punjabi"> Punjabi</label>
+<label><input type="checkbox" name="languages" value="Other"> Other</label>
 
 </div>
 
 </div>
 
+<!-- ================= AVAILABILITY ================= -->
 
-<div class="section">
+<div class="form-card">
 
-<h3>About Yourself</h3>
+<h2>Availability</h2>
 
-<textarea
-id="about"
-placeholder="Write about yourself..."></textarea>
+<div class="form-grid">
+
+<div>
+
+<label>Days Available</label>
+
+<select id="availability">
+
+<option>Monday - Friday</option>
+<option>Monday - Saturday</option>
+<option>All Days</option>
+<option>Weekend Only</option>
+
+</select>
 
 </div>
 
+<div>
 
-<div class="section">
+<label>Preferred Time</label>
 
-<h3>Profile Photo</h3>
+<select id="timeSlot">
+
+<option>Morning</option>
+<option>Afternoon</option>
+<option>Evening</option>
+<option>Any Time</option>
+
+</select>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- ================= UPLOADS ================= -->
+
+<div class="form-card">
+
+<h2>Documents</h2>
+
+<div class="form-grid">
+
+<div>
+
+<label>Profile Photo</label>
 
 <input
 type="file"
 id="photo"
 accept="image/*">
 
-<br><br>
-
-<img
-
-id="preview"
-
-class="preview"
-
-src="assets/logo/logo.png">
-
 </div>
 
+<div>
 
-<div class="section">
-
-<h3>Free Demo</h3>
-
-<label>
+<label>Aadhaar / ID Proof</label>
 
 <input
-type="checkbox"
-id="demoAvailable">
-
-Free Demo Available
-
-</label>
+type="file"
+id="aadhaar">
 
 </div>
 
+<div>
 
-<div class="section">
+<label>Qualification Certificate</label>
 
-<h3>Profile Completion</h3>
-
-<div class="progress">
-
-<div id="progressBar"></div>
-
-</div>
-
-<p id="progressText">
-
-0% Complete
-
-</p>
+<input
+type="file"
+id="certificate">
 
 </div>
 
+</div>
+
+</div>
+
+<!-- ================= SUBMIT ================= -->
+
+<div class="form-card">
 
 <button
-
 type="submit"
+class="primary-btn"
+style="width:100%;">
 
-id="saveBtn">
-
-💾 Save Profile
+Save Profile
 
 </button>
 
-</form>
-
 </div>
 
-<script type="module" src="js/profile.js"></script>
+</form>
+
+</section>
+
+<script type="module" src="js/tutor-profile.js"></script>
 
 </body>
 

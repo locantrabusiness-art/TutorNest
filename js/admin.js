@@ -1,93 +1,69 @@
-import { auth, db } from "../firebase.js";import {
-    signOut,
-    onAuthStateChanged
+import { auth, db } from "../firebase.js";
+
+import {
+    onAuthStateChanged,
+    signOut
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-
-
 
 import {
     collection,
     getDocs,
     doc,
+    getDoc,
     updateDoc,
-    deleteDoc,
-    getDoc
+    deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-onAuthStateChanged(auth, async (user) => {
 
-    if (!user) {
-        window.location.href = "admin-login.html";
-        return;
-    }
-
-    try {
-
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-
-        if (!userDoc.exists()) {
-            await signOut(auth);
-            window.location.href = "admin-login.html";
-            return;
-        }
-
-        const userData = userDoc.data();
-
-        if (userData.role !== "admin") {
-            await signOut(auth);
-            window.location.href = "admin-login.html";
-            return;
-        }
-
-        // Admin verified
-        loadTutors();
-
-    } catch (err) {
-
-        console.error(err);
-
-        await signOut(auth);
-
-        window.location.href = "admin-login.html";
-
-    }
-
-});
-
-
-
-const pendingList = document.getElementById("pendingList");
-const approvedList = document.getElementById("approvedList");
-const rejectedList = document.getElementById("rejectedList");
+const tbody = document.getElementById("tutorTableBody");
 
 const totalTutors = document.getElementById("totalTutors");
-const pendingTutors = document.getElementById("pendingTutors");
 const approvedTutors = document.getElementById("approvedTutors");
-const featuredTutors = document.getElementById("featuredTutors");
+const pendingTutors = document.getElementById("pendingTutors");
+const rejectedTutors = document.getElementById("rejectedTutors");
 
 const searchInput = document.getElementById("searchInput");
-document.getElementById("logoutBtn").onclick = async () => {
+const statusFilter = document.getElementById("statusFilter");
 
-    await signOut(auth);
-
-    window.location.href = "admin-login.html";
-
-};
 let tutors = [];
+onAuthStateChanged(auth, async(user)=>{
 
+    if(!user){
 
+        window.location.href="login.html";
+        return;
+
+    }
+
+    const adminRef=doc(db,"admins",user.uid);
+
+    const adminSnap=await getDoc(adminRef);
+
+    if(!adminSnap.exists()){
+
+        alert("Unauthorized Access");
+
+        window.location.href="index.html";
+
+        return;
+
+    }
+
+    loadTutors();
+
+});
 async function loadTutors(){
 
-    const snap = await getDocs(collection(db,"tutors"));
+    const snapshot=await getDocs(collection(db,"tutors"));
 
-    tutors = [];
+    tutors=[];
 
-    snap.forEach(docSnap=>{
+    snapshot.forEach(docItem=>{
 
         tutors.push({
 
-            id:docSnap.id,
+            id:docItem.id,
 
-            ...docSnap.data()
+            ...docItem.data()
 
         });
 
@@ -95,289 +71,157 @@ async function loadTutors(){
 
     updateStats();
 
-    renderAll();
+    renderTable(tutors);
 
 }
-
 function updateStats(){
 
-    totalTutors.textContent = tutors.length;
+    totalTutors.textContent=tutors.length;
 
-    pendingTutors.textContent =
-        tutors.filter(x=>x.status==="Pending").length;
+    approvedTutors.textContent=tutors.filter(
+        t=>t.status==="Approved"
+    ).length;
 
-    approvedTutors.textContent =
-        tutors.filter(x=>x.status==="Approved").length;
+    pendingTutors.textContent=tutors.filter(
+        t=>t.status==="Pending"
+    ).length;
 
-    featuredTutors.textContent =
-        tutors.filter(x=>x.featured===true).length;
-
-}
-
-function renderAll(){
-
-    const keyword =
-        searchInput.value.toLowerCase();
-
-    pendingList.innerHTML="";
-    approvedList.innerHTML="";
-    rejectedList.innerHTML="";
-
-    tutors.forEach(tutor=>{
-
-        if(
-            keyword &&
-            !(tutor.name||"")
-            .toLowerCase()
-            .includes(keyword)
-        ){
-            return;
-        }
-
-        const card = createCard(tutor);
-
-        if(tutor.status==="Pending")
-            pendingList.appendChild(card);
-
-        else if(tutor.status==="Approved")
-            approvedList.appendChild(card);
-
-        else
-            rejectedList.appendChild(card);
-
-    });
+    rejectedTutors.textContent=tutors.filter(
+        t=>t.status==="Rejected"
+    ).length;
 
 }
+function renderTable(data){
 
-searchInput.addEventListener(
-    "input",
-    renderAll
-);
-function createCard(tutor){
+tbody.innerHTML="";
 
-    const div=document.createElement("div");
+data.forEach(tutor=>{
 
-    div.className="tutor-card";
+tbody.innerHTML+=`
 
-    div.innerHTML=`
+<tr>
 
-    <img src="${tutor.photo || 'assets/logo/logo.png'}">
+<td>
 
-    <h3>${tutor.name}</h3>
+<img src="${tutor.photoURL || 'images/default-user.png'}">
 
-    <p><b>Qualification:</b> ${tutor.qualification || "-"}</p>
+</td>
 
-    <p><b>Subjects:</b> ${(tutor.subjects || []).join(", ")}</p>
+<td>${tutor.name || "-"}</td>
 
-    <p><b>Area:</b> ${tutor.area || "-"}</p>
+<td>${tutor.area || "-"}</td>
 
-    <p><b>Status:</b> ${tutor.status}</p>
+<td>${tutor.qualification || "-"}</td>
 
-    <div class="actions">
+<td>${tutor.status || "-"}</td>
 
-    ${
-        tutor.status==="Pending"
-        ?
-        `
-        <button class="approve"
-        onclick="approveTutor('${tutor.id}')">
-        Approve
-        </button>
+<td>
 
-        <button class="reject"
-        onclick="rejectTutor('${tutor.id}')">
-        Reject
-        </button>
-        `
-        :
-        ""
-    }
+<button
+class="action-btn view-btn"
+data-id="${tutor.id}">
 
-    ${
-        tutor.status==="Approved"
-        ?
-        tutor.featured
-        ?
-        `
-        <button class="remove"
-        onclick="removeFeatured('${tutor.id}')">
-        Remove Featured
-        </button>
-        `
-        :
-        `
-        <button class="feature"
-        onclick="featureTutor('${tutor.id}')">
-        Feature
-        </button>
-        `
-        :
-        ""
-    }
+View
 
-    <button class="delete"
-    onclick="deleteTutor('${tutor.id}')">
+</button>
 
-    Delete
+<button
+class="action-btn approve-btn"
+data-id="${tutor.id}">
 
-    </button>
+Approve
 
-    </div>
+</button>
 
-    `;
+<button
+class="action-btn reject-btn"
+data-id="${tutor.id}">
 
-    return div;
+Reject
+
+</button>
+
+<button
+class="action-btn delete-btn"
+data-id="${tutor.id}">
+
+Delete
+
+</button>
+
+</td>
+
+</tr>
+
+`;
+
+});
 
 }
-// ----------------------
-// Approve Tutor
-// ----------------------
+function renderTable(data){
 
-window.approveTutor = async function(id){
+tbody.innerHTML="";
 
-    try{
+data.forEach(tutor=>{
 
-        await updateDoc(
-            doc(db,"tutors",id),
-            {
-                status:"Approved"
-            }
-        );
+tbody.innerHTML+=`
 
-        await loadTutors();
+<tr>
 
-    }
+<td>
 
-    catch(err){
+<img src="${tutor.photoURL || 'images/default-user.png'}">
 
-        console.error(err);
+</td>
 
-        alert("Unable to approve tutor.");
+<td>${tutor.name || "-"}</td>
 
-    }
+<td>${tutor.area || "-"}</td>
 
-};
+<td>${tutor.qualification || "-"}</td>
 
+<td>${tutor.status || "-"}</td>
 
-// ----------------------
-// Reject Tutor
-// ----------------------
+<td>
 
-window.rejectTutor = async function(id){
+<button
+class="action-btn view-btn"
+data-id="${tutor.id}">
 
-    try{
+View
 
-        await updateDoc(
-            doc(db,"tutors",id),
-            {
-                status:"Rejected"
-            }
-        );
+</button>
 
-        await loadTutors();
+<button
+class="action-btn approve-btn"
+data-id="${tutor.id}">
 
-    }
+Approve
 
-    catch(err){
+</button>
 
-        console.error(err);
+<button
+class="action-btn reject-btn"
+data-id="${tutor.id}">
 
-        alert("Unable to reject tutor.");
+Reject
 
-    }
+</button>
 
-};
+<button
+class="action-btn delete-btn"
+data-id="${tutor.id}">
 
+Delete
 
-// ----------------------
-// Feature Tutor
-// ----------------------
+</button>
 
-window.featureTutor = async function(id){
+</td>
 
-    try{
+</tr>
 
-        await updateDoc(
-            doc(db,"tutors",id),
-            {
-                featured:true
-            }
-        );
+`;
 
-        await loadTutors();
+});
 
-    }
-
-    catch(err){
-
-        console.error(err);
-
-        alert("Unable to feature tutor.");
-
-    }
-
-};
-
-
-// ----------------------
-// Remove Featured
-// ----------------------
-
-window.removeFeatured = async function(id){
-
-    try{
-
-        await updateDoc(
-            doc(db,"tutors",id),
-            {
-                featured:false
-            }
-        );
-
-        await loadTutors();
-
-    }
-
-    catch(err){
-
-        console.error(err);
-
-        alert("Unable to remove featured tutor.");
-
-    }
-
-};
-
-
-// ----------------------
-// Delete Tutor
-// ----------------------
-
-window.deleteTutor = async function(id){
-
-    const ok = confirm(
-        "Delete this tutor permanently?"
-    );
-
-    if(!ok) return;
-
-    try{
-
-        await deleteDoc(
-            doc(db,"tutors",id)
-        );
-
-        await loadTutors();
-
-    }
-
-    catch(err){
-
-        console.error(err);
-
-        alert("Unable to delete tutor.");
-
-    }
-
-};
-
+}

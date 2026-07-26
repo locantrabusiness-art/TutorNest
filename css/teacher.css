@@ -1,0 +1,158 @@
+/* ===========================
+TEACHER PROFILE
+=========================== */
+
+.teacher-profile{
+    max-width:1100px;
+    margin:40px auto;
+    padding:0 20px;
+}
+
+.profile-card{
+    display:flex;
+    gap:30px;
+    align-items:center;
+    background:#fff;
+    padding:30px;
+    border-radius:15px;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+.profile-card img{
+    width:180px;
+    height:180px;
+    border-radius:50%;
+    object-fit:cover;
+    border:5px solid #0f4c81;
+}
+
+.profile-info{
+    flex:1;
+}
+
+.profile-info h1{
+    font-size:34px;
+    color:#0f4c81;
+    margin-bottom:10px;
+}
+
+.profile-info p{
+    margin:8px 0;
+    color:#555;
+    font-size:17px;
+}
+
+.verified{
+    display:inline-block;
+    margin-top:15px;
+    background:#e8f7ec;
+    color:#28a745;
+    padding:10px 16px;
+    border-radius:30px;
+    font-weight:600;
+}
+
+.teacher-section{
+    max-width:1100px;
+    margin:30px auto;
+    background:#fff;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+.teacher-section h2{
+    color:#0f4c81;
+    margin-bottom:20px;
+}
+
+.subject-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:14px 0;
+    border-bottom:1px solid #eee;
+}
+
+.subject-row:last-child{
+    border-bottom:none;
+}
+
+.class-badge{
+    display:inline-block;
+    background:#0f4c81;
+    color:#fff;
+    padding:8px 14px;
+    border-radius:30px;
+    margin:6px;
+    font-size:14px;
+}
+
+.teacher-buttons{
+    max-width:1100px;
+    margin:40px auto 60px;
+    display:flex;
+    gap:20px;
+    justify-content:center;
+    padding:0 20px;
+}
+
+.teacher-buttons button{
+    padding:14px 28px;
+    border:none;
+    border-radius:10px;
+    font-size:16px;
+    cursor:pointer;
+    transition:.3s;
+    font-weight:600;
+}
+
+#demoBtn{
+    background:#0f4c81;
+    color:#fff;
+}
+
+#demoBtn:hover{
+    background:#0b3559;
+}
+
+#whatsappBtn{
+    background:#25D366;
+    color:#fff;
+}
+
+#whatsappBtn:hover{
+    background:#1faa52;
+}
+
+@media(max-width:768px){
+
+.profile-card{
+    flex-direction:column;
+    text-align:center;
+}
+
+.profile-card img{
+    width:140px;
+    height:140px;
+}
+
+.profile-info h1{
+    font-size:28px;
+}
+
+.subject-row{
+    flex-direction:column;
+    gap:8px;
+    text-align:center;
+}
+
+.teacher-buttons{
+    flex-direction:column;
+}
+
+.teacher-buttons button{
+    width:100%;
+}
+
+}

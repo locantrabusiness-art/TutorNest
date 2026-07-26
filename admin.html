@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Admin Dashboard | TutorNest</title>
+
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/admin.css">
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+</head>
+
+<body>
+
+<nav class="navbar">
+
+<div class="logo">
+<a href="index.html">TutorNest Admin</a>
+</div>
+
+<div class="nav-links">
+<a href="index.html">Home</a>
+<a href="#" id="logoutBtn">Logout</a>
+</div>
+
+</nav>
+
+<section class="admin-dashboard">
+
+<h1>Admin Dashboard</h1>
+
+<div class="stats-grid">
+
+<div class="stat-card">
+<h2 id="totalTutors">0</h2>
+<p>Total Tutors</p>
+</div>
+
+<div class="stat-card">
+<h2 id="approvedTutors">0</h2>
+<p>Approved</p>
+</div>
+
+<div class="stat-card">
+<h2 id="pendingTutors">0</h2>
+<p>Pending</p>
+</div>
+
+<div class="stat-card">
+<h2 id="rejectedTutors">0</h2>
+<p>Rejected</p>
+</div>
+
+</div>
+
+<!-- Search & Filters -->
+
+<div class="filter-box">
+
+<input
+type="text"
+id="searchInput"
+placeholder="Search by name...">
+
+<select id="statusFilter">
+
+<option value="All">All Status</option>
+<option value="Pending">Pending</option>
+<option value="Approved">Approved</option>
+<option value="Rejected">Rejected</option>
+
+</select>
+
+</div>
+
+<!-- Tutor Table -->
+
+<div class="table-wrapper">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Photo</th>
+<th>Name</th>
+<th>Area</th>
+<th>Qualification</th>
+<th>Status</th>
+<th>Actions</th>
+
+</tr>
+
+</thead>
+
+<tbody id="tutorTableBody">
+
+</tbody>
+
+</table>
+
+</div>
+
+</section>
+</section>
+
+<!-- YAHAN MODAL PASTE KARNA HAI -->
+
+<div id="viewModal" class="modal">
+
+    ...
+    Modal ka sara code...
+    ...
+
+</div>
+
+<script type="module" src="js/admin.js"></script>
+
+</body>
+</html>

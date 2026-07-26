@@ -5,30 +5,59 @@ import {
     getDoc
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
+// ==========================
+// Get Tutor ID
+// ==========================
+
 const params = new URLSearchParams(window.location.search);
+const tutorId = params.get("id");
 
-const uid = params.get("id");
+if (!tutorId) {
 
-if (!uid) {
-
-    document.body.innerHTML =
-        "<h2 style='text-align:center;margin-top:80px;'>Tutor Not Found</h2>";
-
-    throw new Error("No Tutor ID");
+    alert("Tutor not found.");
+    window.location.href = "search.html";
 
 }
 
+// ==========================
+// Elements
+// ==========================
+
+const profileImage = document.getElementById("profileImage");
+const teacherName = document.getElementById("teacherName");
+const qualification = document.getElementById("qualification");
+const experience = document.getElementById("experience");
+const locationText = document.getElementById("location");
+const about = document.getElementById("about");
+const mode = document.getElementById("mode");
+const languages = document.getElementById("languages");
+
+const subjectContainer =
+document.getElementById("subjectContainer");
+
+const classContainer =
+document.getElementById("classContainer");
+
+const whatsappBtn =
+document.getElementById("whatsappBtn");
+
+// ==========================
+// Load Tutor
+// ==========================
 
 async function loadTutor() {
 
     try {
 
-        const snap = await getDoc(doc(db, "tutors", uid));
+        const docRef = doc(db, "tutors", tutorId);
+
+        const snap = await getDoc(docRef);
 
         if (!snap.exists()) {
 
-            document.body.innerHTML =
-                "<h2 style='text-align:center;margin-top:80px;'>Tutor Not Found</h2>";
+            alert("Tutor not found.");
+
+            window.location.href = "search.html";
 
             return;
 
@@ -36,45 +65,112 @@ async function loadTutor() {
 
         const tutor = snap.data();
 
-        document.getElementById("photo").src =
-            tutor.photo || "assets/logo/logo.png";
+        profileImage.src =
+            tutor.photoURL ||
+            "assets/images/default-user.png";
 
-        document.getElementById("name").textContent =
-            tutor.name || "-";
+        teacherName.textContent =
+            tutor.name || "Tutor";
 
-        document.getElementById("qualification").textContent =
+        qualification.textContent =
             tutor.qualification || "-";
 
-        document.getElementById("subjects").textContent =
-            (tutor.subjects || []).join(", ");
+        experience.textContent =
+            `${tutor.experience || 0} Years Experience`;
 
-        document.getElementById("classes").textContent =
-            (tutor.classes || []).join(", ");
+        locationText.textContent =
+            "📍 " + (tutor.area || "Lucknow");
 
-        document.getElementById("experience").textContent =
-            (tutor.experience || 0) + " Years";
+        about.textContent =
+            tutor.about ||
+            "No description available.";
 
-        document.getElementById("fees").textContent =
-            "₹" + (tutor.fees || "-") + "/hr";
+        mode.textContent =
+            tutor.teachingMode ||
+            "Home Tuition";
 
-        document.getElementById("area").textContent =
-            tutor.area || "-";
+        languages.textContent =
+            tutor.languages || "Hindi";
 
-        document.getElementById("mode").textContent =
-            (tutor.mode || []).join(", ");
+        // =====================
+        // Subjects
+        // =====================
 
-        document.getElementById("about").textContent =
-            tutor.about || "No description available.";
+        subjectContainer.innerHTML = "";
 
-        document.getElementById("callBtn").href =
-            "tel:" + tutor.phone;
+        if (Array.isArray(tutor.subjects)) {
 
-        document.getElementById("whatsappBtn").href =
-            "https://wa.me/91" +
-            tutor.phone +
-            "?text=Hi " +
-            encodeURIComponent(tutor.name) +
-            ", I found your profile on TutorNest. I want to book a free demo.";
+            tutor.subjects.forEach(subject => {
+
+                const row =
+                document.createElement("div");
+
+                row.className = "subject-row";
+
+                row.innerHTML = `
+
+                    <span>${subject}</span>
+
+                    <strong>
+
+                    ₹${tutor.monthlyFee || "-"}/Month
+
+                    </strong>
+
+                `;
+
+                subjectContainer.appendChild(row);
+
+            });
+
+        }
+
+        // =====================
+        // Classes
+        // =====================
+
+        classContainer.innerHTML = "";
+
+        if (Array.isArray(tutor.classes)) {
+
+            tutor.classes.forEach(cls => {
+
+                const badge =
+                document.createElement("span");
+
+                badge.className = "class-badge";
+
+                badge.textContent = cls;
+
+                classContainer.appendChild(badge);
+
+            });
+
+        }
+
+        // =====================
+        // WhatsApp
+        // =====================
+
+        whatsappBtn.onclick = () => {
+
+            if (!tutor.phone) {
+
+                alert("Phone number unavailable.");
+
+                return;
+
+            }
+
+            window.open(
+
+                `https://wa.me/91${tutor.phone}`,
+
+                "_blank"
+
+            );
+
+        };
 
     }
 
@@ -82,8 +178,7 @@ async function loadTutor() {
 
         console.error(err);
 
-        document.body.innerHTML =
-            "<h2 style='text-align:center;margin-top:80px;'>Something went wrong.</h2>";
+        alert("Failed to load tutor.");
 
     }
 

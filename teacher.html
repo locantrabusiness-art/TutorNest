@@ -1,275 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Teacher Profile | TutorNest</title>
+<title>Tutor Profile | TutorNest</title>
 
-<style>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/teacher.css">
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,sans-serif;
-}
-
-body{
-background:#f5f7fb;
-}
-
-.container{
-
-max-width:1100px;
-
-margin:40px auto;
-
-padding:20px;
-
-}
-
-.profile{
-
-background:white;
-
-border-radius:20px;
-
-padding:30px;
-
-display:grid;
-
-grid-template-columns:300px 1fr;
-
-gap:40px;
-
-box-shadow:0 10px 25px rgba(0,0,0,.08);
-
-}
-
-.left{
-
-text-align:center;
-
-}
-
-.left img{
-
-width:220px;
-
-height:220px;
-
-border-radius:50%;
-
-object-fit:cover;
-
-border:6px solid #0d6efd;
-
-}
-
-.left h2{
-
-margin-top:20px;
-
-}
-
-.left p{
-
-color:#666;
-
-margin-top:8px;
-
-}
-
-.right h3{
-
-margin-bottom:20px;
-
-color:#0d6efd;
-
-}
-
-.info{
-
-display:grid;
-
-grid-template-columns:repeat(2,1fr);
-
-gap:15px;
-
-margin-bottom:25px;
-
-}
-
-.card{
-
-background:#f8f9fa;
-
-padding:15px;
-
-border-radius:12px;
-
-}
-
-.about{
-
-background:#f8f9fa;
-
-padding:20px;
-
-border-radius:15px;
-
-margin-top:20px;
-
-line-height:1.7;
-
-}
-
-.buttons{
-
-margin-top:30px;
-
-display:flex;
-
-gap:15px;
-
-flex-wrap:wrap;
-
-}
-
-.buttons a{
-
-padding:14px 24px;
-
-text-decoration:none;
-
-color:white;
-
-border-radius:10px;
-
-font-weight:bold;
-
-}
-
-.call{
-
-background:#0d6efd;
-
-}
-
-.whatsapp{
-
-background:#25D366;
-
-}
-
-.demo{
-
-background:#ff9800;
-
-}
-
-@media(max-width:768px){
-
-.profile{
-
-grid-template-columns:1fr;
-
-}
-
-.info{
-
-grid-template-columns:1fr;
-
-}
-
-}
-
-</style>
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 
 </head>
 
 <body>
 
-<div class="container">
+<!-- NAVBAR -->
 
-<div class="profile">
+<nav class="navbar">
 
-<div class="left">
-
-<img id="photo" src="assets/logo/logo.png">
-
-<h2 id="name">Loading...</h2>
-
-<p id="qualification"></p>
-
+<div class="logo">
+<a href="index.html">TutorNest</a>
 </div>
 
-<div class="right">
-
-<h3>Tutor Information</h3>
-
-<div class="info">
-
-<div class="card">
-<b>Subjects</b>
-<p id="subjects"></p>
+<div class="nav-links">
+<a href="index.html">Home</a>
+<a href="search.html">Find Tutors</a>
 </div>
 
-<div class="card">
-<b>Classes</b>
-<p id="classes"></p>
-</div>
+</nav>
 
-<div class="card">
-<b>Experience</b>
-<p id="experience"></p>
-</div>
+<!-- PROFILE -->
 
-<div class="card">
-<b>Fees</b>
-<p id="fees"></p>
-</div>
+<section class="teacher-profile">
 
-<div class="card">
-<b>Area</b>
-<p id="area"></p>
-</div>
+<div class="profile-card">
 
-<div class="card">
-<b>Mode</b>
-<p id="mode"></p>
-</div>
+<img
+id="profileImage"
+src="assets/images/default-user.png"
+alt="Tutor">
 
-</div>
+<div class="profile-info">
 
-<div class="about">
+<h1 id="teacherName">
 
-<h3>About Tutor</h3>
+Loading...
 
-<p id="about"></p>
+</h1>
 
-</div>
+<p id="qualification">
 
-<div class="buttons">
+Qualification
 
-<a id="callBtn"
-class="call"
-href="#">📞 Call</a>
+</p>
 
-<a id="whatsappBtn"
-class="whatsapp"
-target="_blank"
-href="#">💬 WhatsApp</a>
+<p id="experience">
 
-<a
-class="demo"
-href="contact.html">
+Experience
 
-🎓 Book Free Demo
+</p>
 
-</a>
+<p id="location">
+
+📍 Lucknow
+
+</p>
+
+<div class="verified">
+
+<i class="fa-solid fa-circle-check"></i>
+
+Verified Tutor
 
 </div>
 
@@ -277,9 +82,96 @@ href="contact.html">
 
 </div>
 
+</section>
+
+<!-- ABOUT -->
+
+<section class="teacher-section">
+
+<h2>About Tutor</h2>
+
+<p id="about">
+
+No description available.
+
+</p>
+
+</section>
+
+<!-- SUBJECTS -->
+
+<section class="teacher-section">
+
+<h2>Subjects & Monthly Fees</h2>
+
+<div id="subjectContainer">
+
 </div>
+
+</section>
+
+<!-- CLASSES -->
+
+<section class="teacher-section">
+
+<h2>Classes</h2>
+
+<div id="classContainer">
+
+</div>
+
+</section>
+
+<!-- MODE -->
+
+<section class="teacher-section">
+
+<h2>Teaching Mode</h2>
+
+<p id="mode">
+
+Home Tuition
+
+</p>
+
+</section>
+
+<!-- LANGUAGES -->
+
+<section class="teacher-section">
+
+<h2>Languages</h2>
+
+<p id="languages">
+
+Hindi, English
+
+</p>
+
+</section>
+
+<!-- BUTTONS -->
+
+<section class="teacher-buttons">
+
+<button id="demoBtn">
+
+Request Demo
+
+</button>
+
+<button id="whatsappBtn">
+
+<i class="fa-brands fa-whatsapp"></i>
+
+WhatsApp
+
+</button>
+
+</section>
 
 <script type="module" src="js/teacher.js"></script>
 
 </body>
+
 </html>

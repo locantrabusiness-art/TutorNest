@@ -20,6 +20,7 @@ const progressBar = document.getElementById("progressBar");
 const progressText = document.getElementById("progressText");
 
 const previewBtn = document.getElementById("previewBtn");
+const editProfileBtn = document.getElementById("editProfileBtn");
 
 onAuthStateChanged(auth, async (user) => {
 
@@ -47,66 +48,36 @@ onAuthStateChanged(auth, async (user) => {
 
         const tutor = tutorSnap.data();
 
-        // -----------------------------
         // Basic Details
-        // -----------------------------
-
         nameEl.innerText = tutor.name || "Tutor";
-
         emailEl.innerText = tutor.email || user.email;
 
-        // -----------------------------
         // Profile Photo
-        // -----------------------------
+        profilePhoto.src = tutor.photo || "assets/logo/logo.png";
 
-        if (tutor.photo) {
+        // Status
+        if (tutor.status === "Approved") {
 
-            profilePhoto.src = tutor.photo;
+            statusEl.innerHTML = "✅ Verified Tutor";
+            statusEl.style.background = "#d4edda";
+            statusEl.style.color = "#155724";
+
+        } else if (tutor.status === "Rejected") {
+
+            statusEl.innerHTML = "❌ Rejected - Contact Admin";
+            statusEl.style.background = "#f8d7da";
+            statusEl.style.color = "#721c24";
 
         } else {
 
-            profilePhoto.src = "assets/logo/logo.png";
+            statusEl.innerHTML = "🟡 Under Review - Complete your profile for approval";
+            statusEl.style.background = "#fff3cd";
+            statusEl.style.color = "#856404";
 
         }
 
-        // -----------------------------
-        // Status
-        // -----------------------------
-
-        if (statusEl) {
-
-            if (tutor.status === "Approved") {
-
-                statusEl.innerText = "✅ Verified Tutor";
-                statusEl.style.background = "#d4edda";
-                statusEl.style.color = "#155724";
-
-            }
-
-            else if (tutor.status === "Rejected") {
-
-                statusEl.innerText = "❌ Rejected";
-                statusEl.style.background = "#f8d7da";
-                statusEl.style.color = "#721c24";
-
-            }
-
-            else {
-
-                statusEl.innerText = "🟡 Pending Verification";
-                statusEl.style.background = "#fff3cd";
-                statusEl.style.color = "#856404";
-
-            }
-
-        }
-
-        // -----------------------------
         // Profile Completion
-        // -----------------------------
-
         let total = 10;
-
         let filled = 0;
 
         if (tutor.name) filled++;
@@ -122,56 +93,33 @@ onAuthStateChanged(auth, async (user) => {
 
         const percent = Math.round((filled / total) * 100);
 
-        if (progressBar) {
+        progressBar.style.width = percent + "%";
+        progressText.innerText = percent + "% Complete";
 
-            progressBar.style.width = percent + "%";
+        // Preview Profile
+        previewBtn.addEventListener("click", () => {
+            window.open(`teacher.html?id=${user.uid}`, "_blank");
+        });
 
-        }
+        // Edit Profile
+        editProfileBtn.addEventListener("click", () => {
+            window.location.href = "tutor-profile.html";
+        });
 
-        if (progressText) {
-
-            progressText.innerText = percent + "% Complete";
-
-        }
-
-        // -----------------------------
-        // Preview Button
-        // -----------------------------
-
-        if (previewBtn) {
-
-            previewBtn.onclick = () => {
-
-                window.open(
-                    `teacher.html?id=${user.uid}`,
-                    "_blank"
-                );
-
-            };
-
-        }
-
-    }
-
-    catch (error) {
+    } catch (error) {
 
         console.error(error);
-
         alert("Something went wrong while loading your profile.");
 
     }
 
 });
 
-// -----------------------------
 // Logout
-// -----------------------------
 
 logoutBtn.addEventListener("click", async () => {
 
-    const ok = confirm("Do you want to logout?");
-
-    if (!ok) return;
+    if (!confirm("Do you want to logout?")) return;
 
     try {
 
@@ -179,9 +127,7 @@ logoutBtn.addEventListener("click", async () => {
 
         window.location.href = "tutor-login.html";
 
-    }
-
-    catch (error) {
+    } catch (error) {
 
         alert(error.message);
 

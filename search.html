@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Find Tutors | TutorNest</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/search.css">
+
+    <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+
+<nav class="navbar">
+
+    <a href="index.html" class="logo">
+        TutorNest
+    </a>
+
+    <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="tutor-login.html">Tutor Login</a>
+        <a href="student-login.html">Student Login</a>
+    </div>
+
+</nav>
+
+
+<!-- SEARCH HEADER -->
+
+<section class="search-header">
+
+    <h1>Find Your Perfect Tutor</h1>
+
+    <p>
+        Search verified tutors in Lucknow
+    </p>
+
+</section>
+
+
+<!-- FILTERS -->
+
+<section class="filter-section">
+
+    <div class="filter-box">
+
+        <select id="subject">
+
+            <option value="">Select Subject</option>
+
+            <option>Maths</option>
+            <option>Physics</option>
+            <option>Chemistry</option>
+            <option>Biology</option>
+            <option>English</option>
+            <option>Hindi</option>
+            <option>Computer</option>
+
+        </select>
+
+
+        <select id="class">
+
+            <option value="">Select Class</option>
+
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+            <option>6</option>
+            <option>7</option>
+            <option>8</option>
+            <option>9</option>
+            <option>10</option>
+            <option>11</option>
+            <option>12</option>
+
+        </select>
+
+
+        <select id="area">
+
+            <option value="">Select Area</option>
+
+            <option>Gomti Nagar</option>
+            <option>Indira Nagar</option>
+            <option>Aliganj</option>
+            <option>Jankipuram</option>
+            <option>Hazratganj</option>
+            <option>Alambagh</option>
+            <option>Rajajipuram</option>
+            <option>Ashiyana</option>
+            <option>Chinhat</option>
+
+        </select>
+
+        <button id="searchBtn">
+
+            <i class="fa-solid fa-magnifying-glass"></i>
+
+            Search Tutors
+
+        </button>
+
+    </div>
+
+</section>
+
+
+<!-- RESULT COUNT -->
+
+<section class="result-section">
+
+<h2 id="resultCount">
+
+Loading Tutors...
+
+</h2>
+
+</section>
+
+
+<!-- TUTOR CARDS -->
+
+<section>
+
+<div id="tutorContainer" class="tutor-grid">
+
+<!-- JS se cards aayenge -->
+
+</div>
+
+</section>
+
+
+<script type="module" src="js/search.js"></script>
+
+</body>
+</html>
