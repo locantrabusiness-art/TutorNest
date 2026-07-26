@@ -1,3 +1,9 @@
+// ===============================
+// PART 1
+// Replace the TOP of admin-dashboard-v2.js
+// From line 1 until before loadBookings()
+// ===============================
+
 import { auth, db } from "../firebase.js";
 
 import {
@@ -5,31 +11,31 @@ onAuthStateChanged,
 signOut
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
-import {
+import{
 collection,
 getDocs,
 addDoc,
 updateDoc,
 deleteDoc,
-doc
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+doc,
+getDoc,
+serverTimestamp
+}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-/* ==========================
-CONFIG
-========================== */
 
-const ADMIN_EMAIL="shivangsingh0009@gmail.com";
-
-/* ==========================
-ARRAYS
-========================== */
+// ===============================
+// ARRAYS
+// ===============================
 
 let bookings=[];
 let teachers=[];
+let selectedBooking=null;
+let editingBooking=null;
 
-/* ==========================
-STUDENT ELEMENTS
-========================== */
+
+// ===============================
+// STUDENT ELEMENTS
+// ===============================
 
 const bookingTable=document.getElementById("bookingTable");
 
@@ -37,9 +43,49 @@ const searchInput=document.getElementById("searchInput");
 
 const statusFilter=document.getElementById("statusFilter");
 
-/* ==========================
-TEACHER ELEMENTS
-========================== */
+const totalEnquiries=document.getElementById("totalEnquiries");
+
+const pendingCount=document.getElementById("pendingCount");
+
+const assignedCount=document.getElementById("assignedCount");
+
+const admissionCount=document.getElementById("admissionCount");
+
+
+// ===============================
+// ENQUIRY MODAL
+// ===============================
+
+const addEnquiryBtn=document.getElementById("addEnquiryBtn");
+
+const enquiryModal=document.getElementById("enquiryModal");
+
+const closeEnquiry=document.getElementById("closeEnquiry");
+
+const saveEnquiry=document.getElementById("saveEnquiry");
+
+const studentName=document.getElementById("studentName");
+
+const studentPhone=document.getElementById("studentPhone");
+
+const parentName=document.getElementById("parentName");
+
+const parentPhone=document.getElementById("parentPhone");
+
+const studentClass=document.getElementById("studentClass");
+
+const studentSubject=document.getElementById("studentSubject");
+
+const studentArea=document.getElementById("studentArea");
+
+const studentMode=document.getElementById("studentMode");
+
+const studentRemarks=document.getElementById("studentRemarks");
+
+
+// ===============================
+// TEACHERS
+// ===============================
 
 const teacherTable=document.getElementById("teacherTable");
 
@@ -57,9 +103,10 @@ const teacherAreas=document.getElementById("teacherAreas");
 
 const saveTeacher=document.getElementById("saveTeacher");
 
-/* ==========================
-ASSIGN MODAL
-========================== */
+
+// ===============================
+// ASSIGN MODAL
+// ===============================
 
 const assignModal=document.getElementById("assignModal");
 
@@ -75,23 +122,51 @@ const saveAssign=document.getElementById("saveAssign");
 
 const closeAssign=document.getElementById("closeAssign");
 
-let selectedBooking=null;
 
-/* ==========================
-DASHBOARD CARDS
-========================== */
+// ===============================
+// STUDENT DETAILS
+// ===============================
 
-const totalEnquiries=document.getElementById("totalEnquiries");
+const studentModal=document.getElementById("studentModal");
 
-const pendingCount=document.getElementById("pendingCount");
+const studentDetails=document.getElementById("studentDetails");
 
-const assignedCount=document.getElementById("assignedCount");
+const closeStudentModal=document.getElementById("closeStudentModal");
 
-const admissionCount=document.getElementById("admissionCount");
 
-/* ==========================
-LOGOUT
-========================== */
+// ===============================
+// DEMO DETAILS
+// ===============================
+
+const demoModal=document.getElementById("demoModal");
+
+const demoDetails=document.getElementById("demoDetails");
+
+const closeDemoModal=document.getElementById("closeDemoModal");
+
+
+// ===============================
+// SIDEBAR
+// ===============================
+
+const menuItems=document.querySelectorAll("#sidebarMenu li");
+
+menuItems.forEach(item=>{
+
+item.onclick=()=>{
+
+menuItems.forEach(x=>x.classList.remove("active"));
+
+item.classList.add("active");
+
+};
+
+});
+
+
+// ===============================
+// LOGOUT
+// ===============================
 
 document.getElementById("logoutBtn").onclick=async()=>{
 
@@ -101,9 +176,10 @@ location.href="admin-login.html";
 
 };
 
-/* ==========================
-AUTH
-========================== */
+
+// ===============================
+// ROLE AUTH
+// ===============================
 
 onAuthStateChanged(auth,async(user)=>{
 
@@ -115,7 +191,23 @@ return;
 
 }
 
-if(user.email!==ADMIN_EMAIL){
+const userRef=doc(db,"users",user.uid);
+
+const snap=await getDoc(userRef);
+
+if(!snap.exists()){
+
+await signOut(auth);
+
+location.href="admin-login.html";
+
+return;
+
+}
+
+const role=snap.data().role;
+
+if(role!=="admin"){
 
 await signOut(auth);
 
@@ -131,7 +223,8 @@ await loadBookings();
 
 });
 /* ==========================
-LOAD BOOKINGS
+PART 2
+Replace your loadBookings(), updateDashboard() and renderBookings()
 ========================== */
 
 async function loadBookings(){
@@ -160,19 +253,27 @@ id:docSnap.id,
 
 });
 
+bookings.sort((a,b)=>{
+
+const x=a.createdAt?.seconds||0;
+
+const y=b.createdAt?.seconds||0;
+
+return y-x;
+
+});
+
 updateDashboard();
 
 renderBookings();
 
-}
-
-catch(err){
+}catch(err){
 
 console.error(err);
 
 bookingTable.innerHTML=`
 <tr>
-<td colspan="8">Unable to load data.</td>
+<td colspan="8">Unable to load enquiries.</td>
 </tr>
 `;
 
@@ -180,69 +281,28 @@ bookingTable.innerHTML=`
 
 }
 
-/* ==========================
-LOAD TEACHERS
-========================== */
-
-async function loadTeachers(){
-
-try{
-
-const snap=await getDocs(collection(db,"teachers"));
-
-teachers=[];
-
-snap.forEach(docSnap=>{
-
-teachers.push({
-
-id:docSnap.id,
-
-...docSnap.data()
-
-});
-
-});
-
-renderTeachers();
-
-}
-
-catch(err){
-
-console.error(err);
-
-}
-
-}
 
 /* ==========================
-DASHBOARD STATS
+DASHBOARD
 ========================== */
 
 function updateDashboard(){
 
 totalEnquiries.textContent=bookings.length;
 
-pendingCount.textContent=
-
-bookings.filter(x=>
+pendingCount.textContent=bookings.filter(x=>
 
 (x.status||"Pending")==="Pending"
 
 ).length;
 
-assignedCount.textContent=
-
-bookings.filter(x=>
+assignedCount.textContent=bookings.filter(x=>
 
 x.status==="Assigned"
 
 ).length;
 
-admissionCount.textContent=
-
-bookings.filter(x=>
+admissionCount.textContent=bookings.filter(x=>
 
 x.status==="Admitted"
 
@@ -250,15 +310,7 @@ x.status==="Admitted"
 
 }
 
-/* ==========================
-AUTO REFRESH
-========================== */
 
-setInterval(()=>{
-
-loadBookings();
-
-},30000);
 /* ==========================
 RENDER BOOKINGS
 ========================== */
@@ -273,19 +325,27 @@ const status=statusFilter.value;
 
 const filtered=bookings.filter(b=>{
 
-const name=(b.studentName||b.name||"").toLowerCase();
+const name=(b.studentName||"").toLowerCase();
 
 const phone=(b.phone||"").toLowerCase();
 
+const area=(b.area||"").toLowerCase();
+
+const subject=(b.subject||"").toLowerCase();
+
 const matchSearch=
 
-name.includes(keyword)||
+name.includes(keyword) ||
 
-phone.includes(keyword);
+phone.includes(keyword) ||
+
+area.includes(keyword) ||
+
+subject.includes(keyword);
 
 const matchStatus=
 
-status===""||
+status==="" ||
 
 (b.status||"Pending")===status;
 
@@ -313,7 +373,7 @@ bookingTable.innerHTML+=`
 
 <tr>
 
-<td>${b.studentName||b.name||"-"}</td>
+<td>${b.studentName||"-"}</td>
 
 <td>${b.phone||"-"}</td>
 
@@ -341,7 +401,7 @@ ${b.status||"Pending"}
 class="call"
 onclick="callStudent('${b.phone}')">
 
-Call
+📞
 
 </button>
 
@@ -349,7 +409,7 @@ Call
 class="whatsapp"
 onclick="whatsappStudent('${b.phone}')">
 
-WhatsApp
+💬
 
 </button>
 
@@ -358,6 +418,14 @@ class="assign"
 onclick="assignTeacher('${b.id}')">
 
 Assign
+
+</button>
+
+<button
+class="edit"
+onclick="editBooking('${b.id}')">
+
+Edit
 
 </button>
 
@@ -379,135 +447,252 @@ Delete
 
 }
 
+searchInput.oninput=renderBookings;
+
+statusFilter.onchange=renderBookings;
+
+setInterval(loadBookings,30000);
 /* ==========================
-STATUS BADGE
+PART 3
+NEW ENQUIRY + EDIT ENQUIRY
+Paste BELOW renderBookings()
 ========================== */
 
-function getStatusClass(status){
 
-switch(status){
+/* ==========================
+OPEN NEW ENQUIRY
+========================== */
 
-case "Assigned":
+if(addEnquiryBtn){
 
-return "badge assigned";
+addEnquiryBtn.onclick=()=>{
 
-case "Demo Scheduled":
+editingBooking=null;
 
-return "badge demo";
+studentName.value="";
+studentPhone.value="";
+parentName.value="";
+parentPhone.value="";
+studentClass.value="";
+studentSubject.value="";
+studentArea.value="";
+studentMode.selectedIndex=0;
+studentRemarks.value="";
 
-case "Completed":
+saveEnquiry.textContent="Save Enquiry";
 
-return "badge completed";
+enquiryModal.classList.add("show");
 
-case "Admitted":
-
-return "badge admitted";
-
-default:
-
-return "badge pending";
+};
 
 }
 
+
+/* ==========================
+CLOSE MODAL
+========================== */
+
+if(closeEnquiry){
+
+closeEnquiry.onclick=()=>{
+
+enquiryModal.classList.remove("show");
+
+};
+
 }
 
-/* ==========================
-SEARCH
-========================== */
+window.addEventListener("click",e=>{
 
-searchInput.addEventListener(
+if(e.target===enquiryModal){
 
-"input",
+enquiryModal.classList.remove("show");
 
-renderBookings
+}
 
-);
+});
 
-statusFilter.addEventListener(
-
-"change",
-
-renderBookings
-
-);
 
 /* ==========================
-CALL
+SAVE / UPDATE
 ========================== */
 
-window.callStudent=function(phone){
+saveEnquiry.onclick=async()=>{
 
-if(!phone){
+if(studentName.value.trim()===""){
 
-alert("Phone Number Not Available");
+alert("Student Name Required");
 
 return;
 
 }
 
-window.location.href=`tel:${phone}`;
+if(studentPhone.value.trim()===""){
 
-};
-
-/* ==========================
-WHATSAPP
-========================== */
-
-window.whatsappStudent=function(phone){
-
-if(!phone){
-
-alert("Phone Number Not Available");
+alert("Phone Required");
 
 return;
 
 }
 
-window.open(
+const data={
 
-`https://wa.me/91${phone}`,
+studentName:studentName.value.trim(),
 
-"_blank"
+phone:studentPhone.value.trim(),
 
-);
+parentName:parentName.value.trim(),
+
+parentPhone:parentPhone.value.trim(),
+
+class:studentClass.value.trim(),
+
+subject:studentSubject.value.trim(),
+
+area:studentArea.value.trim(),
+
+mode:studentMode.value,
+
+remarks:studentRemarks.value.trim()
 
 };
-
-/* ==========================
-DELETE BOOKING
-========================== */
-
-window.deleteBooking=async(id)=>{
-
-const ok=confirm(
-
-"Delete this enquiry?"
-
-);
-
-if(!ok)return;
 
 try{
 
-await deleteDoc(
+if(editingBooking){
 
-doc(db,"demoBookings",id)
+await updateDoc(
+
+doc(db,"demoBookings",editingBooking),
+
+data
 
 );
 
-await loadBookings();
+alert("Enquiry Updated");
+
+}else{
+
+await addDoc(
+
+collection(db,"demoBookings"),
+
+{
+
+...data,
+
+status:"Pending",
+
+assignedTeacher:"",
+
+teacherId:"",
+
+createdAt:serverTimestamp()
 
 }
 
-catch(err){
+);
+
+alert("Enquiry Added");
+
+}
+
+editingBooking=null;
+
+enquiryModal.classList.remove("show");
+
+await loadBookings();
+
+}catch(err){
 
 console.error(err);
 
-alert("Unable to delete enquiry.");
+alert("Unable to Save");
 
 }
 
 };
+
+
+/* ==========================
+EDIT ENQUIRY
+========================== */
+
+window.editBooking=function(id){
+
+const b=bookings.find(x=>x.id===id);
+
+if(!b)return;
+
+editingBooking=id;
+
+studentName.value=b.studentName||"";
+
+studentPhone.value=b.phone||"";
+
+parentName.value=b.parentName||"";
+
+parentPhone.value=b.parentPhone||"";
+
+studentClass.value=b.class||"";
+
+studentSubject.value=b.subject||"";
+
+studentArea.value=b.area||"";
+
+studentMode.value=b.mode||"Home Tuition";
+
+studentRemarks.value=b.remarks||"";
+
+saveEnquiry.textContent="Update Enquiry";
+
+enquiryModal.classList.add("show");
+
+};
+/* ==========================
+PART 4
+TEACHERS + ASSIGN TEACHER
+Replace your Teacher Section
+========================== */
+
+async function loadTeachers(){
+
+try{
+
+const snap=await getDocs(collection(db,"teachers"));
+
+teachers=[];
+
+snap.forEach(docSnap=>{
+
+teachers.push({
+
+id:docSnap.id,
+
+...docSnap.data()
+
+});
+
+});
+
+teachers.sort((a,b)=>{
+
+return (a.name||"").localeCompare(b.name||"");
+
+});
+
+renderTeachers();
+
+}catch(err){
+
+console.error(err);
+
+}
+
+}
+
+
+
 /* ==========================
 RENDER TEACHERS
 ========================== */
@@ -519,11 +704,17 @@ teacherTable.innerHTML="";
 if(teachers.length===0){
 
 teacherTable.innerHTML=`
+
 <tr>
+
 <td colspan="6">
+
 No Teachers Found
+
 </td>
+
 </tr>
+
 `;
 
 return;
@@ -546,14 +737,34 @@ teacherTable.innerHTML+=`
 
 <td>
 
-${t.available===false?"Busy":"Available"}
+${t.available===false
+
+?'<span class="badge assigned">Busy</span>'
+
+:'<span class="badge admitted">Available</span>'}
 
 </td>
 
 <td>
 
 <button
+
+class="assign"
+
+onclick="toggleTeacher('${t.id}')">
+
+${t.available===false
+
+?"Make Available"
+
+:"Make Busy"}
+
+</button>
+
+<button
+
 class="delete"
+
 onclick="deleteTeacher('${t.id}')">
 
 Delete
@@ -570,6 +781,8 @@ Delete
 
 }
 
+
+
 /* ==========================
 ADD TEACHER
 ========================== */
@@ -579,6 +792,8 @@ addTeacherBtn.onclick=()=>{
 teacherModal.classList.add("show");
 
 };
+
+
 
 saveTeacher.onclick=async()=>{
 
@@ -599,43 +814,52 @@ name:teacherName.value.trim(),
 phone:teacherPhone.value.trim(),
 
 subjects:teacherSubjects.value
+
 .split(",")
+
 .map(x=>x.trim())
+
 .filter(Boolean),
 
 areas:teacherAreas.value
+
 .split(",")
+
 .map(x=>x.trim())
+
 .filter(Boolean),
 
 available:true,
 
-createdAt:new Date()
+createdAt:serverTimestamp()
 
 });
 
 teacherName.value="";
+
 teacherPhone.value="";
+
 teacherSubjects.value="";
+
 teacherAreas.value="";
 
 teacherModal.classList.remove("show");
 
 await loadTeachers();
 
-alert("Teacher Added Successfully.");
+alert("Teacher Added");
 
-}
-
-catch(err){
+}catch(err){
 
 console.error(err);
 
-alert("Unable to add teacher.");
+alert("Unable to Add");
 
 }
 
 };
+
+
 
 /* ==========================
 DELETE TEACHER
@@ -643,9 +867,7 @@ DELETE TEACHER
 
 window.deleteTeacher=async(id)=>{
 
-const ok=confirm("Delete Teacher?");
-
-if(!ok)return;
+if(!confirm("Delete Teacher?")) return;
 
 try{
 
@@ -653,17 +875,53 @@ await deleteDoc(doc(db,"teachers",id));
 
 await loadTeachers();
 
-}
-
-catch(err){
+}catch(err){
 
 console.error(err);
 
-alert("Unable to delete teacher.");
+alert("Delete Failed");
 
 }
 
 };
+
+
+
+/* ==========================
+BUSY / AVAILABLE
+========================== */
+
+window.toggleTeacher=async(id)=>{
+
+const teacher=teachers.find(t=>t.id===id);
+
+if(!teacher) return;
+
+try{
+
+await updateDoc(
+
+doc(db,"teachers",id),
+
+{
+
+available:!teacher.available
+
+}
+
+);
+
+await loadTeachers();
+
+}catch(err){
+
+console.error(err);
+
+}
+
+};
+
+
 
 /* ==========================
 ASSIGN TEACHER
@@ -673,23 +931,25 @@ window.assignTeacher=function(id){
 
 selectedBooking=id;
 
-teacherSelect.innerHTML=`
-<option value="">
-Select Teacher
-</option>
-`;
+teacherSelect.innerHTML=
 
-teachers.forEach(t=>{
+`<option value="">Select Teacher</option>`;
 
-if(t.available!==false){
+teachers
+
+.filter(t=>t.available!==false)
+
+.forEach(t=>{
 
 teacherSelect.innerHTML+=`
-<option value="${t.id}">
-${t.name}
-</option>
-`;
 
-}
+<option value="${t.id}">
+
+${t.name}
+
+</option>
+
+`;
 
 });
 
@@ -697,27 +957,15 @@ assignModal.classList.add("show");
 
 };
 
+
+
 closeAssign.onclick=()=>{
 
 assignModal.classList.remove("show");
 
 };
 
-window.addEventListener("click",e=>{
 
-if(e.target===assignModal){
-
-assignModal.classList.remove("show");
-
-}
-
-if(e.target===teacherModal){
-
-teacherModal.classList.remove("show");
-
-}
-
-});
 
 saveAssign.onclick=async()=>{
 
@@ -731,7 +979,7 @@ return;
 
 if(teacherSelect.value===""){
 
-alert("Please Select Teacher");
+alert("Select Teacher");
 
 return;
 
@@ -783,64 +1031,131 @@ selectedBooking=null;
 
 await loadBookings();
 
-alert("Teacher Assigned Successfully.");
+alert("Teacher Assigned");
 
-}
-
-catch(err){
+}catch(err){
 
 console.error(err);
 
-alert("Unable to assign teacher.");
+alert("Assignment Failed");
 
 }
 
 };
 /* ==========================
-STUDENT DETAILS MODAL
+PART 5
+STUDENT DETAILS + DEMO DETAILS + ADMISSION
+Paste below PART 4
 ========================== */
 
-const studentModal=document.getElementById("studentModal");
-const studentDetails=document.getElementById("studentDetails");
-const closeStudentModal=document.getElementById("closeStudentModal");
 
-if(closeStudentModal){
+/* ==========================
+STATUS COLOR
+========================== */
 
-closeStudentModal.onclick=()=>{
+function getStatusClass(status){
 
-studentModal.classList.remove("show");
+switch(status){
 
-};
+case "Assigned":
+return "badge assigned";
+
+case "Admitted":
+return "badge admitted";
+
+case "Rejected":
+return "badge rejected";
+
+default:
+return "badge pending";
 
 }
 
+}
+
+
+/* ==========================
+CALL
+========================== */
+
+window.callStudent=function(phone){
+
+if(!phone)return;
+
+window.location.href=`tel:${phone}`;
+
+};
+
+
+/* ==========================
+WHATSAPP
+========================== */
+
+window.whatsappStudent=function(phone){
+
+if(!phone)return;
+
+window.open(`https://wa.me/91${phone}`,"_blank");
+
+};
+
+
+/* ==========================
+DELETE ENQUIRY
+========================== */
+
+window.deleteBooking=async(id)=>{
+
+if(!confirm("Delete this enquiry?")) return;
+
+try{
+
+await deleteDoc(doc(db,"demoBookings",id));
+
+await loadBookings();
+
+}catch(err){
+
+console.error(err);
+
+alert("Delete Failed");
+
+}
+
+};
+
+
+/* ==========================
+VIEW STUDENT
+========================== */
+
 window.viewStudent=function(id){
 
-const student=bookings.find(x=>x.id===id);
+const b=bookings.find(x=>x.id===id);
 
-if(!student)return;
+if(!b)return;
 
 studentDetails.innerHTML=`
 
-<p><b>Name:</b> ${student.studentName||student.name||"-"}</p>
+<h3>${b.studentName}</h3>
 
-<p><b>Phone:</b> ${student.phone||"-"}</p>
+<p><b>Phone :</b> ${b.phone||"-"}</p>
 
-<p><b>Class:</b> ${student.class||"-"}</p>
+<p><b>Parent :</b> ${b.parentName||"-"}</p>
 
-<p><b>Subject:</b> ${student.subject||"-"}</p>
+<p><b>Parent Phone :</b> ${b.parentPhone||"-"}</p>
 
-<p><b>Area:</b> ${student.area||"-"}</p>
+<p><b>Class :</b> ${b.class||"-"}</p>
 
-<p><b>Teacher:</b> ${student.assignedTeacher||"Not Assigned"}</p>
+<p><b>Subject :</b> ${b.subject||"-"}</p>
 
-<p><b>Status:</b> ${student.status||"Pending"}</p>
+<p><b>Area :</b> ${b.area||"-"}</p>
 
-<p><b>Demo Date:</b> ${student.demoDate||"-"}</p>
+<p><b>Mode :</b> ${b.mode||"-"}</p>
 
-<p><b>Demo Time:</b> ${student.demoTime||"-"}</p>
+<p><b>Status :</b> ${b.status||"Pending"}</p>
 
-<p><b>Remarks:</b> ${student.remarks||"-"}</p>
+<p><b>Remarks :</b> ${b.remarks||"-"}</p>
 
 `;
 
@@ -848,41 +1163,39 @@ studentModal.classList.add("show");
 
 };
 
-/* ==========================
-DEMO DETAILS MODAL
-========================== */
 
-const demoModal=document.getElementById("demoModal");
-const demoDetails=document.getElementById("demoDetails");
-const closeDemoModal=document.getElementById("closeDemoModal");
+closeStudentModal.onclick=()=>{
 
-if(closeDemoModal){
-
-closeDemoModal.onclick=()=>{
-
-demoModal.classList.remove("show");
+studentModal.classList.remove("show");
 
 };
 
-}
+
+/* ==========================
+VIEW DEMO
+========================== */
 
 window.viewDemo=function(id){
 
-const student=bookings.find(x=>x.id===id);
+const b=bookings.find(x=>x.id===id);
 
-if(!student)return;
+if(!b)return;
 
 demoDetails.innerHTML=`
 
-<p><b>Teacher:</b> ${student.assignedTeacher||"-"}</p>
+<h3>${b.studentName}</h3>
 
-<p><b>Teacher Phone:</b> ${student.teacherPhone||"-"}</p>
+<p><b>Teacher :</b> ${b.assignedTeacher||"-"}</p>
 
-<p><b>Date:</b> ${student.demoDate||"-"}</p>
+<p><b>Teacher Phone :</b> ${b.teacherPhone||"-"}</p>
 
-<p><b>Time:</b> ${student.demoTime||"-"}</p>
+<p><b>Demo Date :</b> ${b.demoDate||"-"}</p>
 
-<p><b>Remarks:</b> ${student.remarks||"-"}</p>
+<p><b>Demo Time :</b> ${b.demoTime||"-"}</p>
+
+<p><b>Status :</b> ${b.status||"-"}</p>
+
+<p><b>Remarks :</b> ${b.remarks||"-"}</p>
 
 `;
 
@@ -890,47 +1203,21 @@ demoModal.classList.add("show");
 
 };
 
-/* ==========================
-STATUS UPDATE
-========================== */
 
-window.changeStatus=async(id,status)=>{
+closeDemoModal.onclick=()=>{
 
-try{
-
-await updateDoc(
-
-doc(db,"demoBookings",id),
-
-{
-
-status:status
-
-}
-
-);
-
-await loadBookings();
-
-}
-
-catch(err){
-
-console.error(err);
-
-}
+demoModal.classList.remove("show");
 
 };
 
+
 /* ==========================
-MARK ADMISSION
+ADMISSION
 ========================== */
 
 window.markAdmitted=async(id)=>{
 
-const ok=confirm("Mark this student as admitted?");
-
-if(!ok)return;
+if(!confirm("Convert to Admission?")) return;
 
 try{
 
@@ -942,7 +1229,7 @@ doc(db,"demoBookings",id),
 
 status:"Admitted",
 
-admissionDate:new Date().toISOString()
+admissionDate:new Date().toLocaleDateString()
 
 }
 
@@ -950,11 +1237,44 @@ admissionDate:new Date().toISOString()
 
 await loadBookings();
 
-alert("Admission Updated Successfully");
+alert("Admission Completed");
+
+}catch(err){
+
+console.error(err);
+
+alert("Unable to Update");
 
 }
 
-catch(err){
+};
+
+
+/* ==========================
+REJECT
+========================== */
+
+window.markRejected=async(id)=>{
+
+if(!confirm("Reject this enquiry?")) return;
+
+try{
+
+await updateDoc(
+
+doc(db,"demoBookings",id),
+
+{
+
+status:"Rejected"
+
+}
+
+);
+
+await loadBookings();
+
+}catch(err){
 
 console.error(err);
 
@@ -962,36 +1282,213 @@ console.error(err);
 
 };
 
+
 /* ==========================
-ESC KEY CLOSE
+MODAL OUTSIDE CLICK
 ========================== */
 
-window.addEventListener("keydown",e=>{
+window.onclick=(e)=>{
 
-if(e.key==="Escape"){
+if(e.target===studentModal){
 
-document.querySelectorAll(".modal").forEach(m=>{
+studentModal.classList.remove("show");
 
-m.classList.remove("show");
+}
+
+if(e.target===demoModal){
+
+demoModal.classList.remove("show");
+
+}
+
+if(e.target===assignModal){
+
+assignModal.classList.remove("show");
+
+}
+
+if(e.target===teacherModal){
+
+teacherModal.classList.remove("show");
+
+}
+
+if(e.target===enquiryModal){
+
+enquiryModal.classList.remove("show");
+
+}
+
+};
+/* =========================================================
+PART 6
+FINAL CLEANUP + INITIALIZATION
+Paste at the END of admin-dashboard-v2.js
+========================================================= */
+
+
+/* ---------- Close Teacher Modal ---------- */
+
+const closeTeacherModal=document.getElementById("closeTeacherModal");
+
+if(closeTeacherModal){
+
+closeTeacherModal.onclick=()=>{
+
+teacherModal.classList.remove("show");
+
+};
+
+}
+
+
+/* ---------- ESC Close ---------- */
+
+document.addEventListener("keydown",(e)=>{
+
+if(e.key!=="Escape") return;
+
+enquiryModal?.classList.remove("show");
+teacherModal?.classList.remove("show");
+assignModal?.classList.remove("show");
+studentModal?.classList.remove("show");
+demoModal?.classList.remove("show");
 
 });
+
+
+/* ---------- Helpers ---------- */
+
+function formatDate(timestamp){
+
+if(!timestamp) return "-";
+
+try{
+
+if(timestamp.seconds){
+
+return new Date(timestamp.seconds*1000).toLocaleDateString();
+
+}
+
+return new Date(timestamp).toLocaleDateString();
+
+}catch{
+
+return "-";
+
+}
+
+}
+
+function formatDateTime(timestamp){
+
+if(!timestamp) return "-";
+
+try{
+
+if(timestamp.seconds){
+
+return new Date(timestamp.seconds*1000).toLocaleString();
+
+}
+
+return new Date(timestamp).toLocaleString();
+
+}catch{
+
+return "-";
+
+}
+
+}
+
+
+/* ---------- Refresh Dashboard ---------- */
+
+async function refreshDashboard(){
+
+await loadTeachers();
+
+await loadBookings();
+
+}
+
+
+/* ---------- Auto Refresh ---------- */
+
+setInterval(async()=>{
+
+try{
+
+await refreshDashboard();
+
+}catch(e){
+
+console.error(e);
+
+}
+
+},60000);
+
+
+/* ---------- Network Status ---------- */
+
+window.addEventListener("offline",()=>{
+
+console.warn("Internet Disconnected");
+
+});
+
+window.addEventListener("online",()=>{
+
+refreshDashboard();
+
+});
+
+
+/* ---------- Firestore Error ---------- */
+
+window.addEventListener("unhandledrejection",(e)=>{
+
+console.error(e.reason);
+
+});
+
+
+/* ---------- Make Functions Global ---------- */
+
+window.loadBookings=loadBookings;
+window.loadTeachers=loadTeachers;
+window.refreshDashboard=refreshDashboard;
+window.renderBookings=renderBookings;
+window.renderTeachers=renderTeachers;
+window.updateDashboard=updateDashboard;
+
+
+/* ---------- Initial UI ---------- */
+
+searchInput.value="";
+statusFilter.value="";
+
+
+/* ---------- Default Modal State ---------- */
+
+[
+enquiryModal,
+teacherModal,
+assignModal,
+studentModal,
+demoModal
+].forEach(modal=>{
+
+if(modal){
+
+modal.classList.remove("show");
 
 }
 
 });
 
-/* ==========================
-INITIAL EVENTS
-========================== */
 
-window.addEventListener("load",()=>{
-
-if(searchInput){
-
-searchInput.focus();
-
-}
-
-});
-
-console.log("TutorNest CRM Loaded Successfully");
+console.log("TutorNest Admin CRM Loaded Successfully");
