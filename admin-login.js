@@ -16,88 +16,91 @@ const password = document.getElementById("password");
 const loginBtn = document.getElementById("loginBtn");
 const error = document.getElementById("error");
 
+// ===============================
 // Already Logged In
+// ===============================
+
 onAuthStateChanged(auth, async (user) => {
 
-  if (!user) return;
+    if (!user) return;
 
-const snap = await getDoc(doc(db, "admins", user.uid));
-  if (!snap.exists()) {
-    await signOut(auth);
-    return;
-  }
+    try {
 
-  const data = snap.data();
+        const snap = await getDoc(doc(db, "admins", user.uid));
 
-if (snap.exists()) {
-    window.location.href = "admin.html";
-} else {
-    await signOut(auth);
-}
-    window.location.href = "admin-dashboard.html";
-  } else {
-    await signOut(auth);
-  }
+        if (snap.exists()) {
 
-});
+            window.location.href = "admin.html";
 
-loginBtn.addEventListener("click", async () => {
+        } else {
 
-  error.textContent = "";
+            await signOut(auth);
 
-  if (!email.value || !password.value) {
-    error.textContent = "Please fill all fields.";
-    return;
-  }
+        }
 
-  loginBtn.disabled = true;
-  loginBtn.textContent = "Logging in...";
+    } catch (err) {
 
-  try {
-
-    const cred = await signInWithEmailAndPassword(
-      auth,
-      email.value.trim(),
-      password.value
-    );
-
-const snap = await getDoc(doc(db, "admins", cred.user.uid));
-    if (!snap.exists()) {
-
-      await signOut(auth);
-
-      error.textContent = "User profile not found.";
-
-      loginBtn.disabled = false;
-      loginBtn.textContent = "Login";
-
-      return;
+        console.error(err);
 
     }
 
-    if (!snap.exists()) {
+});
 
-    await signOut(auth);
+// ===============================
+// Login
+// ===============================
 
-    error.textContent = "Access Denied.";
+loginBtn.addEventListener("click", async () => {
 
-    loginBtn.disabled = false;
-    loginBtn.textContent = "Login";
+    error.textContent = "";
 
-    return;
+    if (!email.value || !password.value) {
 
-}
+        error.textContent = "Please fill all fields.";
 
-window.location.href = "admin.html";
-  } catch (err) {
+        return;
 
-    console.error(err);
+    }
 
-    error.textContent = "Invalid email or password.";
+    loginBtn.disabled = true;
+    loginBtn.textContent = "Logging in...";
 
-    loginBtn.disabled = false;
-    loginBtn.textContent = "Login";
+    try {
 
-  }
+        const cred = await signInWithEmailAndPassword(
+
+            auth,
+            email.value.trim(),
+            password.value
+
+        );
+
+        const snap = await getDoc(doc(db, "admins", cred.user.uid));
+
+        if (!snap.exists()) {
+
+            await signOut(auth);
+
+            error.textContent = "Access Denied.";
+
+            loginBtn.disabled = false;
+            loginBtn.textContent = "Login";
+
+            return;
+
+        }
+
+        window.location.href = "admin.html";
+
+    } catch (err) {
+
+        console.error(err);
+
+        error.textContent = err.message;
+
+        loginBtn.disabled = false;
+        loginBtn.textContent = "Login";
+
+    }
 
 });
