@@ -21,8 +21,7 @@ onAuthStateChanged(auth, async (user) => {
 
   if (!user) return;
 
-  const snap = await getDoc(doc(db, "users", user.uid));
-
+const snap = await getDoc(doc(db, "admins", user.uid));
   if (!snap.exists()) {
     await signOut(auth);
     return;
@@ -30,7 +29,11 @@ onAuthStateChanged(auth, async (user) => {
 
   const data = snap.data();
 
-  if (data.role === "admin") {
+if (snap.exists()) {
+    window.location.href = "admin.html";
+} else {
+    await signOut(auth);
+}
     window.location.href = "admin-dashboard.html";
   } else {
     await signOut(auth);
@@ -58,8 +61,7 @@ loginBtn.addEventListener("click", async () => {
       password.value
     );
 
-    const snap = await getDoc(doc(db, "users", cred.user.uid));
-
+const snap = await getDoc(doc(db, "admins", cred.user.uid));
     if (!snap.exists()) {
 
       await signOut(auth);
@@ -73,23 +75,20 @@ loginBtn.addEventListener("click", async () => {
 
     }
 
-    const data = snap.data();
+    if (!snap.exists()) {
 
-    if (data.role !== "admin") {
+    await signOut(auth);
 
-      await signOut(auth);
+    error.textContent = "Access Denied.";
 
-      error.textContent = "Access Denied.";
+    loginBtn.disabled = false;
+    loginBtn.textContent = "Login";
 
-      loginBtn.disabled = false;
-      loginBtn.textContent = "Login";
+    return;
 
-      return;
+}
 
-    }
-
-    window.location.href = "admin-dashboard.html";
-
+window.location.href = "admin.html";
   } catch (err) {
 
     console.error(err);
