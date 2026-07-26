@@ -10,10 +10,9 @@ import {
     getDocs,
     doc,
     updateDoc,
-    deleteDoc
+    deleteDoc,
+    getDoc
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-const ADMIN_EMAIL = "shivangsingh0009@gmail.com";
-
 onAuthStateChanged(auth, async (user) => {
 
     if (!user) {
@@ -21,14 +20,36 @@ onAuthStateChanged(auth, async (user) => {
         return;
     }
 
-    if (user.email !== ADMIN_EMAIL) {
-        await signOut(auth);
-        window.location.href = "admin-login.html";
-        return;
-    }
+    try {
 
-    // ✅ Admin verified, ab Firestore se data load karo
-    loadTutors();
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+
+        if (!userDoc.exists()) {
+            await signOut(auth);
+            window.location.href = "admin-login.html";
+            return;
+        }
+
+        const userData = userDoc.data();
+
+        if (userData.role !== "admin") {
+            await signOut(auth);
+            window.location.href = "admin-login.html";
+            return;
+        }
+
+        // Admin verified
+        loadTutors();
+
+    } catch (err) {
+
+        console.error(err);
+
+        await signOut(auth);
+
+        window.location.href = "admin-login.html";
+
+    }
 
 });
 
