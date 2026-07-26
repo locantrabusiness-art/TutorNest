@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>TutorNest CRM</title>
+
+<link rel="stylesheet" href="css/admin-dashboard.css">
+
+</head>
+
+<body>
+
+<div class="sidebar">
+
+<h2>TutorNest CRM</h2>
+
+<ul>
+
+<li class="active">🏠 Dashboard</li>
+
+<li>👨‍🎓 Student Enquiries</li>
+
+<li>👨‍🏫 Teachers</li>
+
+<li>📅 Demo Schedule</li>
+
+<li>🎓 Admissions</li>
+
+<li>📊 Reports</li>
+
+<li>⚙ Settings</li>
+
+</ul>
+
+</div>
+
+<div class="main">
+
+<div class="topbar">
+
+<h2>Admin Dashboard</h2>
+
+<button
+id="logoutBtn"
+class="logout">
+
+Logout
+
+</button>
+
+</div>
+
+<div class="cards">
+
+<div class="card">
+
+<h4>Total Enquiries</h4>
+
+<h1 id="totalEnquiries">0</h1>
+
+</div>
+
+<div class="card">
+
+<h4>Pending</h4>
+
+<h1 id="pendingCount">0</h1>
+
+</div>
+
+<div class="card">
+
+<h4>Assigned</h4>
+
+<h1 id="assignedCount">0</h1>
+
+</div>
+
+<div class="card">
+
+<h4>Admissions</h4>
+
+<h1 id="admissionCount">0</h1>
+
+</div>
+
+</div>
+
+<!-- STUDENT ENQUIRIES -->
+
+<div class="section">
+
+<h2>Student Enquiries</h2>
+
+<div class="toolbar">
+
+<input
+type="text"
+id="searchInput"
+placeholder="Search Student Name or Phone">
+
+<select id="statusFilter">
+
+<option value="">All Status</option>
+
+<option>Pending</option>
+
+<option>Assigned</option>
+
+<option>Demo Scheduled</option>
+
+<option>Completed</option>
+
+<option>Admitted</option>
+
+</select>
+
+</div>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Name</th>
+
+<th>Phone</th>
+
+<th>Class</th>
+
+<th>Subject</th>
+
+<th>Area</th>
+
+<th>Teacher</th>
+
+<th>Status</th>
+
+<th>Actions</th>
+
+</tr>
+
+</thead>
+
+<tbody id="bookingTable">
+
+<tr>
+
+<td colspan="8">
+
+Loading...
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+<!-- =========================
+TEACHERS SECTION
+========================== -->
+
+<div class="section">
+
+<div class="pageHeader">
+
+<h2>Teachers</h2>
+
+<button id="addTeacherBtn">
+
++ Add Teacher
+
+</button>
+
+</div>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Name</th>
+
+<th>Phone</th>
+
+<th>Subjects</th>
+
+<th>Areas</th>
+
+<th>Status</th>
+
+<th>Actions</th>
+
+</tr>
+
+</thead>
+
+<tbody id="teacherTable">
+
+<tr>
+
+<td colspan="6">
+
+No Teachers Found
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+<!-- =========================
+ADD TEACHER MODAL
+========================== -->
+
+<div id="teacherModal" class="modal">
+
+<div class="modalContent">
+
+<h2>Add Teacher</h2>
+
+<input
+type="text"
+id="teacherName"
+placeholder="Teacher Name">
+
+<input
+type="text"
+id="teacherPhone"
+placeholder="Phone Number">
+
+<input
+type="text"
+id="teacherSubjects"
+placeholder="Subjects (Math, Science, English)">
+
+<input
+type="text"
+id="teacherAreas"
+placeholder="Areas (Aliganj, Gomti Nagar)">
+
+<button id="saveTeacher">
+
+Save Teacher
+
+</button>
+
+</div>
+
+</div>
+
+<!-- =========================
+ASSIGN TEACHER MODAL
+========================== -->
+
+<div id="assignModal" class="modal">
+
+<div class="modalContent">
+
+<h2>Assign Teacher</h2>
+
+<select id="teacherSelect">
+
+<option value="">
+
+Select Teacher
+
+</option>
+
+</select>
+
+<input
+type="date"
+id="demoDate">
+
+<input
+type="time"
+id="demoTime">
+
+<textarea
+
+id="remarks"
+
+placeholder="Remarks"
+
+style="width:100%;height:90px;padding:10px;border:1px solid #ddd;border-radius:8px;margin-top:12px;"></textarea>
+
+<div style="display:flex;gap:10px;margin-top:15px;">
+
+<button id="saveAssign">
+
+Assign Teacher
+
+</button>
+
+<button
+
+id="closeAssign"
+
+style="background:#dc3545;">
+
+Cancel
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+<!-- =========================
+STUDENT DETAILS MODAL
+========================= -->
+
+<div id="studentModal" class="modal">
+
+<div class="modalContent">
+
+<h2>Student Details</h2>
+
+<div id="studentDetails">
+
+Loading...
+
+</div>
+
+<div style="margin-top:20px;">
+
+<button id="closeStudentModal">
+
+Close
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- =========================
+DEMO DETAILS MODAL
+========================= -->
+
+<div id="demoModal" class="modal">
+
+<div class="modalContent">
+
+<h2>Demo Details</h2>
+
+<div id="demoDetails">
+
+No Demo Details
+
+</div>
+
+<div style="margin-top:20px;">
+
+<button id="closeDemoModal">
+
+Close
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script type="module" src="js/admin-dashboard-v2.js"></script>
+
+</body>
+
+</html>
