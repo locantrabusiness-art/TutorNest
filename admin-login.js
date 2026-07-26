@@ -1,3 +1,4 @@
+console.log("Admin Login JS Loaded - v2");
 import { auth, db } from "./firebase.js";
 
 import {
