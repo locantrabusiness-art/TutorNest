@@ -58,6 +58,11 @@ loginForm.addEventListener("submit", async (e) => {
     }
 
 });
+console.log("UID:", userCredential.user.uid);
+
+const tutorSnap = await getDoc(doc(db, "tutors", userCredential.user.uid));
+
+console.log("Exists:", tutorSnap.exists());
 
 googleLogin.addEventListener("click", async () => {
 
