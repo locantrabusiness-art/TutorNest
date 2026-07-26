@@ -1,30 +1,39 @@
-import { auth } from "./firebase.js";
+import { auth, db } from "./firebase.js";
+
 import {
   signInWithEmailAndPassword,
   onAuthStateChanged,
   signOut
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
-const ADMIN_EMAIL = "shivangsingh0009@gmail.com"; // <-- Isko apne admin email se replace karo
+import {
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const email = document.getElementById("email");
 const password = document.getElementById("password");
 const loginBtn = document.getElementById("loginBtn");
 const error = document.getElementById("error");
 
-// Already logged in?
+// Already Logged In
 onAuthStateChanged(auth, async (user) => {
 
   if (!user) return;
 
-  if (user.email === ADMIN_EMAIL) {
+  const snap = await getDoc(doc(db, "users", user.uid));
 
-    window.location.href = "admin-dashboard.html";
-
-  } else {
-
+  if (!snap.exists()) {
     await signOut(auth);
+    return;
+  }
 
+  const data = snap.data();
+
+  if (data.role === "admin") {
+    window.location.href = "admin-dashboard.html";
+  } else {
+    await signOut(auth);
   }
 
 });
@@ -34,11 +43,8 @@ loginBtn.addEventListener("click", async () => {
   error.textContent = "";
 
   if (!email.value || !password.value) {
-
     error.textContent = "Please fill all fields.";
-
     return;
-
   }
 
   loginBtn.disabled = true;
@@ -52,7 +58,24 @@ loginBtn.addEventListener("click", async () => {
       password.value
     );
 
-    if (cred.user.email !== ADMIN_EMAIL) {
+    const snap = await getDoc(doc(db, "users", cred.user.uid));
+
+    if (!snap.exists()) {
+
+      await signOut(auth);
+
+      error.textContent = "User profile not found.";
+
+      loginBtn.disabled = false;
+      loginBtn.textContent = "Login";
+
+      return;
+
+    }
+
+    const data = snap.data();
+
+    if (data.role !== "admin") {
 
       await signOut(auth);
 
