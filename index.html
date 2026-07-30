@@ -1,1179 +1,1126 @@
-/*=========================
-RESET
-=========================*/
+<!DOCTYPE html>
+<html lang="en">
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-}
+<head>
 
-html{
-scroll-behavior:smooth;
-}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-body{
-font-family:"Poppins",sans-serif;
-background:#f5f7fb;
-color:#222;
-line-height:1.6;
-overflow-x:hidden;
-}
+<title>TutorNest | Find Trusted Home Tutors</title>
 
-img{
-max-width:100%;
-display:block;
-}
+<link rel="stylesheet" href="css/style.css">
 
-a{
-text-decoration:none;
-color:inherit;
-}
+<link rel="preconnect" href="https://fonts.googleapis.com">
 
-ul{
-list-style:none;
-}
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-button,
-input,
-select{
-font-family:inherit;
-outline:none;
-border:none;
-}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-.section{
-padding:80px 8%;
-}
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 
-.section-title{
-font-size:38px;
-font-weight:700;
-color:#0f4c81;
-margin-bottom:15px;
-}
+</head>
 
-.section-subtitle{
-max-width:700px;
-margin:auto;
-font-size:17px;
-color:#666;
-line-height:1.8;
-}
+<body>
 
-/*=========================
-BUTTONS
-=========================*/
+<!-- ================= NAVBAR ================= -->
 
-.primary-btn{
+<header>
 
-display:inline-flex;
-align-items:center;
-justify-content:center;
+<nav class="navbar">
 
-padding:14px 30px;
+<div class="logo">
 
-background:#0f4c81;
-color:#fff;
+<a href="index.html">TutorNest</a>
 
-border-radius:10px;
+</div>
 
-font-weight:600;
+<ul class="nav-links">
 
-transition:.3s;
+<li>
+<a href="index.html" class="active">
+Home
+</a>
+</li>
 
-cursor:pointer;
+<li>
+<a href="search.html">
+Find Tutors
+</a>
+</li>
 
-}
+<li>
+<a href="tutor-register.html">
+Become a Tutor
+</a>
+</li>
 
-.primary-btn:hover{
+<li>
+<a href="tutor-login.html" id="loginLink">
+Tutor Login
+</a>
+</li>
 
-background:#0b3559;
+<li>
+<a href="admin-login.html">
+Admin
+</a>
+</li>
 
-transform:translateY(-3px);
+</ul>
 
-}
+<div class="mobile-menu">
 
-.secondary-btn{
+<i class="fa-solid fa-bars"></i>
 
-display:inline-flex;
-align-items:center;
-justify-content:center;
+</div>
 
-padding:14px 30px;
+</nav>
 
-background:#22c55e;
+</header>
 
-color:#fff;
+<!-- ================= HERO ================= -->
 
-border-radius:10px;
+<section class="hero">
 
-font-weight:600;
+<div class="hero-content">
 
-transition:.3s;
+<h1>
 
-}
+Find Trusted Home Tutors Near You
 
-.secondary-btn:hover{
+</h1>
 
-background:#169c46;
+<p>
 
-transform:translateY(-3px);
+Verified tutors for CBSE, ICSE, State Boards, JEE, NEET, CUET and Competitive Exams.
 
-}
+</p>
 
-.outline-btn{
+<div class="search-box">
 
-display:inline-flex;
-align-items:center;
-justify-content:center;
+<select id="subject">
 
-padding:14px 30px;
+<option value="">Subject</option>
 
-border:2px solid #0f4c81;
+<option>Mathematics</option>
+<option>Physics</option>
+<option>Chemistry</option>
+<option>Biology</option>
+<option>English</option>
+<option>Hindi</option>
+<option>Computer Science</option>
+<option>Economics</option>
+<option>Commerce</option>
 
-color:#0f4c81;
+</select>
 
-border-radius:10px;
+<select id="class">
 
-font-weight:600;
+<option value="">Class</option>
 
-transition:.3s;
+<option>Nursery - UKG</option>
+<option>Class 1</option>
+<option>Class 2</option>
+<option>Class 3</option>
+<option>Class 4</option>
+<option>Class 5</option>
+<option>Class 6</option>
+<option>Class 7</option>
+<option>Class 8</option>
+<option>Class 9</option>
+<option>Class 10</option>
+<option>Class 11</option>
+<option>Class 12</option>
+<option>JEE</option>
+<option>NEET</option>
+<option>CUET</option>
 
-}
+</select>
 
-.outline-btn:hover{
+<select id="area">
 
-background:#0f4c81;
+<option value="">Area</option>
 
-color:#fff;
+<option>Gomti Nagar</option>
+<option>Indira Nagar</option>
+<option>Aliganj</option>
+<option>Hazratganj</option>
+<option>Jankipuram</option>
+<option>Rajajipuram</option>
+<option>Ashiyana</option>
+<option>Alambagh</option>
+<option>Chinhat</option>
+<option>Mahanagar</option>
 
-}
-/*=========================
-NAVBAR
-=========================*/
+</select>
 
-header{
+<button id="homeSearchBtn">
 
-position:sticky;
+<i class="fa-solid fa-magnifying-glass"></i>
 
-top:0;
+Find Tutor
 
-left:0;
+</button>
 
-width:100%;
+</div>
 
-background:#fff;
+<div class="hero-buttons">
 
-z-index:1000;
+<a href="search.html" class="primary-btn">
 
-box-shadow:0 5px 20px rgba(0,0,0,.08);
+Find Tutors
 
-}
+</a>
 
-.navbar{
+<a href="tutor-register.html" class="secondary-btn">
 
-max-width:1300px;
+Become a Tutor
 
-margin:auto;
+</a>
 
-padding:18px 30px;
+<a href="tutor-login.html" class="outline-btn">
 
-display:flex;
+Tutor Login
 
-align-items:center;
+</a>
 
-justify-content:space-between;
+</div>
 
-}
+</div>
 
-.logo a{
+<div class="hero-image">
 
-font-size:30px;
+<img
+src="assets/images/hero.png"
+alt="TutorNest Hero">
 
-font-weight:700;
+</div>
 
-color:#0f4c81;
+</section>
+<!-- ================= STATS ================= -->
 
-}
+<section class="stats">
 
-.nav-links{
+<div class="stat-card">
 
-display:flex;
+<h2>10,000+</h2>
 
-align-items:center;
+<p>Verified Tutors</p>
 
-gap:28px;
+</div>
 
-}
+<div class="stat-card">
 
-.nav-links a{
+<h2>25+</h2>
 
-font-size:16px;
+<p>Subjects</p>
 
-font-weight:500;
+</div>
 
-color:#444;
+<div class="stat-card">
 
-transition:.3s;
+<h2>5000+</h2>
 
-position:relative;
+<p>Happy Students</p>
 
-}
+</div>
 
-.nav-links a:hover,
+<div class="stat-card">
 
-.nav-links a.active{
+<h2>100+</h2>
 
-color:#0f4c81;
+<p>Cities Covered</p>
 
-}
+</div>
 
-.nav-links a::after{
+</section>
 
-content:"";
+<!-- ================= FEATURED TUTORS ================= -->
 
-position:absolute;
+<section class="section">
 
-left:0;
+<div class="section-header">
 
-bottom:-6px;
+<h2 class="section-title">
 
-width:0;
+Featured Tutors
 
-height:2px;
+</h2>
 
-background:#0f4c81;
+<p class="section-subtitle">
 
-transition:.3s;
+Meet our top-rated and verified tutors carefully selected by TutorNest.
 
-}
+</p>
 
-.nav-links a:hover::after,
+</div>
 
-.nav-links a.active::after{
+<div
+id="featuredTutorsContainer"
+class="featured-grid">
 
-width:100%;
+<div class="loading">
 
-}
+<i class="fa-solid fa-spinner fa-spin"></i>
 
-.mobile-menu{
+<p>Loading Featured Tutors...</p>
 
-display:none;
+</div>
 
-font-size:28px;
+</div>
 
-cursor:pointer;
+<div class="section-btn">
 
-color:#0f4c81;
+<a href="search.html" class="primary-btn">
 
-}
+View All Tutors
 
-/*=========================
-MOBILE NAVBAR
-=========================*/
+</a>
 
-@media(max-width:900px){
+</div>
 
-.navbar{
+</section>
+<!-- ================= POPULAR SUBJECTS ================= -->
 
-padding:16px 20px;
+<section class="section">
 
-}
+<div class="section-header">
 
-.mobile-menu{
+<h2 class="section-title">
 
-display:block;
+Popular Subjects
 
-}
+</h2>
 
-.nav-links{
+<p class="section-subtitle">
 
-position:absolute;
+Choose your preferred subject and learn from experienced tutors.
 
-top:100%;
+</p>
 
-left:0;
+</div>
 
-width:100%;
+<div class="grid">
 
-background:#fff;
+<div class="card">
 
-flex-direction:column;
+<i class="fa-solid fa-square-root-variable"></i>
 
-align-items:flex-start;
+<h3>Mathematics</h3>
 
-padding:20px;
+<p>CBSE • ICSE • JEE • Olympiads</p>
 
-gap:18px;
+</div>
 
-display:none;
+<div class="card">
 
-box-shadow:0 12px 25px rgba(0,0,0,.08);
+<i class="fa-solid fa-atom"></i>
 
-}
+<h3>Physics</h3>
 
-.nav-links.active{
+<p>School • JEE • NEET</p>
 
-display:flex;
+</div>
 
-}
+<div class="card">
 
-.logo a{
+<i class="fa-solid fa-flask"></i>
 
-font-size:26px;
+<h3>Chemistry</h3>
 
-}
+<p>Organic • Physical • Inorganic</p>
 
-}
-/*=========================
-HERO SECTION
-=========================*/
+</div>
 
-.hero{
+<div class="card">
 
-max-width:1300px;
+<i class="fa-solid fa-dna"></i>
 
-margin:auto;
+<h3>Biology</h3>
 
-padding:80px 30px;
+<p>School • NEET Preparation</p>
 
-display:grid;
+</div>
 
-grid-template-columns:1fr 1fr;
+<div class="card">
 
-align-items:center;
+<i class="fa-solid fa-book-open"></i>
 
-gap:60px;
+<h3>English</h3>
 
-}
+<p>Grammar • Spoken • Literature</p>
 
-.hero-content h1{
+</div>
 
-font-size:52px;
+<div class="card">
 
-font-weight:700;
+<i class="fa-solid fa-laptop-code"></i>
 
-line-height:1.2;
+<h3>Computer Science</h3>
 
-color:#0f4c81;
+<p>Python • Java • AI</p>
 
-margin-bottom:20px;
+</div>
 
-}
+<div class="card">
 
-.hero-content p{
+<i class="fa-solid fa-chart-line"></i>
 
-font-size:18px;
+<h3>Commerce</h3>
 
-color:#555;
+<p>Accounts • Business Studies • Economics</p>
 
-line-height:1.8;
+</div>
 
-margin-bottom:35px;
+<div class="card">
 
-}
+<i class="fa-solid fa-globe"></i>
 
-/*=========================
-SEARCH BOX
-=========================*/
+<h3>Social Science</h3>
 
-.search-box{
+<p>History • Civics • Geography</p>
 
-display:grid;
+</div>
 
-grid-template-columns:repeat(4,1fr);
+</div>
 
-gap:15px;
+</section>
 
-background:#fff;
+<!-- ================= BROWSE BY CLASSES ================= -->
 
-padding:20px;
+<section class="section">
 
-border-radius:18px;
+<div class="section-header">
 
-box-shadow:0 12px 30px rgba(0,0,0,.08);
+<h2 class="section-title">
 
-margin-bottom:30px;
+Browse by Classes
 
-}
+</h2>
 
-.search-box select{
+<p class="section-subtitle">
 
-height:52px;
+Find tutors according to your class and exam.
 
-padding:0 16px;
+</p>
 
-border:1px solid #ddd;
+</div>
 
-border-radius:10px;
+<div class="grid">
 
-font-size:15px;
+<div class="card">
 
-background:#fff;
+<h3>Nursery – UKG</h3>
 
-}
+<p>Early Learning</p>
 
-.search-box button{
+</div>
 
-height:52px;
+<div class="card">
 
-background:#0f4c81;
+<h3>Class 1 – 5</h3>
 
-color:#fff;
+<p>Foundation Courses</p>
 
-border-radius:10px;
+</div>
 
-font-size:16px;
+<div class="card">
 
-font-weight:600;
+<h3>Class 6 – 8</h3>
 
-cursor:pointer;
+<p>Middle School</p>
 
-transition:.3s;
+</div>
 
-}
+<div class="card">
 
-.search-box button:hover{
+<h3>Class 9 – 10</h3>
 
-background:#0b3559;
+<p>Board Preparation</p>
 
-}
+</div>
 
-/*=========================
-HERO BUTTONS
-=========================*/
+<div class="card">
 
-.hero-buttons{
+<h3>Class 11 – 12</h3>
 
-display:flex;
+<p>PCM • PCB • Commerce</p>
 
-gap:15px;
+</div>
 
-flex-wrap:wrap;
+<div class="card">
 
-margin-top:10px;
+<h3>JEE</h3>
 
-}
+<p>Main & Advanced</p>
 
-/*=========================
-HERO IMAGE
-=========================*/
+</div>
 
-.hero-image{
+<div class="card">
 
-display:flex;
+<h3>NEET</h3>
 
-justify-content:center;
+<p>Medical Entrance</p>
 
-align-items:center;
+</div>
 
-}
+<div class="card">
 
-.hero-image img{
+<h3>CUET</h3>
 
-width:100%;
+<p>UG Entrance Preparation</p>
 
-max-width:550px;
+</div>
 
-animation:float 4s ease-in-out infinite;
+</div>
 
-}
+</section>
 
-@keyframes float{
+<!-- ================= WHY CHOOSE TUTORNEST ================= -->
 
-0%{
+<section class="section why-section">
 
-transform:translateY(0);
+<div class="section-header">
 
-}
+<h2 class="section-title">
 
-50%{
+Why Choose TutorNest?
 
-transform:translateY(-12px);
+</h2>
 
-}
+<p class="section-subtitle">
 
-100%{
+Thousands of students trust TutorNest to find the right tutor.
 
-transform:translateY(0);
+</p>
 
-}
+</div>
 
-}
+<div class="features">
 
-/*=========================
-RESPONSIVE
-=========================*/
+<div class="feature">
 
-@media(max-width:992px){
+<i class="fa-solid fa-user-check"></i>
 
-.hero{
+<h3>Verified Tutors</h3>
 
-grid-template-columns:1fr;
+<p>Every tutor profile is reviewed and approved by our admin team.</p>
 
-text-align:center;
+</div>
 
-padding:60px 20px;
+<div class="feature">
 
-}
+<i class="fa-solid fa-graduation-cap"></i>
 
-.hero-content h1{
+<h3>Experienced Faculty</h3>
 
-font-size:42px;
+<p>Choose tutors based on qualifications, experience and subjects.</p>
 
-}
+</div>
 
-.hero-buttons{
+<div class="feature">
 
-justify-content:center;
+<i class="fa-solid fa-house"></i>
 
-}
+<h3>Home & Online Tuition</h3>
 
-.search-box{
+<p>Select home tuition, online classes or both according to your needs.</p>
 
-grid-template-columns:1fr 1fr;
+</div>
 
-}
+<div class="feature">
 
-}
+<i class="fa-solid fa-location-dot"></i>
 
-@media(max-width:600px){
+<h3>Nearby Tutors</h3>
 
-.hero-content h1{
+<p>Find tutors available in your locality and surrounding areas.</p>
 
-font-size:34px;
+</div>
 
-}
+<div class="feature">
 
-.search-box{
+<i class="fa-solid fa-wallet"></i>
 
-grid-template-columns:1fr;
+<h3>Affordable Fees</h3>
 
-}
+<p>Compare monthly fees and choose the tutor that fits your budget.</p>
 
-.hero-buttons{
+</div>
 
-flex-direction:column;
+<div class="feature">
 
-}
+<i class="fa-solid fa-headset"></i>
 
-.hero-buttons a{
+<h3>Dedicated Support</h3>
 
-width:100%;
+<p>Our support team helps students and tutors throughout the process.</p>
 
-}
+</div>
 
-}
-/*=========================
-STATS SECTION
-=========================*/
+</div>
 
-.stats{
+</section>
+<!-- ================= HOW TUTORNEST WORKS ================= -->
 
-padding:70px 8%;
+<section class="section">
 
-display:grid;
+<div class="section-header">
 
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+<h2 class="section-title">
 
-gap:25px;
+How TutorNest Works
 
-background:#fff;
+</h2>
 
-}
+<p class="section-subtitle">
 
-.stat-card{
+Finding the right tutor is quick and simple.
 
-background:#f8fbff;
+</p>
 
-padding:35px 25px;
+</div>
 
-border-radius:18px;
+<div class="grid">
 
-text-align:center;
+<div class="card">
 
-transition:.3s;
+<i class="fa-solid fa-magnifying-glass"></i>
 
-box-shadow:0 8px 20px rgba(0,0,0,.05);
+<h3>Search Tutors</h3>
 
-}
+<p>
 
-.stat-card:hover{
+Search tutors by subject, class, location or teaching mode.
 
-transform:translateY(-8px);
+</p>
 
-box-shadow:0 18px 35px rgba(15,76,129,.12);
+</div>
 
-}
+<div class="card">
 
-.stat-card h2{
+<i class="fa-solid fa-address-card"></i>
 
-font-size:42px;
+<h3>Compare Profiles</h3>
 
-color:#0f4c81;
+<p>
 
-margin-bottom:10px;
+View tutor qualifications, experience, fees and subjects before choosing.
 
-}
+</p>
 
-.stat-card p{
+</div>
 
-color:#666;
+<div class="card">
 
-font-size:17px;
+<i class="fa-solid fa-calendar-check"></i>
 
-}
+<h3>Book Demo</h3>
 
-/*=========================
-GRID
-=========================*/
+<p>
 
-.grid{
+Request a demo class and interact with the tutor before enrolling.
 
-display:grid;
+</p>
 
-grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+</div>
 
-gap:25px;
+<div class="card">
 
-margin-top:40px;
+<i class="fa-solid fa-graduation-cap"></i>
 
-}
+<h3>Start Learning</h3>
 
-.card{
+<p>
 
-background:#fff;
+Begin your learning journey with a trusted TutorNest educator.
 
-padding:30px;
+</p>
 
-border-radius:18px;
+</div>
 
-text-align:center;
+</div>
 
-box-shadow:0 8px 25px rgba(0,0,0,.06);
+</section>
 
-transition:.3s;
 
-}
 
-.card:hover{
+<!-- ================= TESTIMONIALS ================= -->
 
-transform:translateY(-8px);
+<section class="section">
 
-box-shadow:0 18px 35px rgba(0,0,0,.12);
+<div class="section-header">
 
-}
+<h2 class="section-title">
 
-.card i{
+What Students Say
 
-font-size:45px;
+</h2>
 
-color:#0f4c81;
+<p class="section-subtitle">
 
-margin-bottom:20px;
+Trusted by students and parents.
 
-}
+</p>
 
-.card h3{
+</div>
 
-font-size:22px;
+<div class="grid">
 
-margin-bottom:12px;
+<div class="card testimonial-card">
 
-color:#0f4c81;
+<div class="stars">
 
-}
+★★★★★
 
-.card p{
+</div>
 
-color:#666;
+<p>
 
-line-height:1.7;
+"The tutor was very friendly and explained every concept clearly. My Maths marks improved significantly."
 
-}
+</p>
 
-/*=========================
-WHY CHOOSE US
-=========================*/
+<h4>
 
-.features{
+— Priya Sharma
 
-display:grid;
+</h4>
 
-grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+</div>
 
-gap:30px;
+<div class="card testimonial-card">
 
-margin-top:45px;
+<div class="stars">
 
-}
+★★★★★
 
-.feature{
+</div>
 
-background:#fff;
+<p>
 
-padding:30px;
+"Within one day I found an excellent Physics tutor through TutorNest. The whole process was smooth."
 
-border-radius:18px;
+</p>
 
-box-shadow:0 8px 25px rgba(0,0,0,.06);
+<h4>
 
-transition:.3s;
+— Aditya Verma
 
-text-align:center;
+</h4>
 
-}
+</div>
 
-.feature:hover{
+<div class="card testimonial-card">
 
-transform:translateY(-8px);
+<div class="stars">
 
-box-shadow:0 18px 35px rgba(0,0,0,.12);
+★★★★★
 
-}
+</div>
 
-.feature i{
+<p>
 
-font-size:42px;
+"Highly recommended platform for finding experienced home tutors in Lucknow."
 
-color:#0f4c81;
+</p>
 
-margin-bottom:18px;
+<h4>
 
-}
+— Riya Singh
 
-.feature h3{
+</h4>
 
-font-size:22px;
+</div>
 
-margin-bottom:12px;
+</div>
 
-color:#0f4c81;
+</section>
 
-}
 
-.feature p{
 
-color:#666;
+<!-- ================= FAQ ================= -->
 
-line-height:1.8;
+<section class="section">
 
-}
+<div class="section-header">
 
-/*=========================
-RESPONSIVE
-=========================*/
+<h2 class="section-title">
 
-@media(max-width:768px){
+Frequently Asked Questions
 
-.stats{
+</h2>
 
-grid-template-columns:1fr 1fr;
+</div>
 
-}
+<div class="faq-container">
 
-.grid,
+<div class="faq-item">
 
-.features{
+<h3>
 
-grid-template-columns:1fr;
+Is TutorNest free for students?
 
-}
+</h3>
 
-}
+<p>
 
-@media(max-width:500px){
+Yes. Students can browse tutor profiles and choose tutors without any registration fee.
 
-.stats{
+</p>
 
-grid-template-columns:1fr;
+</div>
 
-}
+<div class="faq-item">
 
-}
-/*=========================
-TESTIMONIALS
-=========================*/
+<h3>
 
-.testimonial-card{
+Are tutors verified?
 
-text-align:left;
+</h3>
 
-}
+<p>
 
-.stars{
+Every tutor profile is reviewed by the TutorNest admin team before approval.
 
-font-size:22px;
+</p>
 
-color:#f59e0b;
+</div>
 
-margin-bottom:15px;
+<div class="faq-item">
 
-}
+<h3>
 
-.testimonial-card h4{
+Do tutors provide home tuition?
 
-margin-top:18px;
+</h3>
 
-color:#0f4c81;
+<p>
 
-}
+Many tutors provide home tuition, online classes, or both depending on their profile.
 
-/*=========================
-FAQ
-=========================*/
+</p>
 
-.faq-container{
+</div>
 
-max-width:900px;
+<div class="faq-item">
 
-margin:40px auto 0;
+<h3>
 
-display:flex;
+Can I compare tutor fees?
 
-flex-direction:column;
+</h3>
 
-gap:20px;
+<p>
 
-}
+Yes. Tutor profiles display fees, qualifications, experience and subjects for easy comparison.
 
-.faq-item{
+</p>
 
-background:#fff;
+</div>
 
-padding:25px;
+</div>
 
-border-radius:16px;
+</section>
 
-box-shadow:0 8px 25px rgba(0,0,0,.06);
 
-}
 
-.faq-item h3{
+<!-- ================= CALL TO ACTION ================= -->
 
-margin-bottom:12px;
+<section class="cta">
 
-color:#0f4c81;
+<div class="cta-content">
 
-font-size:20px;
+<h2>
 
-}
+Become a Tutor with TutorNest
 
-.faq-item p{
+</h2>
 
-color:#666;
+<p>
 
-line-height:1.8;
+Create your tutor profile, get verified and start receiving student enquiries.
 
-}
+</p>
 
-/*=========================
-CTA
-=========================*/
+<div class="cta-buttons">
 
-.cta{
+<a
+href="tutor-register.html"
+class="primary-btn">
 
-padding:90px 8%;
+Register as Tutor
 
-background:linear-gradient(135deg,#0f4c81,#1d6cb0);
+</a>
 
-color:#fff;
+<a
+href="search.html"
+class="outline-btn">
 
-text-align:center;
+Find Tutors
 
-}
+</a>
 
-.cta h2{
+</div>
 
-font-size:42px;
+</div>
 
-margin-bottom:18px;
+</section>
+<!-- ================= FOOTER ================= -->
 
-}
+<footer>
 
-.cta p{
+<div class="footer-container">
 
-max-width:700px;
+<div class="footer-col">
 
-margin:auto;
+<h3>TutorNest</h3>
 
-font-size:18px;
+<p>
 
-line-height:1.8;
+TutorNest helps students connect with trusted home tutors and online educators across India.
 
-margin-bottom:35px;
+</p>
 
-}
+<div class="social-links">
 
-.cta-buttons{
+<a href="#">
 
-display:flex;
+<i class="fa-brands fa-facebook-f"></i>
 
-justify-content:center;
+</a>
 
-gap:18px;
+<a href="#">
 
-flex-wrap:wrap;
+<i class="fa-brands fa-instagram"></i>
 
-}
+</a>
 
-.cta .primary-btn{
+<a href="#">
 
-background:#fff;
+<i class="fa-brands fa-linkedin-in"></i>
 
-color:#0f4c81;
+</a>
 
-}
+<a href="#">
 
-.cta .primary-btn:hover{
+<i class="fa-brands fa-youtube"></i>
 
-background:#f5f5f5;
+</a>
 
-}
+</div>
 
-.cta .outline-btn{
+</div>
 
-border:2px solid #fff;
+<div class="footer-col">
 
-color:#fff;
+<h3>Quick Links</h3>
 
-}
+<ul>
 
-.cta .outline-btn:hover{
+<li>
 
-background:#fff;
+<a href="index.html">
 
-color:#0f4c81;
+Home
 
-}
+</a>
 
-/*=========================
-FOOTER
-=========================*/
+</li>
 
-footer{
+<li>
 
-background:#081f35;
+<a href="search.html">
 
-color:#fff;
+Find Tutors
 
-padding:70px 8% 20px;
+</a>
 
-}
+</li>
 
-.footer-container{
+<li>
 
-display:grid;
+<a href="tutor-register.html">
 
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+Become a Tutor
 
-gap:40px;
+</a>
 
-}
+</li>
 
-.footer-col h3{
+<li>
 
-margin-bottom:18px;
+<a href="tutor-login.html">
 
-font-size:22px;
+Tutor Login
 
-}
+</a>
 
-.footer-col p,
+</li>
 
-.footer-col li{
+<li>
 
-margin-bottom:12px;
+<a href="admin-login.html">
 
-color:#d4d4d4;
+Admin Login
 
-line-height:1.8;
+</a>
 
-}
+</li>
 
-.footer-col a{
+</ul>
 
-color:#d4d4d4;
+</div>
 
-transition:.3s;
+<div class="footer-col">
 
-}
+<h3>Students</h3>
 
-.footer-col a:hover{
+<ul>
 
-color:#fff;
+<li>
 
-}
+<a href="search.html">
 
-.social-links{
+Browse Tutors
 
-display:flex;
+</a>
 
-gap:15px;
+</li>
 
-margin-top:20px;
+<li>
 
-}
+<a href="#">
 
-.social-links a{
+Book Demo
 
-width:42px;
+</a>
 
-height:42px;
+</li>
 
-display:flex;
+<li>
 
-align-items:center;
+<a href="#">
 
-justify-content:center;
+FAQs
 
-border-radius:50%;
+</a>
 
-background:rgba(255,255,255,.1);
+</li>
 
-transition:.3s;
+<li>
 
-}
+<a href="#">
 
-.social-links a:hover{
+Support
 
-background:#0f4c81;
+</a>
 
-}
+</li>
 
-.footer-bottom{
+</ul>
 
-border-top:1px solid rgba(255,255,255,.15);
+</div>
 
-margin-top:40px;
+<div class="footer-col">
 
-padding-top:20px;
+<h3>Contact</h3>
 
-text-align:center;
+<p>
 
-color:#bbb;
+<i class="fa-solid fa-phone"></i>
 
-}
++91 9511119120
 
-/*=========================
-FLOATING BUTTONS
-=========================*/
+</p>
 
-.whatsapp-float,
+<p>
 
-.call-float,
+<i class="fa-solid fa-envelope"></i>
 
-#topBtn{
+support@tutornest.in
 
-position:fixed;
+</p>
 
-right:20px;
+<p>
 
-width:55px;
+<i class="fa-solid fa-location-dot"></i>
 
-height:55px;
+Lucknow, Uttar Pradesh
 
-border-radius:50%;
+</p>
 
-display:flex;
+</div>
 
-align-items:center;
+</div>
 
-justify-content:center;
+<div class="footer-bottom">
 
-color:#fff;
+<p>
 
-font-size:22px;
+© 2026 TutorNest. All Rights Reserved.
 
-box-shadow:0 8px 20px rgba(0,0,0,.2);
+</p>
 
-z-index:999;
+</div>
 
-transition:.3s;
+</footer>
 
-}
 
-.whatsapp-float{
 
-bottom:150px;
+<!-- ================= FLOATING BUTTONS ================= -->
 
-background:#25D366;
+<a
 
-}
+href="https://wa.me/919511119120"
 
-.call-float{
+target="_blank"
 
-bottom:85px;
+class="whatsapp-float"
 
-background:#0f4c81;
+title="Chat on WhatsApp">
 
-}
+<i class="fa-brands fa-whatsapp"></i>
 
-#topBtn{
+</a>
 
-bottom:20px;
+<a
 
-background:#333;
+href="tel:+919511119120"
 
-cursor:pointer;
+class="call-float"
 
-border:none;
+title="Call Now">
 
-}
+<i class="fa-solid fa-phone"></i>
 
-.whatsapp-float:hover,
+</a>
 
-.call-float:hover,
 
-#topBtn:hover{
 
-transform:scale(1.1);
+<button
 
-}
+id="topBtn"
 
-/*=========================
-FINAL RESPONSIVE
-=========================*/
+title="Back to Top">
 
-@media(max-width:768px){
+<i class="fa-solid fa-arrow-up"></i>
 
-.section{
+</button>
 
-padding:60px 20px;
 
-}
 
-.section-title{
+<!-- ================= SCRIPTS ================= -->
 
-font-size:30px;
+<script src="script.js"></script>
 
-}
+<script
+type="module"
+src="js/homepage.js">
 
-.cta h2{
+</script>
 
-font-size:32px;
+</body>
 
-}
-
-.cta p{
-
-font-size:16px;
-
-}
-
-.footer-container{
-
-grid-template-columns:1fr;
-
-text-align:center;
-
-}
-
-.social-links{
-
-justify-content:center;
-
-}
-
-}
+</html>
