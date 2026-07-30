@@ -12,74 +12,146 @@
 <link rel="stylesheet" href="css/admin.css">
 
 <link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"/>
 
 </head>
 
 <body>
 
+<!-- ========================= -->
+<!-- Navbar -->
+<!-- ========================= -->
+
 <nav class="navbar">
 
 <div class="logo">
-<a href="index.html">TutorNest Admin</a>
+
+<a href="index.html">
+
+<i class="fa-solid fa-user-shield"></i>
+
+TutorNest Admin
+
+</a>
+
 </div>
 
 <div class="nav-links">
-<a href="index.html">Home</a>
-<a href="#" id="logoutBtn">Logout</a>
+
+<a href="index.html">
+
+<i class="fa-solid fa-house"></i>
+
+Home
+
+</a>
+
+<a href="#" id="logoutBtn">
+
+<i class="fa-solid fa-right-from-bracket"></i>
+
+Logout
+
+</a>
+
 </div>
 
 </nav>
 
+<!-- ========================= -->
+<!-- Dashboard -->
+<!-- ========================= -->
+
 <section class="admin-dashboard">
 
-<h1>Admin Dashboard</h1>
+<h1>
+
+<i class="fa-solid fa-gauge-high"></i>
+
+Admin Dashboard
+
+</h1>
 
 <div class="stats-grid">
 
 <div class="stat-card">
+
 <h2 id="totalTutors">0</h2>
+
 <p>Total Tutors</p>
+
 </div>
 
 <div class="stat-card">
+
 <h2 id="approvedTutors">0</h2>
-<p>Approved</p>
+
+<p>Approved Tutors</p>
+
 </div>
 
 <div class="stat-card">
+
 <h2 id="pendingTutors">0</h2>
-<p>Pending</p>
+
+<p>Pending Tutors</p>
+
 </div>
 
 <div class="stat-card">
+
 <h2 id="rejectedTutors">0</h2>
-<p>Rejected</p>
-</div>
+
+<p>Rejected Tutors</p>
 
 </div>
 
-<!-- Search & Filters -->
+</div>
+
+<!-- ========================= -->
+<!-- Search -->
+<!-- ========================= -->
 
 <div class="filter-box">
 
 <input
 type="text"
 id="searchInput"
-placeholder="Search by name...">
+placeholder="Search Tutor...">
 
 <select id="statusFilter">
 
-<option value="All">All Status</option>
-<option value="Pending">Pending</option>
-<option value="Approved">Approved</option>
-<option value="Rejected">Rejected</option>
+<option value="All">
+
+All Status
+
+</option>
+
+<option value="Pending">
+
+Pending
+
+</option>
+
+<option value="Approved">
+
+Approved
+
+</option>
+
+<option value="Rejected">
+
+Rejected
+
+</option>
 
 </select>
 
 </div>
 
-<!-- Tutor Table -->
+<!-- ========================= -->
+<!-- Table -->
+<!-- ========================= -->
 
 <div class="table-wrapper">
 
@@ -90,10 +162,15 @@ placeholder="Search by name...">
 <tr>
 
 <th>Photo</th>
+
 <th>Name</th>
+
 <th>Area</th>
+
 <th>Qualification</th>
+
 <th>Status</th>
+
 <th>Actions</th>
 
 </tr>
@@ -109,19 +186,250 @@ placeholder="Search by name...">
 </div>
 
 </section>
-</section>
 
-<!-- YAHAN MODAL PASTE KARNA HAI -->
+<!-- ========================= -->
+<!-- View Tutor Modal -->
+<!-- ========================= -->
 
 <div id="viewModal" class="modal">
 
-    ...
-    Modal ka sara code...
-    ...
+<div class="modal-content">
+
+<span class="close-modal" id="closeModal">
+
+&times;
+
+</span>
+
+<div class="modal-header">
+
+<img
+id="modalPhoto"
+src="assets/images/default-user.png">
+
+<h2 id="modalName">
+
+Tutor Name
+
+</h2>
+
+<p id="modalStatus">
+
+Pending
+
+</p>
 
 </div>
+
+<div class="modal-body">
+
+<div class="info-row">
+
+<strong>Email</strong>
+
+<span id="modalEmail">
+
+-
+
+</span>
+
+</div>
+
+<div class="info-row">
+
+<strong>Phone</strong>
+
+<span id="modalPhone">
+
+-
+
+</span>
+
+</div>
+
+<div class="info-row">
+
+<strong>Gender</strong>
+
+<span id="modalGender">
+
+-
+
+</span>
+
+</div>
+
+<div class="info-row">
+
+<strong>Qualification</strong>
+
+<span id="modalQualification">
+
+-
+
+</span>
+
+</div>
+
+<div class="info-row">
+
+<strong>Experience</strong>
+
+<span id="modalExperience">
+
+-
+
+</span>
+
+</div>
+
+<div class="info-row">
+
+<strong>Subjects</strong>
+
+<span id="modalSubjects">
+
+-
+
+</span>
+
+</div>
+
+<div class="info-row">
+
+<strong>Classes</strong>
+
+<span id="modalClasses">
+
+-
+
+</span>
+
+</div>
+
+<div class="info-row">
+
+<strong>Mode</strong>
+
+<span id="modalMode">
+
+-
+
+</span>
+
+</div>
+
+<div class="info-row">
+
+<strong>Fees</strong>
+
+<span id="modalFees">
+
+-
+
+</span>
+
+</div>
+
+<div class="info-row">
+
+<strong>City</strong>
+
+<span id="modalCity">
+
+-
+
+</span>
+
+</div>
+
+<div class="info-row">
+
+<strong>Area</strong>
+
+<span id="modalArea">
+
+-
+
+</span>
+
+</div>
+
+<div class="info-row">
+
+<strong>About</strong>
+
+<span id="modalAbout">
+
+-
+
+</span>
+
+</div>
+<div class="modal-actions">
+
+<button
+id="approveTutorBtn"
+class="approve-btn">
+
+<i class="fa-solid fa-circle-check"></i>
+
+Approve
+
+</button>
+
+<button
+id="rejectTutorBtn"
+class="reject-btn">
+
+<i class="fa-solid fa-circle-xmark"></i>
+
+Reject
+
+</button>
+
+<button
+id="featureTutorBtn"
+class="feature-btn">
+
+<i class="fa-solid fa-star"></i>
+
+Feature Tutor
+
+</button>
+
+<button
+id="deleteTutorBtn"
+class="delete-btn">
+
+<i class="fa-solid fa-trash"></i>
+
+Delete
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- ========================= -->
+<!-- Footer -->
+<!-- ========================= -->
+
+<footer class="admin-footer">
+
+<p>
+
+© 2026 TutorNest Admin Panel
+
+</p>
+
+</footer>
 
 <script type="module" src="js/admin.js"></script>
 
 </body>
+
 </html>

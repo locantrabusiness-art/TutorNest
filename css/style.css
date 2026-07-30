@@ -395,15 +395,11 @@ color:#fff;
 ========================= */
 
 .hero-image img{
-
-width:100%;
-
-max-width:560px;
-
-display:block;
-
-margin:auto;
-
+    width:100%;
+    max-width:500px;
+    height:auto;
+    object-fit:contain;
+    display:block;
 }
 
 /* =========================
