@@ -4,12 +4,28 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
 
 <title>Tutor Profile | TutorNest</title>
 
-<link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/teacher.css">
+<link rel="stylesheet"
+href="css/style.css">
+
+<link rel="stylesheet"
+href="css/teacher.css">
+
+<link rel="preconnect"
+href="https://fonts.googleapis.com">
+
+<link rel="preconnect"
+href="https://fonts.gstatic.com"
+crossorigin>
+
+<link
+href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+rel="stylesheet">
 
 <link rel="stylesheet"
 href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
@@ -18,31 +34,85 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 
 <body>
 
-<!-- NAVBAR -->
+<!-- ================= NAVBAR ================= -->
+
+<header>
 
 <nav class="navbar">
 
 <div class="logo">
-<a href="index.html">TutorNest</a>
+
+<a href="index.html">
+
+TutorNest
+
+</a>
+
 </div>
 
-<div class="nav-links">
-<a href="index.html">Home</a>
-<a href="search.html">Find Tutors</a>
-</div>
+<ul class="nav-links">
+
+<li>
+
+<a href="index.html">
+
+Home
+
+</a>
+
+</li>
+
+<li>
+
+<a href="search.html">
+
+Find Tutors
+
+</a>
+
+</li>
+
+<li>
+
+<a href="tutor-register.html">
+
+Become a Tutor
+
+</a>
+
+</li>
+
+</ul>
 
 </nav>
 
-<!-- PROFILE -->
+</header>
+
+<!-- ================= PROFILE HEADER ================= -->
 
 <section class="teacher-profile">
 
 <div class="profile-card">
 
+<div class="profile-image">
+
 <img
+
 id="profileImage"
+
 src="assets/images/default-user.png"
+
 alt="Tutor">
+
+<div class="verified-badge">
+
+<i class="fa-solid fa-circle-check"></i>
+
+Verified
+
+</div>
+
+</div>
 
 <div class="profile-info">
 
@@ -52,125 +122,425 @@ Loading...
 
 </h1>
 
-<p id="qualification">
+<p
+id="qualification"
+class="qualification">
 
 Qualification
 
 </p>
 
-<p id="experience">
+<p
+id="experience"
+class="experience">
 
 Experience
 
 </p>
 
-<p id="location">
+<p
+id="location"
+class="location">
 
-📍 Lucknow
+<i class="fa-solid fa-location-dot"></i>
 
-</p>
-
-<div class="verified">
-
-<i class="fa-solid fa-circle-check"></i>
-
-Verified Tutor
-
-</div>
-
-</div>
-
-</div>
-
-</section>
-
-<!-- ABOUT -->
-
-<section class="teacher-section">
-
-<h2>About Tutor</h2>
-
-<p id="about">
-
-No description available.
+Location
 
 </p>
 
-</section>
+<div class="profile-tags">
 
-<!-- SUBJECTS -->
-
-<section class="teacher-section">
-
-<h2>Subjects & Monthly Fees</h2>
-
-<div id="subjectContainer">
-
-</div>
-
-</section>
-
-<!-- CLASSES -->
-
-<section class="teacher-section">
-
-<h2>Classes</h2>
-
-<div id="classContainer">
-
-</div>
-
-</section>
-
-<!-- MODE -->
-
-<section class="teacher-section">
-
-<h2>Teaching Mode</h2>
-
-<p id="mode">
+<span id="modeTag">
 
 Home Tuition
 
-</p>
+</span>
+
+<span>
+
+Verified Tutor
+
+</span>
+
+</div>
+
+</div>
+
+</div>
 
 </section>
-
-<!-- LANGUAGES -->
+<!-- ================= ABOUT ================= -->
 
 <section class="teacher-section">
 
-<h2>Languages</h2>
+<h2>
 
-<p id="languages">
+About Tutor
 
-Hindi, English
+</h2>
+
+<div class="info-card">
+
+<p id="about">
+
+Loading...
 
 </p>
 
+</div>
+
 </section>
 
-<!-- BUTTONS -->
+
+
+<!-- ================= SUBJECTS ================= -->
+
+<section class="teacher-section">
+
+<h2>
+
+Subjects & Monthly Fees
+
+</h2>
+
+<div
+id="subjectContainer"
+class="subject-grid">
+
+<!-- JS -->
+
+</div>
+
+</section>
+
+
+
+<!-- ================= CLASSES ================= -->
+
+<section class="teacher-section">
+
+<h2>
+
+Classes Taught
+
+</h2>
+
+<div
+id="classContainer"
+class="tag-container">
+
+<!-- JS -->
+
+</div>
+
+</section>
+
+
+
+<!-- ================= TEACHING DETAILS ================= -->
+
+<section class="teacher-section">
+
+<h2>
+
+Teaching Details
+
+</h2>
+
+<div class="details-grid">
+
+<div class="detail-card">
+
+<i class="fa-solid fa-house"></i>
+
+<h3>
+
+Teaching Mode
+
+</h3>
+
+<p id="mode">
+
+Loading...
+
+</p>
+
+</div>
+
+<div class="detail-card">
+
+<i class="fa-solid fa-language"></i>
+
+<h3>
+
+Languages
+
+</h3>
+
+<p id="languages">
+
+Loading...
+
+</p>
+
+</div>
+
+<div class="detail-card">
+
+<i class="fa-solid fa-user-graduate"></i>
+
+<h3>
+
+Experience
+
+</h3>
+
+<p id="experienceCard">
+
+Loading...
+
+</p>
+
+</div>
+
+<div class="detail-card">
+
+<i class="fa-solid fa-location-dot"></i>
+
+<h3>
+
+Area
+
+</h3>
+
+<p id="area">
+
+Loading...
+
+</p>
+
+</div>
+
+</div>
+
+</section>
+<!-- ================= ACTION BUTTONS ================= -->
 
 <section class="teacher-buttons">
 
-<button id="demoBtn">
+<a
+id="demoBtn"
+href="#"
+class="primary-btn">
+
+<i class="fa-solid fa-calendar-check"></i>
 
 Request Demo
 
-</button>
+</a>
 
-<button id="whatsappBtn">
+<a
+id="whatsappBtn"
+href="#"
+target="_blank"
+class="secondary-btn">
 
 <i class="fa-brands fa-whatsapp"></i>
 
 WhatsApp
 
-</button>
+</a>
+
+<a
+id="callBtn"
+href="#"
+class="outline-btn">
+
+<i class="fa-solid fa-phone"></i>
+
+Call Tutor
+
+</a>
 
 </section>
 
-<script type="module" src="js/teacher.js"></script>
+
+
+<!-- ================= SIMILAR TUTORS ================= -->
+
+<section class="teacher-section">
+
+<div class="section-header">
+
+<h2>
+
+Similar Tutors
+
+</h2>
+
+<p>
+
+Explore other verified tutors teaching similar subjects.
+
+</p>
+
+</div>
+
+<div
+id="similarTutors"
+class="featured-grid">
+
+<div class="loading">
+
+<i class="fa-solid fa-spinner fa-spin"></i>
+
+<p>
+
+Loading Similar Tutors...
+
+</p>
+
+</div>
+
+</div>
+
+<div class="section-btn">
+
+<a
+href="search.html"
+class="primary-btn">
+
+Browse More Tutors
+
+</a>
+
+</div>
+
+</section>
+
+
+
+<!-- ================= FOOTER ================= -->
+
+<footer>
+
+<div class="footer-container">
+
+<div>
+
+<h3>
+
+TutorNest
+
+</h3>
+
+<p>
+
+Find trusted home tutors and online teachers across India.
+
+</p>
+
+</div>
+
+<div>
+
+<h3>
+
+Quick Links
+
+</h3>
+
+<a href="index.html">
+
+Home
+
+</a>
+
+<a href="search.html">
+
+Find Tutors
+
+</a>
+
+<a href="tutor-register.html">
+
+Become a Tutor
+
+</a>
+
+</div>
+
+<div>
+
+<h3>
+
+Support
+
+</h3>
+
+<a href="#">
+
+Privacy Policy
+
+</a>
+
+<a href="#">
+
+Terms & Conditions
+
+</a>
+
+<a href="#">
+
+Contact Us
+
+</a>
+
+</div>
+
+</div>
+
+<div class="footer-bottom">
+
+© 2026 TutorNest. All Rights Reserved.
+
+</div>
+
+</footer>
+
+
+
+<!-- ================= FLOATING BUTTONS ================= -->
+
+<a
+
+href="https://wa.me/919511119120"
+
+class="whatsapp-float"
+
+target="_blank">
+
+<i class="fa-brands fa-whatsapp"></i>
+
+</a>
+
+<button id="topBtn">
+
+<i class="fa-solid fa-arrow-up"></i>
+
+</button>
+
+
+
+<!-- ================= SCRIPTS ================= -->
+
+<script src="script.js"></script>
+
+<script
+type="module"
+src="js/teacher.js">
+
+</script>
 
 </body>
 
