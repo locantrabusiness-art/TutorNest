@@ -1,5 +1,4 @@
 import { auth, db } from "../firebase.js";
-import ImageKit from "imagekit-javascript";
 
 import {
 onAuthStateChanged
@@ -12,40 +11,53 @@ setDoc,
 serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
+import ImageKit from "https://cdn.jsdelivr.net/npm/imagekit-javascript/dist/imagekit.esm.js";
 
-//=============================
+//==================================
+// IMAGEKIT
+//==================================
+
+const imagekit = new ImageKit({
+
+urlEndpoint:"https://ik.imagekit.io/tutornest",
+
+publicKey:"public_kKdD/tl6716JICjya52hltPI3kM=",
+
+authenticationEndpoint:"/api/imagekit-auth"
+
+});
+
+//==================================
 // DOM
-//=============================
+//==================================
 
 const profileForm=document.getElementById("profileForm");
 
 const emailInput=document.getElementById("email");
 
+const photoInput=document.getElementById("photo");
+
+const previewImage=document.getElementById("photoPreview");
+
 const subjectContainer=document.getElementById("subjectFeeContainer");
 
 const addSubjectBtn=document.getElementById("addSubjectBtn");
 
-const photoInput=document.getElementById("photo");
+//==================================
 
-const previewImage=document.getElementById("photoPreview");
-const imagekit = new ImageKit({
-    urlEndpoint: "https://ik.imagekit.io/tutornest",
-    publicKey: "public_kKdD/tl6716JICjya52hltPI3kM=",
-    authenticationEndpoint: "/api/imagekit-auth"
-});
 let currentUser=null;
 
 let oldData={};
 
-//=============================
-// LOGIN CHECK
-//=============================
+//==================================
+// LOGIN
+//==================================
 
 onAuthStateChanged(auth,async(user)=>{
 
 if(!user){
 
-location.href="login.html";
+window.location.href="login.html";
 
 return;
 
@@ -59,11 +71,73 @@ await loadProfile(user.uid);
 
 });
 
-//=============================
-// PHOTO PREVIEW
-//=============================
+//==================================
+// LOAD PROFILE
+//==================================
 
-photoInput?.addEventListener("change",()=>{
+async function loadProfile(uid){
+
+const snap=await getDoc(
+
+doc(db,"tutors",uid)
+
+);
+
+if(!snap.exists()){
+
+addSubjectRow();
+
+return;
+
+}
+
+oldData=snap.data();
+
+document.getElementById("name").value=
+oldData.name||"";
+
+document.getElementById("phone").value=
+oldData.phone||"";
+
+document.getElementById("dob").value=
+oldData.dob||"";
+
+document.getElementById("qualification").value=
+oldData.qualification||"";
+
+document.getElementById("college").value=
+oldData.college||"";
+
+document.getElementById("experience").value=
+oldData.experience||"";
+
+document.getElementById("about").value=
+oldData.about||"";
+
+document.getElementById("area").value=
+oldData.area||"";
+
+document.getElementById("pincode").value=
+oldData.pincode||"";
+
+document.getElementById("availability").value=
+oldData.availability||"";
+
+document.getElementById("timeSlot").value=
+oldData.timeSlot||"";
+
+if(oldData.photoURL){
+
+previewImage.src=oldData.photoURL;
+
+}
+
+}
+//==================================
+// PHOTO PREVIEW
+//==================================
+
+photoInput.addEventListener("change",()=>{
 
 const file=photoInput.files[0];
 
@@ -73,136 +147,9 @@ previewImage.src=URL.createObjectURL(file);
 
 });
 
-//=============================
-// LOAD PROFILE
-//=============================
-
-async function loadProfile(uid){
-
-const tutorRef=doc(db,"tutors",uid);
-
-const snap=await getDoc(tutorRef);
-
-if(!snap.exists()) return;
-
-oldData=snap.data();
-
-document.getElementById("name").value=oldData.name||"";
-
-document.getElementById("phone").value=oldData.phone||"";
-
-document.getElementById("dob").value=oldData.dob||"";
-
-document.getElementById("qualification").value=oldData.qualification||"";
-
-document.getElementById("college").value=oldData.college||"";
-
-document.getElementById("experience").value=oldData.experience||"";
-
-document.getElementById("about").value=oldData.about||"";
-
-document.getElementById("area").value=oldData.area||"";
-
-document.getElementById("pincode").value=oldData.pincode||"";
-
-document.getElementById("availability").value=oldData.availability||"";
-
-document.getElementById("timeSlot").value=oldData.timeSlot||"";
-
-if(oldData.photoURL){
-
-previewImage.src=oldData.photoURL;
-
-}
-//=============================
-// LOAD SUBJECTS
-//=============================
-
-subjectContainer.innerHTML="";
-
-const teaching=oldData.teaching||[];
-
-if(teaching.length===0){
-
-addSubjectRow();
-
-}else{
-
-teaching.forEach(item=>{
-
-addSubjectRow(
-
-item.subject,
-
-item.monthlyFee
-
-);
-
-});
-
-}
-
-//=============================
-// LOAD CLASSES
-//=============================
-
-(oldData.classes||[]).forEach(cls=>{
-
-const checkbox=document.querySelector(
-
-`input[name="classes"][value="${cls}"]`
-
-);
-
-if(checkbox){
-
-checkbox.checked=true;
-
-}
-
-});
-
-//=============================
-// LOAD LANGUAGES
-//=============================
-
-(oldData.languages||[]).forEach(lang=>{
-
-const checkbox=document.querySelector(
-
-`input[name="languages"][value="${lang}"]`
-
-);
-
-if(checkbox){
-
-checkbox.checked=true;
-
-}
-
-});
-
-//=============================
-// LOAD MODE
-//=============================
-
-const mode=document.querySelector(
-
-`input[name="mode"][value="${oldData.teachingMode}"]`
-
-);
-
-if(mode){
-
-mode.checked=true;
-
-}
-
-}
-
-//=============================
-// ADD SUBJECT ROW
-//=============================
+//==================================
+// SUBJECT ROW
+//==================================
 
 function addSubjectRow(subject="",fee=""){
 
@@ -241,13 +188,19 @@ row.innerHTML=`
 </select>
 
 <input
+
 type="number"
+
 class="subject-fee"
+
 placeholder="Monthly Fee"
+
 value="${fee}">
 
 <button
+
 type="button"
+
 class="remove-row">
 
 <i class="fa-solid fa-trash"></i>
@@ -260,9 +213,37 @@ subjectContainer.appendChild(row);
 
 }
 
-//=============================
-// ADD BUTTON
-//=============================
+//==================================
+// LOAD SUBJECTS
+//==================================
+
+subjectContainer.innerHTML="";
+
+const teaching=oldData.teaching||[];
+
+if(teaching.length===0){
+
+addSubjectRow();
+
+}else{
+
+teaching.forEach(item=>{
+
+addSubjectRow(
+
+item.subject,
+
+item.monthlyFee
+
+);
+
+});
+
+}
+
+//==================================
+// ADD SUBJECT
+//==================================
 
 addSubjectBtn.addEventListener("click",()=>{
 
@@ -270,9 +251,9 @@ addSubjectRow();
 
 });
 
-//=============================
-// REMOVE BUTTON
-//=============================
+//==================================
+// REMOVE SUBJECT
+//==================================
 
 subjectContainer.addEventListener("click",(e)=>{
 
@@ -289,54 +270,99 @@ e.target.closest(".subject-fee-row").remove();
 }
 
 });
-//=============================
-// FILE UPLOAD
-//=============================
+
+//==================================
+// LOAD CLASSES
+//==================================
+
+(oldData.classes||[]).forEach(cls=>{
+
+const box=document.querySelector(
+
+`input[name="classes"][value="${cls}"]`
+
+);
+
+if(box){
+
+box.checked=true;
+
+}
+
+});
+
+//==================================
+// LOAD LANGUAGES
+//==================================
+
+(oldData.languages||[]).forEach(lang=>{
+
+const box=document.querySelector(
+
+`input[name="languages"][value="${lang}"]`
+
+);
+
+if(box){
+
+box.checked=true;
+
+}
+
+});
+
+//==================================
+// LOAD MODE
+//==================================
+
+const mode=document.querySelector(
+
+`input[name="mode"][value="${oldData.teachingMode}"]`
+
+);
+
+if(mode){
+
+mode.checked=true;
+
+}
+//==================================
+// IMAGEKIT UPLOAD
+//==================================
 
 async function uploadToImageKit(file){
 
-    if(!file) return "";
+if(!file) return "";
 
-    const authRes = await fetch("/api/imagekit-auth");
+return new Promise((resolve,reject)=>{
 
-    const auth = await authRes.json();
+imagekit.upload({
 
-    const formData = new FormData();
+file:file,
 
-    formData.append("file", file);
+fileName:Date.now()+"_"+file.name
 
-    formData.append("fileName", Date.now()+"_"+file.name);
+},(error,result)=>{
 
-    formData.append("publicKey", auth.publicKey);
+if(error){
 
-    formData.append("signature", auth.signature);
+reject(error);
 
-    formData.append("expire", auth.expire);
-
-    formData.append("token", auth.token);
-
-    const res = await fetch(
-        "https://upload.imagekit.io/api/v1/files/upload",
-        {
-            method:"POST",
-            body:formData
-        }
-    );
-
-    const data = await res.json();
-
-    if(!res.ok){
-
-        throw new Error(data.message || "Image Upload Failed");
-
-    }
-
-    return data.url;
+return;
 
 }
-//=============================
+
+resolve(result.url);
+
+});
+
+});
+
+}
+
+//==================================
 // SAVE PROFILE
-//=============================
+//==================================
 
 profileForm.addEventListener("submit",async(e)=>{
 
@@ -354,98 +380,43 @@ const old=oldSnap.exists()
 
 : {};
 
-let photoURL=
+let photoURL=old.photoURL||"";
 
-old.photoURL||"";
+let aadhaarURL=old.aadhaarURL||"";
 
-let aadhaarURL=
+let certificateURL=old.certificateURL||"";
 
-old.aadhaarURL||"";
+const photo=document.getElementById("photo").files[0];
 
-let certificateURL=
+const aadhaar=document.getElementById("aadhaar").files[0];
 
-old.certificateURL||"";
-
-const photo=
-
-photoInput.files[0];
-
-const aadhaar=
-
-document.getElementById("aadhaar").files[0];
-
-const certificate=
-
-document.getElementById("certificate").files[0];
+const certificate=document.getElementById("certificate").files[0];
 
 if(photo){
 
-photoURL=
-
-await uploadToImageKit(
-photo,
-
-"profilePhotos"
-
-);
+photoURL=await uploadToImageKit(photo);
 
 }
 
 if(aadhaar){
 
-aadhaarURL=
-
-await uploadToImageKit(
-
-aadhaar,
-
-"aadhaar"
-
-);
+aadhaarURL=await uploadToImageKit(aadhaar);
 
 }
 
 if(certificate){
 
-certificateURL=
-
-await uploadToImageKit(
-
-certificate,
-
-"certificates"
-
-);
+certificateURL=await uploadToImageKit(certificate);
 
 }
 
-//=============================
-// SUBJECTS
-//=============================
-
 const teaching=[];
 
-document.querySelectorAll(
+document.querySelectorAll(".subject-fee-row").forEach(row=>{
 
-".subject-fee-row"
+const subject=row.querySelector(".subject-select").value;
 
-).forEach(row=>{
-
-const subject=
-
-row.querySelector(
-
-".subject-select"
-
-).value;
-
-const fee=
-
-row.querySelector(
-
-".subject-fee"
-
-).value;
+const fee=row.querySelector(".subject-fee").value;
 
 if(subject && fee){
 
@@ -461,153 +432,139 @@ monthlyFee:Number(fee)
 
 });
 
-//=============================
-// CLASSES
-//=============================
-
 const classes=[
 
-...document.querySelectorAll(
-
-'input[name="classes"]:checked'
-
-)
+...document.querySelectorAll('input[name="classes"]:checked')
 
 ].map(item=>item.value);
-
-//=============================
-// LANGUAGES
-//=============================
 
 const languages=[
 
-...document.querySelectorAll(
-
-'input[name="languages"]:checked'
-
-)
+...document.querySelectorAll('input[name="languages"]:checked')
 
 ].map(item=>item.value);
 
-//=============================
-// MODE
-//=============================
-
 const teachingMode=
 
-document.querySelector(
+document.querySelector('input[name="mode"]:checked')?.value||"";
+//==================================
+// IMAGEKIT UPLOAD
+//==================================
 
-'input[name="mode"]:checked'
+async function uploadToImageKit(file){
 
-)?.value||"";
-//=============================
-// SAVE FIRESTORE
-//=============================
+if(!file) return "";
 
-await setDoc(
+return new Promise((resolve,reject)=>{
 
-tutorRef,
+imagekit.upload({
 
-{
+file:file,
 
-uid:currentUser.uid,
+fileName:Date.now()+"_"+file.name
 
-email:currentUser.email,
+},(error,result)=>{
 
-name:document.getElementById("name").value.trim(),
+if(error){
 
-phone:document.getElementById("phone").value.trim(),
+reject(error);
 
-dob:document.getElementById("dob").value,
-
-qualification:document.getElementById("qualification").value.trim(),
-
-college:document.getElementById("college").value.trim(),
-
-experience:Number(
-
-document.getElementById("experience").value||0
-
-),
-
-about:document.getElementById("about").value.trim(),
-
-area:document.getElementById("area").value.trim(),
-
-pincode:document.getElementById("pincode").value.trim(),
-
-availability:document.getElementById("availability").value,
-
-timeSlot:document.getElementById("timeSlot").value,
-
-teaching,
-
-classes,
-
-languages,
-
-teachingMode,
-
-photoURL,
-
-aadhaarURL,
-
-certificateURL,
-
-status:old.status||"Pending",
-
-featured:old.featured||false,
-
-homepageOrder:old.homepageOrder||999,
-
-verified:old.verified||false,
-
-rating:old.rating||0,
-
-totalReviews:old.totalReviews||0,
-
-createdAt:old.createdAt||serverTimestamp(),
-
-updatedAt:serverTimestamp()
-
-},
-
-{
-
-merge:true
+return;
 
 }
 
-);
+resolve(result.url);
 
-//=============================
-// SUCCESS
-//=============================
+});
 
-alert(
-
-"Profile saved successfully."
-
-);
-
-// Redirect
-
-window.location.href=
-
-"tutor-dashboard.html";
+});
 
 }
 
-catch(err){
+//==================================
+// SAVE PROFILE
+//==================================
 
-console.error(err);
+profileForm.addEventListener("submit",async(e)=>{
 
-alert(
+e.preventDefault();
 
-"Error : "+err.message
+try{
 
-);
+const tutorRef=doc(db,"tutors",currentUser.uid);
+
+const oldSnap=await getDoc(tutorRef);
+
+const old=oldSnap.exists()
+
+? oldSnap.data()
+
+: {};
+
+let photoURL=old.photoURL||"";
+
+let aadhaarURL=old.aadhaarURL||"";
+
+let certificateURL=old.certificateURL||"";
+
+const photo=document.getElementById("photo").files[0];
+
+const aadhaar=document.getElementById("aadhaar").files[0];
+
+const certificate=document.getElementById("certificate").files[0];
+
+if(photo){
+
+photoURL=await uploadToImageKit(photo);
+
+}
+
+if(aadhaar){
+
+aadhaarURL=await uploadToImageKit(aadhaar);
+
+}
+
+if(certificate){
+
+certificateURL=await uploadToImageKit(certificate);
+
+}
+
+const teaching=[];
+
+document.querySelectorAll(".subject-fee-row").forEach(row=>{
+
+const subject=row.querySelector(".subject-select").value;
+
+const fee=row.querySelector(".subject-fee").value;
+
+if(subject && fee){
+
+teaching.push({
+
+subject,
+
+monthlyFee:Number(fee)
+
+});
 
 }
 
 });
+
+const classes=[
+
+...document.querySelectorAll('input[name="classes"]:checked')
+
+].map(item=>item.value);
+
+const languages=[
+
+...document.querySelectorAll('input[name="languages"]:checked')
+
+].map(item=>item.value);
+
+const teachingMode=
+
+document.querySelector('input[name="mode"]:checked')?.value||"";
