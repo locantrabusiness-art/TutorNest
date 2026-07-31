@@ -13,10 +13,7 @@ const params = new URLSearchParams(location.search);
 const tutorId = params.get("tutor");
 
 const tutorName = params.get("name");
-const params = new URLSearchParams(window.location.search);
 
-const tutorId = params.get("id") || "";
-const tutorName = decodeURIComponent(params.get("name") || "");
 
 const form = document.getElementById("demoForm");
 
@@ -34,13 +31,13 @@ form.addEventListener("submit", async (e) => {
 
       phone: document.getElementById("phone").value.trim(),
 
-      city: document.getElementById("city").value.trim(),
+      class: document.getElementById("class").value,
 
-      className: document.getElementById("class").value,
+area: document.getElementById("city").value.trim(),
 
-      subject: document.getElementById("subject").value.trim(),
+subject: document.getElementById("subject").value.trim(),
 
-      message: document.getElementById("message").value.trim(),
+remarks: document.getElementById("message").value.trim(),
       requestedTutor: tutorId,
 
 requestedTutorName: tutorName,
