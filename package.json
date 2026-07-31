@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "imagekit": "^5.2.0"
+    "imagekit": "^5.2.0",
+    "imagekit-javascript": "^4.0.1"
   }
 }

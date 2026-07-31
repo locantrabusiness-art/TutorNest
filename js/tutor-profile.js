@@ -1,4 +1,5 @@
-import { auth, db, storage } from "../firebase.js";
+import { auth, db } from "../firebase.js";
+import ImageKit from "imagekit-javascript";
 
 import {
 onAuthStateChanged
@@ -11,11 +12,6 @@ setDoc,
 serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-import {
-ref,
-uploadBytes,
-getDownloadURL
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
 
 //=============================
 // DOM
@@ -32,7 +28,11 @@ const addSubjectBtn=document.getElementById("addSubjectBtn");
 const photoInput=document.getElementById("photo");
 
 const previewImage=document.getElementById("photoPreview");
-
+const imagekit = new ImageKit({
+    urlEndpoint: "https://ik.imagekit.io/tutornest",
+    publicKey: "public_kKdD/tl6716JICjya52hltPI3kM=",
+    authenticationEndpoint: "/api/imagekit-auth"
+});
 let currentUser=null;
 
 let oldData={};
@@ -293,24 +293,47 @@ e.target.closest(".subject-fee-row").remove();
 // FILE UPLOAD
 //=============================
 
-async function uploadFile(file,folder){
+async function uploadToImageKit(file){
 
-if(!file) return null;
+    if(!file) return "";
 
-const storageRef=ref(
+    const authRes = await fetch("/api/imagekit-auth");
 
-storage,
+    const auth = await authRes.json();
 
-`${folder}/${currentUser.uid}/${Date.now()}_${file.name}`
+    const formData = new FormData();
 
-);
+    formData.append("file", file);
 
-await uploadBytes(storageRef,file);
+    formData.append("fileName", Date.now()+"_"+file.name);
 
-return await getDownloadURL(storageRef);
+    formData.append("publicKey", auth.publicKey);
+
+    formData.append("signature", auth.signature);
+
+    formData.append("expire", auth.expire);
+
+    formData.append("token", auth.token);
+
+    const res = await fetch(
+        "https://upload.imagekit.io/api/v1/files/upload",
+        {
+            method:"POST",
+            body:formData
+        }
+    );
+
+    const data = await res.json();
+
+    if(!res.ok){
+
+        throw new Error(data.message || "Image Upload Failed");
+
+    }
+
+    return data.url;
 
 }
-
 //=============================
 // SAVE PROFILE
 //=============================
@@ -359,8 +382,7 @@ if(photo){
 
 photoURL=
 
-await uploadFile(
-
+await uploadToImageKit(
 photo,
 
 "profilePhotos"
@@ -373,7 +395,7 @@ if(aadhaar){
 
 aadhaarURL=
 
-await uploadFile(
+await uploadToImageKit(
 
 aadhaar,
 
@@ -387,7 +409,7 @@ if(certificate){
 
 certificateURL=
 
-await uploadFile(
+await uploadToImageKit(
 
 certificate,
 
