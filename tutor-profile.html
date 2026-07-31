@@ -11,6 +11,16 @@
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/tutor-profile.css">
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
+<link rel="preconnect"
+href="https://fonts.gstatic.com"
+crossorigin>
+
+<link
+href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+rel="stylesheet">
+
 <link rel="stylesheet"
 href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 
@@ -21,36 +31,68 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 <nav class="navbar">
 
 <div class="logo">
-<a href="index.html">TutorNest</a>
+
+<a href="index.html">
+
+TutorNest
+
+</a>
+
 </div>
 
 <div class="nav-links">
-<a href="dashboard.html">Dashboard</a>
-<a href="index.html">Home</a>
+
+<a href="tutor-dashboard.html">Dashboard</a>
+
+Dashboard
+
+</a>
+
+<a href="index.html">
+
+Home
+
+</a>
+
 </div>
 
 </nav>
 
 <section class="profile-form">
 
-<h1>Complete Your Tutor Profile</h1>
+<h1>
+
+Complete Your Tutor Profile
+
+</h1>
 
 <p>
-Complete your profile to get verified and receive student enquiries.
+
+Complete your profile to get verified and start receiving student enquiries.
+
 </p>
 
 <form id="profileForm">
+
 <!-- ================= TEACHING DETAILS ================= -->
 
 <div class="form-card">
 
-<h2>Teaching Details</h2>
+<h2>
+
+Teaching Details
+
+</h2>
 
 <div class="form-grid">
 
 <div>
 
-<label>Subjects</label>
+<label>
+
+Subjects
+
+</label>
 
 <div class="checkbox-group">
 
@@ -68,6 +110,12 @@ Complete your profile to get verified and receive student enquiries.
 
 <label><input type="checkbox" name="subjects" value="Computer Science"> Computer Science</label>
 
+<label><input type="checkbox" name="subjects" value="Economics"> Economics</label>
+
+<label><input type="checkbox" name="subjects" value="Accounts"> Accounts</label>
+
+<label><input type="checkbox" name="subjects" value="Business Studies"> Business Studies</label>
+
 <label><input type="checkbox" name="subjects" value="Other"> Other</label>
 
 </div>
@@ -76,7 +124,11 @@ Complete your profile to get verified and receive student enquiries.
 
 <div>
 
-<label>Classes</label>
+<label>
+
+Classes
+
+</label>
 
 <div class="checkbox-group">
 
@@ -122,15 +174,21 @@ Complete your profile to get verified and receive student enquiries.
 
 </div>
 
-<!-- ================= SUBJECT-WISE FEES ================= -->
-
 <!-- ================= SUBJECTS & FEES ================= -->
 
 <div class="form-card">
 
-<h2>Subjects & Monthly Fees</h2>
+<h2>
 
-<p>Add every subject you teach along with your monthly fee.</p>
+Subjects & Monthly Fees
+
+</h2>
+
+<p>
+
+Add every subject you teach with its monthly fee.
+
+</p>
 
 <div id="subjectFeeContainer">
 
@@ -183,17 +241,26 @@ Add Another Subject
 </button>
 
 </div>
+
 <!-- ================= PERSONAL ================= -->
 
 <div class="form-card">
 
-<h2>Personal Information</h2>
+<h2>
+
+Personal Information
+
+</h2>
 
 <div class="form-grid">
 
 <div>
 
-<label>Full Name</label>
+<label>
+
+Full Name
+
+</label>
 
 <input
 type="text"
@@ -204,7 +271,11 @@ required>
 
 <div>
 
-<label>Email</label>
+<label>
+
+Email
+
+</label>
 
 <input
 type="email"
@@ -215,7 +286,11 @@ readonly>
 
 <div>
 
-<label>Phone Number</label>
+<label>
+
+Phone Number
+
+</label>
 
 <input
 type="tel"
@@ -226,7 +301,11 @@ required>
 
 <div>
 
-<label>Date of Birth</label>
+<label>
+
+Date of Birth
+
+</label>
 
 <input
 type="date"
@@ -237,18 +316,25 @@ id="dob">
 </div>
 
 </div>
-
 <!-- ================= PROFESSIONAL ================= -->
 
 <div class="form-card">
 
-<h2>Professional Details</h2>
+<h2>
+
+Professional Details
+
+</h2>
 
 <div class="form-grid">
 
 <div>
 
-<label>Qualification</label>
+<label>
+
+Qualification
+
+</label>
 
 <input
 type="text"
@@ -259,69 +345,113 @@ placeholder="B.Tech / M.Sc / M.A">
 
 <div>
 
-<label>College / University</label>
+<label>
+
+College / University
+
+</label>
 
 <input
 type="text"
-id="college">
+id="college"
+placeholder="University Name">
 
 </div>
 
 <div>
 
-<label>Experience (Years)</label>
+<label>
+
+Experience (Years)
+
+</label>
 
 <input
 type="number"
 id="experience"
-min="0">
+min="0"
+placeholder="0">
 
 </div>
 
 </div>
 
 </div>
+
+
 
 <!-- ================= ABOUT ================= -->
 
 <div class="form-card">
 
-<h2>About Tutor</h2>
+<h2>
+
+About Tutor
+
+</h2>
 
 <textarea
+
 id="about"
+
 rows="6"
-placeholder="Write about yourself..."></textarea>
+
+placeholder="Tell students about yourself, your teaching experience, teaching style and achievements...">
+
+</textarea>
 
 </div>
+
+
+
 <!-- ================= LOCATION ================= -->
 
 <div class="form-card">
 
-<h2>Location</h2>
+<h2>
+
+Location
+
+</h2>
 
 <div class="form-grid">
 
 <div>
 
-<label>Area</label>
+<label>
+
+Area
+
+</label>
 
 <select id="area">
 
 <option value="">Select Area</option>
 
 <option>Gomti Nagar</option>
+
 <option>Indira Nagar</option>
+
 <option>Aliganj</option>
+
 <option>Jankipuram</option>
+
 <option>Hazratganj</option>
+
 <option>Alambagh</option>
+
 <option>Rajajipuram</option>
+
 <option>Ashiyana</option>
+
 <option>Chinhat</option>
+
 <option>Mahanagar</option>
+
 <option>Vrindavan Yojana</option>
+
 <option>Faizabad Road</option>
+
 <option>Other</option>
 
 </select>
@@ -330,92 +460,167 @@ placeholder="Write about yourself..."></textarea>
 
 <div>
 
-<label>Pincode (Optional)</label>
+<label>
+
+Pincode
+
+</label>
 
 <input
 type="text"
-id="pincode">
+id="pincode"
+placeholder="226010">
 
 </div>
 
 </div>
 
 </div>
+
+
 
 <!-- ================= TEACHING MODE ================= -->
 
 <div class="form-card">
 
-<h2>Teaching Mode</h2>
+<h2>
+
+Teaching Mode
+
+</h2>
 
 <div class="checkbox-group">
 
 <label>
-<input type="radio"
+
+<input
+type="radio"
 name="mode"
 value="Home Tuition"
 checked>
 
 Home Tuition
+
 </label>
 
 <label>
-<input type="radio"
+
+<input
+type="radio"
 name="mode"
 value="Online">
 
 Online
+
 </label>
 
 <label>
-<input type="radio"
+
+<input
+type="radio"
 name="mode"
 value="Both">
 
 Both
+
 </label>
 
 </div>
 
 </div>
+
+
 
 <!-- ================= LANGUAGES ================= -->
 
 <div class="form-card">
 
-<h2>Languages</h2>
+<h2>
+
+Languages
+
+</h2>
 
 <div class="checkbox-group">
 
-<label><input type="checkbox" name="languages" value="Hindi"> Hindi</label>
+<label>
 
-<label><input type="checkbox" name="languages" value="English"> English</label>
+<input
+type="checkbox"
+name="languages"
+value="Hindi">
 
-<label><input type="checkbox" name="languages" value="Urdu"> Urdu</label>
+Hindi
 
-<label><input type="checkbox" name="languages" value="Other"> Other</label>
+</label>
+
+<label>
+
+<input
+type="checkbox"
+name="languages"
+value="English">
+
+English
+
+</label>
+
+<label>
+
+<input
+type="checkbox"
+name="languages"
+value="Urdu">
+
+Urdu
+
+</label>
+
+<label>
+
+<input
+type="checkbox"
+name="languages"
+value="Other">
+
+Other
+
+</label>
 
 </div>
 
 </div>
+
+
 
 <!-- ================= AVAILABILITY ================= -->
 
 <div class="form-card">
 
-<h2>Availability</h2>
+<h2>
+
+Availability
+
+</h2>
 
 <div class="form-grid">
 
 <div>
 
-<label>Days Available</label>
+<label>
+
+Available Days
+
+</label>
 
 <select id="availability">
 
 <option>Monday - Friday</option>
+
 <option>Monday - Saturday</option>
+
 <option>All Days</option>
+
 <option>Weekend Only</option>
 
 </select>
@@ -424,13 +629,20 @@ Both
 
 <div>
 
-<label>Preferred Time</label>
+<label>
+
+Preferred Time
+
+</label>
 
 <select id="timeSlot">
 
 <option>Morning</option>
+
 <option>Afternoon</option>
+
 <option>Evening</option>
+
 <option>Any Time</option>
 
 </select>
@@ -440,43 +652,91 @@ Both
 </div>
 
 </div>
-
-<!-- ================= UPLOADS ================= -->
+<!-- ================= DOCUMENTS ================= -->
 
 <div class="form-card">
 
-<h2>Documents</h2>
+<h2>
+
+Documents
+
+</h2>
+
+<p>
+
+Upload a clear profile photo and your verification documents.
+
+</p>
+
+<div class="photo-upload">
+
+<img
+
+id="photoPreview"
+
+src="assets/images/default-user.png"
+
+alt="Profile Photo">
+
+<label
+
+for="photo"
+
+class="primary-btn">
+
+<i class="fa-solid fa-camera"></i>
+
+Choose Profile Photo
+
+</label>
+
+<input
+
+type="file"
+
+id="photo"
+
+accept="image/*"
+
+hidden>
+
+</div>
 
 <div class="form-grid">
 
 <div>
 
-<label>Profile Photo</label>
+<label>
+
+Aadhaar / ID Proof
+
+</label>
 
 <input
+
 type="file"
-id="photo"
-accept="image/*">
+
+id="aadhaar"
+
+accept=".jpg,.jpeg,.png,.pdf">
 
 </div>
 
 <div>
 
-<label>Aadhaar / ID Proof</label>
+<label>
+
+Qualification Certificate
+
+</label>
 
 <input
+
 type="file"
-id="aadhaar">
 
-</div>
+id="certificate"
 
-<div>
-
-<label>Qualification Certificate</label>
-
-<input
-type="file"
-id="certificate">
+accept=".jpg,.jpeg,.png,.pdf">
 
 </div>
 
@@ -489,9 +749,14 @@ id="certificate">
 <div class="form-card">
 
 <button
+
 type="submit"
+
 class="primary-btn"
+
 style="width:100%;">
+
+<i class="fa-solid fa-floppy-disk"></i>
 
 Save Profile
 
@@ -503,7 +768,11 @@ Save Profile
 
 </section>
 
-<script type="module" src="js/tutor-profile.js"></script>
+<script
+type="module"
+src="js/tutor-profile.js">
+
+</script>
 
 </body>
 

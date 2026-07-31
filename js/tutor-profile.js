@@ -1,73 +1,210 @@
 import { auth, db, storage } from "../firebase.js";
 
 import {
-    onAuthStateChanged
+onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 import {
-    doc,
-    getDoc,
-    setDoc,
-    serverTimestamp
+doc,
+getDoc,
+setDoc,
+serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 import {
-    ref,
-    uploadBytes,
-    getDownloadURL
+ref,
+uploadBytes,
+getDownloadURL
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
 
-const profileForm = document.getElementById("profileForm");
-const emailInput = document.getElementById("email");
+//=============================
+// DOM
+//=============================
 
-let currentUser = null;
+const profileForm=document.getElementById("profileForm");
 
-// ===============================
-// CHECK LOGIN
-// ===============================
+const emailInput=document.getElementById("email");
 
-onAuthStateChanged(auth, async (user) => {
+const subjectContainer=document.getElementById("subjectFeeContainer");
 
-    if (!user) {
-        window.location.href = "login.html";
-        return;
-    }
+const addSubjectBtn=document.getElementById("addSubjectBtn");
 
-    currentUser = user;
+const photoInput=document.getElementById("photo");
 
-    emailInput.value = user.email;
+const previewImage=document.getElementById("photoPreview");
 
-    loadProfile(user.uid);
+let currentUser=null;
 
-});
-async function loadProfile(uid){
+let oldData={};
 
-    const docRef = doc(db, "tutors", uid);
+//=============================
+// LOGIN CHECK
+//=============================
 
-    const snap = await getDoc(docRef);
+onAuthStateChanged(auth,async(user)=>{
 
-    if(!snap.exists()) return;
+if(!user){
 
-    const data = snap.data();
+location.href="login.html";
 
-    document.getElementById("name").value = data.name || "";
-    document.getElementById("phone").value = data.phone || "";
-    document.getElementById("dob").value = data.dob || "";
-    document.getElementById("qualification").value = data.qualification || "";
-    document.getElementById("college").value = data.college || "";
-    document.getElementById("experience").value = data.experience || "";
-    document.getElementById("about").value = data.about || "";
-    document.getElementById("area").value = data.area || "";
-    document.getElementById("pincode").value = data.pincode || "";
-    document.getElementById("availability").value = data.availability || "";
-    document.getElementById("timeSlot").value = data.timeSlot || "";
+return;
 
 }
-const container = document.getElementById("subjectFeeContainer");
 
-const addBtn = document.getElementById("addSubjectBtn");
+currentUser=user;
 
-addBtn.addEventListener("click",()=>{
+emailInput.value=user.email;
+
+await loadProfile(user.uid);
+
+});
+
+//=============================
+// PHOTO PREVIEW
+//=============================
+
+photoInput?.addEventListener("change",()=>{
+
+const file=photoInput.files[0];
+
+if(!file) return;
+
+previewImage.src=URL.createObjectURL(file);
+
+});
+
+//=============================
+// LOAD PROFILE
+//=============================
+
+async function loadProfile(uid){
+
+const tutorRef=doc(db,"tutors",uid);
+
+const snap=await getDoc(tutorRef);
+
+if(!snap.exists()) return;
+
+oldData=snap.data();
+
+document.getElementById("name").value=oldData.name||"";
+
+document.getElementById("phone").value=oldData.phone||"";
+
+document.getElementById("dob").value=oldData.dob||"";
+
+document.getElementById("qualification").value=oldData.qualification||"";
+
+document.getElementById("college").value=oldData.college||"";
+
+document.getElementById("experience").value=oldData.experience||"";
+
+document.getElementById("about").value=oldData.about||"";
+
+document.getElementById("area").value=oldData.area||"";
+
+document.getElementById("pincode").value=oldData.pincode||"";
+
+document.getElementById("availability").value=oldData.availability||"";
+
+document.getElementById("timeSlot").value=oldData.timeSlot||"";
+
+if(oldData.photoURL){
+
+previewImage.src=oldData.photoURL;
+
+}
+//=============================
+// LOAD SUBJECTS
+//=============================
+
+subjectContainer.innerHTML="";
+
+const teaching=oldData.teaching||[];
+
+if(teaching.length===0){
+
+addSubjectRow();
+
+}else{
+
+teaching.forEach(item=>{
+
+addSubjectRow(
+
+item.subject,
+
+item.monthlyFee
+
+);
+
+});
+
+}
+
+//=============================
+// LOAD CLASSES
+//=============================
+
+(oldData.classes||[]).forEach(cls=>{
+
+const checkbox=document.querySelector(
+
+`input[name="classes"][value="${cls}"]`
+
+);
+
+if(checkbox){
+
+checkbox.checked=true;
+
+}
+
+});
+
+//=============================
+// LOAD LANGUAGES
+//=============================
+
+(oldData.languages||[]).forEach(lang=>{
+
+const checkbox=document.querySelector(
+
+`input[name="languages"][value="${lang}"]`
+
+);
+
+if(checkbox){
+
+checkbox.checked=true;
+
+}
+
+});
+
+//=============================
+// LOAD MODE
+//=============================
+
+const mode=document.querySelector(
+
+`input[name="mode"][value="${oldData.teachingMode}"]`
+
+);
+
+if(mode){
+
+mode.checked=true;
+
+}
+
+}
+
+//=============================
+// ADD SUBJECT ROW
+//=============================
+
+function addSubjectRow(subject="",fee=""){
 
 const row=document.createElement("div");
 
@@ -79,24 +216,35 @@ row.innerHTML=`
 
 <option value="">Select Subject</option>
 
-<option>Mathematics</option>
-<option>Physics</option>
-<option>Chemistry</option>
-<option>Biology</option>
-<option>English</option>
-<option>Hindi</option>
-<option>Computer Science</option>
-<option>Economics</option>
-<option>Accounts</option>
-<option>Business Studies</option>
-<option>Other</option>
+<option ${subject==="Mathematics"?"selected":""}>Mathematics</option>
+
+<option ${subject==="Physics"?"selected":""}>Physics</option>
+
+<option ${subject==="Chemistry"?"selected":""}>Chemistry</option>
+
+<option ${subject==="Biology"?"selected":""}>Biology</option>
+
+<option ${subject==="English"?"selected":""}>English</option>
+
+<option ${subject==="Hindi"?"selected":""}>Hindi</option>
+
+<option ${subject==="Computer Science"?"selected":""}>Computer Science</option>
+
+<option ${subject==="Economics"?"selected":""}>Economics</option>
+
+<option ${subject==="Accounts"?"selected":""}>Accounts</option>
+
+<option ${subject==="Business Studies"?"selected":""}>Business Studies</option>
+
+<option ${subject==="Other"?"selected":""}>Other</option>
 
 </select>
 
 <input
 type="number"
 class="subject-fee"
-placeholder="Monthly Fee">
+placeholder="Monthly Fee"
+value="${fee}">
 
 <button
 type="button"
@@ -108,11 +256,25 @@ class="remove-row">
 
 `;
 
-container.appendChild(row);
+subjectContainer.appendChild(row);
+
+}
+
+//=============================
+// ADD BUTTON
+//=============================
+
+addSubjectBtn.addEventListener("click",()=>{
+
+addSubjectRow();
 
 });
 
-container.addEventListener("click",(e)=>{
+//=============================
+// REMOVE BUTTON
+//=============================
+
+subjectContainer.addEventListener("click",(e)=>{
 
 if(e.target.closest(".remove-row")){
 
@@ -127,178 +289,303 @@ e.target.closest(".subject-fee-row").remove();
 }
 
 });
-// ===============================
+//=============================
 // FILE UPLOAD
-// ===============================
+//=============================
 
-async function uploadFile(file, folder) {
+async function uploadFile(file,folder){
 
-    if (!file) return "";
+if(!file) return null;
 
-    const storageRef = ref(
-        storage,
-        `${folder}/${currentUser.uid}/${Date.now()}_${file.name}`
-    );
+const storageRef=ref(
 
-    await uploadBytes(storageRef, file);
+storage,
 
-    return await getDownloadURL(storageRef);
+`${folder}/${currentUser.uid}/${Date.now()}_${file.name}`
+
+);
+
+await uploadBytes(storageRef,file);
+
+return await getDownloadURL(storageRef);
 
 }
 
-// ===============================
+//=============================
 // SAVE PROFILE
-// ===============================
+//=============================
 
-profileForm.addEventListener("submit", async (e) => {
+profileForm.addEventListener("submit",async(e)=>{
 
-    e.preventDefault();
+e.preventDefault();
 
-    try {
+try{
 
-        const photo = document.getElementById("photo").files[0];
-        const aadhaar = document.getElementById("aadhaar").files[0];
-        const certificate = document.getElementById("certificate").files[0];
+const tutorRef=doc(db,"tutors",currentUser.uid);
 
-        const photoURL = await uploadFile(photo, "profilePhotos");
-        const aadhaarURL = await uploadFile(aadhaar, "aadhaar");
-        const certificateURL = await uploadFile(certificate, "certificates");
+const oldSnap=await getDoc(tutorRef);
 
-        // -----------------------------
-        // Subjects + Fees
-        // -----------------------------
+const old=oldSnap.exists()
 
-        const teaching = [];
+? oldSnap.data()
 
-        document.querySelectorAll(".subject-fee-row").forEach(row => {
+: {};
 
-            const subject = row.querySelector(".subject-select").value;
-            const fee = row.querySelector(".subject-fee").value;
+let photoURL=
 
-            if (subject && fee) {
+old.photoURL||"";
 
-                teaching.push({
-                    subject,
-                    monthlyFee: Number(fee)
-                });
+let aadhaarURL=
 
-            }
+old.aadhaarURL||"";
 
-        });
+let certificateURL=
 
-        // -----------------------------
-        // Classes
-        // -----------------------------
+old.certificateURL||"";
 
-        const classes = [...document.querySelectorAll("input[name='classes']:checked")]
-            .map(item => item.value);
+const photo=
 
-        // -----------------------------
-        // Languages
-        // -----------------------------
+photoInput.files[0];
 
-        const languages = [...document.querySelectorAll("input[name='languages']:checked")]
-            .map(item => item.value);
+const aadhaar=
 
-        // -----------------------------
-        // Teaching Mode
-        // -----------------------------
+document.getElementById("aadhaar").files[0];
 
-        const teachingMode =
-            document.querySelector("input[name='mode']:checked").value;
+const certificate=
 
-        // -----------------------------
-        // Preserve Existing Status
-        // -----------------------------
+document.getElementById("certificate").files[0];
 
-        const tutorRef = doc(db, "tutors", currentUser.uid);
+if(photo){
 
-        const oldSnap = await getDoc(tutorRef);
+photoURL=
 
-        let status = "Pending";
+await uploadFile(
 
-        if (oldSnap.exists()) {
-            status = oldSnap.data().status || "Pending";
-        }
+photo,
 
-        // -----------------------------
-        // Save Firestore
-        // -----------------------------
+"profilePhotos"
 
-        await setDoc(
-            tutorRef,
-            {
-                uid: currentUser.uid,
+);
 
-                email: currentUser.email,
+}
 
-                name: document.getElementById("name").value,
+if(aadhaar){
 
-                phone: document.getElementById("phone").value,
+aadhaarURL=
 
-                dob: document.getElementById("dob").value,
+await uploadFile(
 
-                qualification:
-                    document.getElementById("qualification").value,
+aadhaar,
 
-                college:
-                    document.getElementById("college").value,
+"aadhaar"
 
-                experience: Number(
-                    document.getElementById("experience").value || 0
-                ),
+);
 
-                about:
-                    document.getElementById("about").value,
+}
 
-                area:
-                    document.getElementById("area").value,
+if(certificate){
 
-                pincode:
-                    document.getElementById("pincode").value,
+certificateURL=
 
-                availability:
-                    document.getElementById("availability").value,
+await uploadFile(
 
-                timeSlot:
-                    document.getElementById("timeSlot").value,
+certificate,
 
-                teaching,
+"certificates"
 
-                classes,
+);
 
-                languages,
+}
 
-                teachingMode,
+//=============================
+// SUBJECTS
+//=============================
 
-                photoURL,
+const teaching=[];
 
-                aadhaarURL,
+document.querySelectorAll(
 
-                certificateURL,
+".subject-fee-row"
 
-                status,
+).forEach(row=>{
 
-                updatedAt: serverTimestamp(),
+const subject=
 
-                createdAt: oldSnap.exists()
-                    ? oldSnap.data().createdAt
-                    : serverTimestamp()
+row.querySelector(
 
-            },
-            { merge: true }
-        );
+".subject-select"
 
-        alert("Profile saved successfully!");
+).value;
 
-        window.location.href = "dashboard.html";
+const fee=
 
-    } catch (err) {
+row.querySelector(
 
-        console.error(err);
+".subject-fee"
 
-        alert(err.message);
+).value;
 
-    }
+if(subject && fee){
+
+teaching.push({
+
+subject,
+
+monthlyFee:Number(fee)
+
+});
+
+}
+
+});
+
+//=============================
+// CLASSES
+//=============================
+
+const classes=[
+
+...document.querySelectorAll(
+
+'input[name="classes"]:checked'
+
+)
+
+].map(item=>item.value);
+
+//=============================
+// LANGUAGES
+//=============================
+
+const languages=[
+
+...document.querySelectorAll(
+
+'input[name="languages"]:checked'
+
+)
+
+].map(item=>item.value);
+
+//=============================
+// MODE
+//=============================
+
+const teachingMode=
+
+document.querySelector(
+
+'input[name="mode"]:checked'
+
+)?.value||"";
+//=============================
+// SAVE FIRESTORE
+//=============================
+
+await setDoc(
+
+tutorRef,
+
+{
+
+uid:currentUser.uid,
+
+email:currentUser.email,
+
+name:document.getElementById("name").value.trim(),
+
+phone:document.getElementById("phone").value.trim(),
+
+dob:document.getElementById("dob").value,
+
+qualification:document.getElementById("qualification").value.trim(),
+
+college:document.getElementById("college").value.trim(),
+
+experience:Number(
+
+document.getElementById("experience").value||0
+
+),
+
+about:document.getElementById("about").value.trim(),
+
+area:document.getElementById("area").value.trim(),
+
+pincode:document.getElementById("pincode").value.trim(),
+
+availability:document.getElementById("availability").value,
+
+timeSlot:document.getElementById("timeSlot").value,
+
+teaching,
+
+classes,
+
+languages,
+
+teachingMode,
+
+photoURL,
+
+aadhaarURL,
+
+certificateURL,
+
+status:old.status||"Pending",
+
+featured:old.featured||false,
+
+homepageOrder:old.homepageOrder||999,
+
+verified:old.verified||false,
+
+rating:old.rating||0,
+
+totalReviews:old.totalReviews||0,
+
+createdAt:old.createdAt||serverTimestamp(),
+
+updatedAt:serverTimestamp()
+
+},
+
+{
+
+merge:true
+
+}
+
+);
+
+//=============================
+// SUCCESS
+//=============================
+
+alert(
+
+"Profile saved successfully."
+
+);
+
+// Redirect
+
+window.location.href=
+
+"tutor-dashboard.html";
+
+}
+
+catch(err){
+
+console.error(err);
+
+alert(
+
+"Error : "+err.message
+
+);
+
+}
 
 });
