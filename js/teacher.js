@@ -57,9 +57,7 @@ const subjectContainer=document.getElementById("subjectContainer");
 
 const classContainer=document.getElementById("classContainer");
 
-const whatsappBtn=document.getElementById("whatsappBtn");
-
-const callBtn=document.getElementById("callBtn");
+const bookDemoBtn=document.getElementById("bookDemoBtn");
 
 const similarTutors=document.getElementById("similarTutors");
 async function loadTutor(){
@@ -158,15 +156,7 @@ tutor.about||
 
 subjectContainer.innerHTML="";
 
-(tutor.subjects||[]).forEach(subject=>{
-
-const fee=
-
-tutor.fees ||
-
-tutor.monthlyFees ||
-
-"Contact";
+(tutor.teaching||[]).forEach(item=>{
 
 const card=document.createElement("div");
 
@@ -174,11 +164,11 @@ card.className="card";
 
 card.innerHTML=`
 
-<h3>${subject}</h3>
+<h3>${item.subject}</h3>
 
 <p>
 
-₹${fee}/Month
+₹${item.monthlyFee}/Month
 
 </p>
 
@@ -187,6 +177,8 @@ card.innerHTML=`
 subjectContainer.appendChild(card);
 
 });
+
+
 
 classContainer.innerHTML="";
 
@@ -202,17 +194,11 @@ classContainer.appendChild(tag);
 
 });
 
-callBtn.href=
+bookDemoBtn.addEventListener("click",()=>{
 
-`tel:${tutor.phone}`;
-
-whatsappBtn.href=
-
-`https://wa.me/91${tutor.phone}?text=${encodeURIComponent(
-
-`Hi ${tutor.name}, I found your TutorNest profile and would like to book a demo class.`
-
-)}`;
+window.location.href=
+`book-demo.html?tutor=${tutorId}&name=${encodeURIComponent(tutor.name)}`;
+});
 
 loadSimilarTutors(tutor);
 
@@ -241,7 +227,7 @@ try{
 
 const firstSubject=
 
-(currentTutor.subjects||[])[0];
+(currentTutor.teaching||[])[0]?.subject;
 
 if(!firstSubject){
 
@@ -275,7 +261,7 @@ if(docSnap.id===tutorId) return;
 
 const tutor=docSnap.data();
 
-const subjects=tutor.subjects||[];
+const subjects=(tutor.teaching||[]).map(item=>item.subject);
 
 if(!subjects.includes(firstSubject)) return;
 
@@ -337,7 +323,7 @@ ${tutor.experience||0} Years Experience
 
 <h4>
 
-₹${tutor.fees||tutor.monthlyFees||"Contact"}/Month
+₹${tutor.teaching?.[0]?.monthlyFee || "Contact"}
 
 </h4>
 

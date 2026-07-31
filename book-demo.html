@@ -1,117 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Book Free Demo | TutorNest</title>
 
-<style>
+<link rel="stylesheet" href="css/style.css">
 
-body{
-font-family:Arial;
-background:#f5f7fb;
-display:flex;
-justify-content:center;
-padding:40px;
-}
-
-form{
-background:white;
-padding:30px;
-border-radius:15px;
-width:500px;
-box-shadow:0 8px 25px rgba(0,0,0,.08);
-}
-
-input,
-select,
-textarea{
-
-width:100%;
-padding:12px;
-margin:10px 0;
-border:1px solid #ddd;
-border-radius:8px;
-
-}
-
-button{
-
-width:100%;
-padding:14px;
-background:#0d6efd;
-color:white;
-border:none;
-border-radius:8px;
-cursor:pointer;
-
-}
-
-</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 
 </head>
 
 <body>
 
-<form id="demoForm">
+<section class="form-section">
+
+<div class="form-card">
 
 <h2>Book Free Demo</h2>
 
+<p>
+Submit your request. Our team will contact you and assign the best tutor.
+</p>
+
+<form id="bookingForm">
+
 <input
+type="text"
 id="studentName"
 placeholder="Student Name"
 required>
 
 <input
-id="parentName"
-placeholder="Parent Name">
-
-<input
+type="tel"
 id="phone"
 placeholder="Phone Number"
 required>
 
-<input
-id="city"
-placeholder="City"
-required>
+<select id="class" required>
 
-<select id="class">
+<option value="">Select Class</option>
 
-<option>Class 1</option>
-<option>Class 2</option>
-<option>Class 3</option>
-<option>Class 4</option>
-<option>Class 5</option>
-<option>Class 6</option>
-<option>Class 7</option>
-<option>Class 8</option>
-<option>Class 9</option>
-<option>Class 10</option>
-<option>Class 11</option>
-<option>Class 12</option>
+<option>Nursery</option>
+<option>LKG</option>
+<option>UKG</option>
+
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
 
 </select>
 
 <input
+type="text"
 id="subject"
-placeholder="Subject">
+placeholder="Subject"
+required>
+
+<input
+type="text"
+id="area"
+placeholder="Area"
+required>
+
+<input
+type="text"
+id="preferredTime"
+placeholder="Preferred Time (Morning / Evening)">
 
 <textarea
 id="message"
-placeholder="Anything else?">
-</textarea>
+placeholder="Any special requirement"></textarea>
 
-<button>
+<button
+type="submit"
+class="primary-btn">
 
 Book Free Demo
 
 </button>
-<input type="hidden" id="tutorId">
-<input type="hidden" id="tutorName">
+
 </form>
+
+</div>
+
+</section>
 
 <script type="module" src="js/book-demo.js"></script>
 

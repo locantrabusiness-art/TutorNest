@@ -1,5 +1,6 @@
 import { db } from "../firebase.js";
 
+
 import {
   collection,
   addDoc,
@@ -7,6 +8,11 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 // URL Parameters
+const params = new URLSearchParams(location.search);
+
+const tutorId = params.get("tutor");
+
+const tutorName = params.get("name");
 const params = new URLSearchParams(window.location.search);
 
 const tutorId = params.get("id") || "";
@@ -35,6 +41,9 @@ form.addEventListener("submit", async (e) => {
       subject: document.getElementById("subject").value.trim(),
 
       message: document.getElementById("message").value.trim(),
+      requestedTutor: tutorId,
+
+requestedTutorName: tutorName,
 
       tutorId: tutorId,
 
@@ -43,6 +52,7 @@ form.addEventListener("submit", async (e) => {
       status: "Pending",
 
       createdAt: serverTimestamp()
+      
 
     });
 

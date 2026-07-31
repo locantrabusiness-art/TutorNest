@@ -383,6 +383,8 @@ bookingTable.innerHTML+=`
 
 <td>${b.area||"-"}</td>
 
+<td>${b.requestedTutorName || "-"}</td>
+
 <td>${b.assignedTeacher||"-"}</td>
 
 <td>
