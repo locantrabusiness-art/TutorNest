@@ -38,6 +38,7 @@ async function loadFeaturedTutors(){
             where("status","==","Approved"),
 
             where("featured","==",true),
+            where("founder","==",false),
 
             orderBy("homepageOrder"),
 
@@ -102,11 +103,59 @@ async function loadFeaturedTutors(){
     }
 
 }
-function createTutorCard(id,tutor){
+async function loadFounder(){
+
+try{
+
+const q = query(
+
+collection(db,"tutors"),
+
+where("status","==","Approved"),
+
+where("founder","==",true),
+
+limit(1)
+
+);
+
+const snap = await getDocs(q);
+
+const founderContainer = document.getElementById("founderContainer");
+
+if(!founderContainer) return;
+
+if(snap.empty){
+
+founderContainer.style.display="none";
+
+return;
+
+}
+
+founderContainer.innerHTML="";
+
+snap.forEach(doc=>{
+
+createTutorCard(doc.id,doc.data(),founderContainer);
+
+});
+
+}catch(error){
+
+console.error(error);
+
+}
+
+
+}
+function createTutorCard(id,tutor,parent=null){
 
     const card=document.createElement("div");
 
-    card.className="featured-card";
+    card.className = tutor.founder
+? "featured-card founder-card"
+: "featured-card";
 
     const image=
 
@@ -140,21 +189,29 @@ function createTutorCard(id,tutor){
 
         "Location Not Available";
 
-    const fees=
+    const fees =
+Array.isArray(tutor.teaching) && tutor.teaching.length
+? tutor.teaching[0].monthlyFee
+: "Contact";
 
-        tutor.fees ||
-
-        tutor.monthlyFees ||
-
-        "Contact";
-
-    const subjects=Array.isArray(tutor.subjects)
-
-        ? tutor.subjects.join(", ")
-
-        : "Not Specified";
+const subjects =
+Array.isArray(tutor.teaching)
+? tutor.teaching.map(item=>item.subject).join(", ")
+: "Not Specified";
 
     card.innerHTML=`
+    ${tutor.founder ? `
+<div class="founder-ribbon">
+👑 Golden Founder
+</div>
+` : ""}
+
+${tutor.verified ? `
+<div class="verified-tag">
+<i class="fa-solid fa-circle-check"></i>
+Verified
+</div>
+` : ""}
 
     <div class="featured-image">
 
@@ -169,6 +226,12 @@ function createTutorCard(id,tutor){
     <div class="featured-content">
 
         <h3>${name}</h3>
+
+${tutor.founder ? `
+<p class="founder-subtitle">
+Founder of TutorNest
+</p>
+` : ""}
 
         <p class="qualification">
 
@@ -220,8 +283,10 @@ function createTutorCard(id,tutor){
 
     `;
 
-    container.appendChild(card);
+    (parent || container).appendChild(card);
 
 }
+
+loadFounder();
 
 loadFeaturedTutors();

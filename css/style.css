@@ -1177,3 +1177,45 @@ justify-content:center;
 }
 
 }
+.founder-card{
+position:relative;
+border:3px solid #FFD700;
+box-shadow:0 15px 40px rgba(255,193,7,.35);
+background:linear-gradient(180deg,#fffef6,#fff);
+}
+
+.founder-ribbon{
+position:absolute;
+top:15px;
+left:-40px;
+width:180px;
+transform:rotate(-40deg);
+background:linear-gradient(90deg,#FFD700,#FFB300);
+color:#5f4200;
+padding:8px 0;
+font-weight:700;
+text-align:center;
+z-index:20;
+}
+
+.verified-tag{
+position:absolute;
+top:15px;
+right:15px;
+background:#1d9bf0;
+color:#fff;
+padding:6px 12px;
+border-radius:30px;
+font-size:12px;
+font-weight:600;
+z-index:20;
+}
+
+.founder-subtitle{
+margin:6px 0 10px;
+color:#b8860b;
+font-size:13px;
+font-weight:600;
+letter-spacing:.5px;
+text-transform:uppercase;
+}
