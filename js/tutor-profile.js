@@ -11,21 +11,11 @@ setDoc,
 serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-import ImageKit from "https://cdn.jsdelivr.net/npm/imagekit-javascript/dist/imagekit.esm.js";
 
 //=====================================
 // IMAGEKIT
 //=====================================
 
-const imagekit = new ImageKit({
-
-urlEndpoint:"https://ik.imagekit.io/tutornest",
-
-publicKey:"public_kKdD/tl6716JICjya52hltPI3kM=",
-
-authenticationEndpoint:"/api/imagekit-auth"
-
-});
 
 //=====================================
 // DOM
@@ -331,34 +321,43 @@ async function uploadToImageKit(file){
 
 if(!file) return "";
 
-return new Promise((resolve,reject)=>{
+const authRes=await fetch("/api/imagekit-auth");
 
-imagekit.upload({
+const auth=await authRes.json();
 
-file,
+const formData=new FormData();
 
-fileName:Date.now()+"_"+file.name
+formData.append("file",file);
 
-},
+formData.append("fileName",Date.now()+"_"+file.name);
 
-(error,result)=>{
+formData.append("publicKey","public_kKdD/tl6716JICjya52hltPI3kM=");
 
-if(error){
+formData.append("token",auth.token);
 
-reject(error);
+formData.append("signature",auth.signature);
 
-return;
+formData.append("expire",auth.expire);
+
+const res=await fetch(
+"https://upload.imagekit.io/api/v1/files/upload",
+{
+method:"POST",
+body:formData
+}
+);
+
+const data=await res.json();
+
+if(!res.ok){
+
+throw new Error(data.message||"Upload Failed");
 
 }
 
-resolve(result.url);
-
-});
-
-});
+return data.url;
 
 }
-
 //=====================================
 // SAVE PROFILE
 //=====================================
