@@ -555,7 +555,7 @@ merge:true
 
 alert("Profile Saved Successfully!");
 
-window.location.href="dashboard.html";
+window.location.href = "tutor-dashboard.html";
 
 }
 
