@@ -1,26 +1,72 @@
-// Firebase SDK
+// ==============================
+// Firebase SDK Imports
+// ==============================
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 
 import {
-  getAuth,
-  GoogleAuthProvider
+    getAuth,
+    GoogleAuthProvider
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 import {
-  getFirestore
+    getFirestore
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
+import {
+    getStorage
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
+
+// ==============================
+// Firebase Config
+// ==============================
+
 const firebaseConfig = {
-  apiKey: "AIzaSyByABmg8ZerDlHHg92NEi7Cm_0fuE2BhKA",
-  authDomain: "tutornest-bb4b5.firebaseapp.com",
-  projectId: "tutornest-bb4b5",
-  storageBucket: "tutornest-bb4b5.firebasestorage.app",
-  messagingSenderId: "1021866563110",
-  appId: "1:1021866563110:web:3524e3f2bba0093cd138e7"
+
+    apiKey: "AIzaSyByABmg8ZerDlHHg92NEi7Cm_0fuE2BhKA",
+
+    authDomain: "tutornest-bb4b5.firebaseapp.com",
+
+    projectId: "tutornest-bb4b5",
+
+    storageBucket: "tutornest-bb4b5.firebasestorage.app",
+
+    messagingSenderId: "1021866563110",
+
+    appId: "1:1021866563110:web:3524e3f2bba0093cd138e7"
+
 };
+
+// ==============================
+// Initialize Firebase
+// ==============================
 
 const app = initializeApp(firebaseConfig);
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const googleProvider = new GoogleAuthProvider();
+// ==============================
+// Firebase Services
+// ==============================
+
+const auth = getAuth(app);
+
+const db = getFirestore(app);
+
+const storage = getStorage(app);
+
+const googleProvider = new GoogleAuthProvider();
+
+// ==============================
+// Exports
+// ==============================
+
+export {
+
+    auth,
+
+    db,
+
+    storage,
+
+    googleProvider
+
+};
