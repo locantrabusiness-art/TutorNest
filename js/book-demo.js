@@ -1,67 +1,77 @@
 import { db } from "../firebase.js";
 
-
 import {
   collection,
   addDoc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-// URL Parameters
-const params = new URLSearchParams(location.search);
+const params = new URLSearchParams(window.location.search);
 
-const tutorId = params.get("tutor");
-
-const tutorName = params.get("name");
-
+const tutorId = params.get("tutor") || "";
+const tutorName = params.get("name") || "";
 
 const form = document.getElementById("demoForm");
 
-form.addEventListener("submit", async (e) => {
+if(form){
 
-  e.preventDefault();
+form.addEventListener("submit", async(e)=>{
 
-  try {
+e.preventDefault();
 
-    await addDoc(collection(db, "demoBookings"), {
+try{
 
-      studentName: document.getElementById("studentName").value.trim(),
+await addDoc(collection(db,"demoBookings"),{
 
-      parentName: document.getElementById("parentName").value.trim(),
+studentName:
+document.getElementById("studentName").value.trim(),
 
-      phone: document.getElementById("phone").value.trim(),
+phone:
+document.getElementById("phone").value.trim(),
 
-      class: document.getElementById("class").value,
+class:
+document.getElementById("class").value,
 
-area: document.getElementById("city").value.trim(),
+subject:
+document.getElementById("subject").value.trim(),
 
-subject: document.getElementById("subject").value.trim(),
+area:
+document.getElementById("area").value.trim(),
 
-remarks: document.getElementById("message").value.trim(),
-      requestedTutor: tutorId,
+preferredTime:
+document.getElementById("preferredTime").value.trim(),
 
-requestedTutorName: tutorName,
+remarks:
+document.getElementById("message").value.trim(),
 
-      tutorId: tutorId,
+requestedTutor:tutorId,
 
-      tutorName: tutorName,
+requestedTutorName:tutorName,
 
-      status: "Pending",
+status:"Pending",
 
-      createdAt: serverTimestamp()
-      
+assignedTeacher:"",
 
-    });
+teacherId:"",
 
-    alert("✅ Demo booked successfully!");
-
-    form.reset();
-
-  } catch (err) {
-
-    console.error(err);
-
-    alert("❌ Something went wrong.");
-  }
+createdAt:serverTimestamp()
 
 });
+
+alert("✅ Demo booked successfully!");
+
+form.reset();
+
+window.location.href="index.html";
+
+}catch(err){
+
+console.error(err);
+
+alert("❌ Something went wrong.");
+
+}
+
+});
+
+}
