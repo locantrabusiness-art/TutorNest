@@ -1,1496 +1,532 @@
-// ===============================
-// PART 1
-// Replace the TOP of admin-dashboard-v2.js
-// From line 1 until before loadBookings()
-// ===============================
-
 import { auth, db } from "../firebase.js";
 
 import {
-onAuthStateChanged,
-signOut
+    onAuthStateChanged,
+    signOut
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
-import{
-collection,
-getDocs,
-addDoc,
-updateDoc,
-deleteDoc,
-doc,
-getDoc,
-serverTimestamp
-}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import {
+    collection,
+    query,
+    where,
+    orderBy,
+    limit,
+    getDocs,
+    doc,
+    getDoc,
+    setDoc,
+    updateDoc,
+    serverTimestamp,
+    onSnapshot
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
+// ========================
+// DOM ELEMENTS
+// ========================
 
-// ===============================
-// ARRAYS
-// ===============================
+const logoutBtn = document.getElementById("logoutBtn");
+const bookingTable = document.getElementById("bookingTable");
+const teacherTable = document.getElementById("teacherTable");
+const sidebarMenu = document.getElementById("sidebarMenu");
 
-let bookings=[];
-let teachers=[];
-let selectedBooking=null;
-let editingBooking=null;
+const totalEnquiriesEl = document.getElementById("totalEnquiries");
+const pendingCountEl = document.getElementById("pendingCount");
+const assignedCountEl = document.getElementById("assignedCount");
+const admissionCountEl = document.getElementById("admissionCount");
 
+const searchInput = document.getElementById("searchInput");
+const statusFilter = document.getElementById("statusFilter");
 
-// ===============================
-// STUDENT ELEMENTS
-// ===============================
+const addEnquiryBtn = document.getElementById("addEnquiryBtn");
+const enquiryModal = document.getElementById("enquiryModal");
+const saveEnquiryBtn = document.getElementById("saveEnquiry");
+const closeEnquiryBtn = document.getElementById("closeEnquiry");
 
-const bookingTable=document.getElementById("bookingTable");
+const addTeacherBtn = document.getElementById("addTeacherBtn");
+const teacherModal = document.getElementById("teacherModal");
+const saveTeacherBtn = document.getElementById("saveTeacher");
 
-const searchInput=document.getElementById("searchInput");
+const assignModal = document.getElementById("assignModal");
+const saveAssignBtn = document.getElementById("saveAssign");
+const closeAssignBtn = document.getElementById("closeAssign");
+const teacherSelect = document.getElementById("teacherSelect");
 
-const statusFilter=document.getElementById("statusFilter");
+const studentModal = document.getElementById("studentModal");
+const closeStudentModalBtn = document.getElementById("closeStudentModal");
 
-const totalEnquiries=document.getElementById("totalEnquiries");
+const demoModal = document.getElementById("demoModal");
+const closeDemoModalBtn = document.getElementById("closeDemoModal");
 
-const pendingCount=document.getElementById("pendingCount");
+// ========================
+// STATE
+// ========================
 
-const assignedCount=document.getElementById("assignedCount");
+let currentBookingId = null;
+let allBookings = [];
+let allTeachers = [];
 
-const admissionCount=document.getElementById("admissionCount");
+// ========================
+// AUTH CHECK
+// ========================
 
+onAuthStateChanged(auth, (user) => {
+    if (!user) {
+        window.location.href = "admin-login.html";
+        return;
+    }
+    loadAllData();
+});
 
-// ===============================
-// ENQUIRY MODAL
-// ===============================
+// ========================
+// LOAD DATA
+// ========================
 
-const addEnquiryBtn=document.getElementById("addEnquiryBtn");
+async function loadAllData() {
+    await loadBookings();
+    await loadTeachers();
+    loadStats();
+}
 
-const enquiryModal=document.getElementById("enquiryModal");
+// ========================
+// BOOKINGS
+// ========================
 
-const closeEnquiry=document.getElementById("closeEnquiry");
+async function loadBookings() {
+    try {
+        const q = query(
+            collection(db, "bookings"),
+            orderBy("createdAt", "desc")
+        );
 
-const saveEnquiry=document.getElementById("saveEnquiry");
+        onSnapshot(q, (snapshot) => {
+            allBookings = [];
+            snapshot.forEach((doc) => {
+                allBookings.push({ id: doc.id, ...doc.data() });
+            });
+            renderBookingTable();
+            loadStats();
+        });
+    } catch (error) {
+        console.error("Error loading bookings:", error);
+    }
+}
 
-const studentName=document.getElementById("studentName");
+function renderBookingTable() {
+    if (!bookingTable) return;
 
-const studentPhone=document.getElementById("studentPhone");
+    const searchTerm = (searchInput?.value || "").toLowerCase();
+    const statusTerm = statusFilter?.value || "";
 
-const parentName=document.getElementById("parentName");
+    let filtered = allBookings.filter(booking => {
+        const matchSearch = !searchTerm ||
+            (booking.studentName && booking.studentName.toLowerCase().includes(searchTerm)) ||
+            (booking.phone && booking.phone.includes(searchTerm));
 
-const parentPhone=document.getElementById("parentPhone");
+        const matchStatus = !statusTerm || booking.status === statusTerm;
 
-const studentClass=document.getElementById("studentClass");
+        return matchSearch && matchStatus;
+    });
 
-const studentSubject=document.getElementById("studentSubject");
+    if (filtered.length === 0) {
+        bookingTable.innerHTML = `
+            <tr>
+                <td colspan="9" style="text-align:center;padding:20px;">
+                    No bookings found
+                </td>
+            </tr>
+        `;
+        return;
+    }
 
-const studentArea=document.getElementById("studentArea");
+    bookingTable.innerHTML = filtered.map(booking => `
+        <tr>
+            <td>${booking.studentName || "-"}</td>
+            <td>${booking.phone || "-"}</td>
+            <td>${booking.studentClass || "-"}</td>
+            <td>${booking.subject || "-"}</td>
+            <td>${booking.area || "-"}</td>
+            <td>${booking.preferredTutor || "-"}</td>
+            <td>${booking.assignedTutor || "-"}</td>
+            <td>
+                <span class="badge ${booking.status ? booking.status.toLowerCase() : "pending"}">
+                    ${booking.status || "Pending"}
+                </span>
+            </td>
+            <td>
+                <button class="call" onclick="viewBookingDetails('${booking.id}')">
+                    View
+                </button>
+                <button class="assign" onclick="openAssignModal('${booking.id}')">
+                    Assign
+                </button>
+            </td>
+        </tr>
+    `).join("");
+}
 
-const studentMode=document.getElementById("studentMode");
+window.viewBookingDetails = async function(bookingId) {
+    try {
+        const bookingRef = doc(db, "bookings", bookingId);
+        const bookingSnap = await getDoc(bookingRef);
 
-const studentRemarks=document.getElementById("studentRemarks");
+        if (!bookingSnap.exists()) {
+            alert("Booking not found");
+            return;
+        }
 
+        const booking = bookingSnap.data();
+        const studentDetailsEl = document.getElementById("studentDetails");
 
-// ===============================
+        studentDetailsEl.innerHTML = `
+            <div style="margin-bottom:15px;">
+                <h4>Student Information</h4>
+                <p><strong>Name:</strong> ${booking.studentName || "-"}</p>
+                <p><strong>Phone:</strong> ${booking.phone || "-"}</p>
+                <p><strong>Class:</strong> ${booking.studentClass || "-"}</p>
+                <p><strong>Subject:</strong> ${booking.subject || "-"}</p>
+            </div>
+            <div style="margin-bottom:15px;">
+                <h4>Parent Information</h4>
+                <p><strong>Name:</strong> ${booking.parentName || "-"}</p>
+                <p><strong>Phone:</strong> ${booking.parentPhone || "-"}</p>
+            </div>
+            <div style="margin-bottom:15px;">
+                <h4>Booking Details</h4>
+                <p><strong>Area:</strong> ${booking.area || "-"}</p>
+                <p><strong>Mode:</strong> ${booking.mode || "-"}</p>
+                <p><strong>Status:</strong> ${booking.status || "-"}</p>
+                <p><strong>Preferred Tutor:</strong> ${booking.preferredTutor || "-"}</p>
+                <p><strong>Assigned Tutor:</strong> ${booking.assignedTutor || "-"}</p>
+            </div>
+            <div>
+                <h4>Remarks</h4>
+                <p>${booking.remarks || "No remarks"}</p>
+            </div>
+        `;
+
+        studentModal.classList.add("show");
+    } catch (error) {
+        console.error("Error loading booking details:", error);
+        alert("Error loading details");
+    }
+};
+
+window.openAssignModal = async function(bookingId) {
+    currentBookingId = bookingId;
+    
+    // Load teachers in dropdown
+    teacherSelect.innerHTML = '<option value="">Select Teacher</option>';
+    allTeachers.forEach(teacher => {
+        const option = document.createElement("option");
+        option.value = teacher.id;
+        option.text = teacher.name;
+        teacherSelect.appendChild(option);
+    });
+
+    assignModal.classList.add("show");
+};
+
+// ========================
+// ADD/EDIT ENQUIRY
+// ========================
+
+addEnquiryBtn?.addEventListener("click", () => {
+    document.getElementById("studentName").value = "";
+    document.getElementById("studentPhone").value = "";
+    document.getElementById("parentName").value = "";
+    document.getElementById("parentPhone").value = "";
+    document.getElementById("studentClass").value = "";
+    document.getElementById("studentSubject").value = "";
+    document.getElementById("studentArea").value = "";
+    document.getElementById("studentMode").value = "Home Tuition";
+    document.getElementById("studentRemarks").value = "";
+    enquiryModal.classList.add("show");
+});
+
+closeEnquiryBtn?.addEventListener("click", () => {
+    enquiryModal.classList.remove("show");
+});
+
+saveEnquiryBtn?.addEventListener("click", async () => {
+    const studentName = document.getElementById("studentName").value.trim();
+    const studentPhone = document.getElementById("studentPhone").value.trim();
+    const parentName = document.getElementById("parentName").value.trim();
+    const parentPhone = document.getElementById("parentPhone").value.trim();
+    const studentClass = document.getElementById("studentClass").value.trim();
+    const studentSubject = document.getElementById("studentSubject").value.trim();
+    const studentArea = document.getElementById("studentArea").value.trim();
+    const mode = document.getElementById("studentMode").value;
+    const remarks = document.getElementById("studentRemarks").value.trim();
+
+    if (!studentName || !studentPhone || !parentName || !parentPhone) {
+        alert("Please fill all required fields");
+        return;
+    }
+
+    try {
+        saveEnquiryBtn.disabled = true;
+        saveEnquiryBtn.textContent = "Saving...";
+
+        const bookingRef = doc(collection(db, "bookings"));
+        await setDoc(bookingRef, {
+            studentName,
+            phone: studentPhone,
+            parentName,
+            parentPhone,
+            studentClass,
+            subject: studentSubject,
+            area: studentArea,
+            mode,
+            remarks,
+            status: "Pending",
+            createdAt: serverTimestamp(),
+            assignedTutor: null,
+            preferredTutor: null
+        });
+
+        alert("Enquiry saved successfully");
+        enquiryModal.classList.remove("show");
+        loadBookings();
+    } catch (error) {
+        console.error("Error saving enquiry:", error);
+        alert("Error saving enquiry: " + error.message);
+    } finally {
+        saveEnquiryBtn.disabled = false;
+        saveEnquiryBtn.textContent = "Save Enquiry";
+    }
+});
+
+// ========================
+// ASSIGN TEACHER
+// ========================
+
+saveAssignBtn?.addEventListener("click", async () => {
+    if (!currentBookingId) {
+        alert("No booking selected");
+        return;
+    }
+
+    const selectedTeacherId = teacherSelect.value;
+    const demoDate = document.getElementById("demoDate").value;
+    const demoTime = document.getElementById("demoTime").value;
+    const remarks = document.getElementById("remarks").value.trim();
+
+    if (!selectedTeacherId || !demoDate || !demoTime) {
+        alert("Please fill all fields");
+        return;
+    }
+
+    try {
+        saveAssignBtn.disabled = true;
+        saveAssignBtn.textContent = "Assigning...";
+
+        const bookingRef = doc(db, "bookings", currentBookingId);
+        const selectedTeacher = allTeachers.find(t => t.id === selectedTeacherId);
+
+        await updateDoc(bookingRef, {
+            assignedTutor: selectedTeacher.name,
+            assignedTutorId: selectedTeacherId,
+            status: "Assigned",
+            demoDate,
+            demoTime,
+            demoRemarks: remarks,
+            updatedAt: serverTimestamp()
+        });
+
+        alert("Teacher assigned successfully");
+        assignModal.classList.remove("show");
+        loadBookings();
+    } catch (error) {
+        console.error("Error assigning teacher:", error);
+        alert("Error: " + error.message);
+    } finally {
+        saveAssignBtn.disabled = false;
+        saveAssignBtn.textContent = "Assign Teacher";
+    }
+});
+
+closeAssignBtn?.addEventListener("click", () => {
+    assignModal.classList.remove("show");
+});
+
+// ========================
 // TEACHERS
-// ===============================
+// ========================
 
-const teacherTable=document.getElementById("teacherTable");
+async function loadTeachers() {
+    try {
+        const q = query(
+            collection(db, "tutors"),
+            where("status", "==", "Approved"),
+            limit(100)
+        );
 
-const addTeacherBtn=document.getElementById("addTeacherBtn");
+        const snapshot = await getDocs(q);
+        allTeachers = [];
 
-const teacherModal=document.getElementById("teacherModal");
+        snapshot.forEach(doc => {
+            allTeachers.push({ id: doc.id, ...doc.data() });
+        });
 
-const teacherName=document.getElementById("teacherName");
+        renderTeacherTable();
+    } catch (error) {
+        console.error("Error loading teachers:", error);
+    }
+}
 
-const teacherPhone=document.getElementById("teacherPhone");
+function renderTeacherTable() {
+    if (!teacherTable) return;
 
-const teacherSubjects=document.getElementById("teacherSubjects");
+    if (allTeachers.length === 0) {
+        teacherTable.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align:center;padding:20px;">
+                    No teachers found
+                </td>
+            </tr>
+        `;
+        return;
+    }
 
-const teacherAreas=document.getElementById("teacherAreas");
+    teacherTable.innerHTML = allTeachers.map(teacher => `
+        <tr>
+            <td>${teacher.name || "-"}</td>
+            <td>${teacher.phone || "-"}</td>
+            <td>${Array.isArray(teacher.teaching) ? teacher.teaching.map(t => t.subject).join(", ") : "-"}</td>
+            <td>${teacher.area || "-"}</td>
+            <td>
+                <span class="badge ${teacher.status.toLowerCase()}">
+                    ${teacher.status}
+                </span>
+            </td>
+            <td>
+                <button class="call" onclick="viewTeacherProfile('${teacher.id}')">
+                    View
+                </button>
+            </td>
+        </tr>
+    `).join("");
+}
 
-const saveTeacher=document.getElementById("saveTeacher");
+window.viewTeacherProfile = async function(teacherId) {
+    try {
+        const teacherRef = doc(db, "tutors", teacherId);
+        const teacherSnap = await getDoc(teacherRef);
 
+        if (!teacherSnap.exists()) {
+            alert("Teacher not found");
+            return;
+        }
 
-// ===============================
-// ASSIGN MODAL
-// ===============================
+        const teacher = teacherSnap.data();
+        const subjects = Array.isArray(teacher.teaching) 
+            ? teacher.teaching.map(t => `${t.subject} - ₹${t.monthlyFee}`).join(", ")
+            : "-";
 
-const assignModal=document.getElementById("assignModal");
-
-const teacherSelect=document.getElementById("teacherSelect");
-
-const demoDate=document.getElementById("demoDate");
-
-const demoTime=document.getElementById("demoTime");
-
-const remarks=document.getElementById("remarks");
-
-const saveAssign=document.getElementById("saveAssign");
-
-const closeAssign=document.getElementById("closeAssign");
-
-
-// ===============================
-// STUDENT DETAILS
-// ===============================
-
-const studentModal=document.getElementById("studentModal");
-
-const studentDetails=document.getElementById("studentDetails");
-
-const closeStudentModal=document.getElementById("closeStudentModal");
-
-
-// ===============================
-// DEMO DETAILS
-// ===============================
-
-const demoModal=document.getElementById("demoModal");
-
-const demoDetails=document.getElementById("demoDetails");
-
-const closeDemoModal=document.getElementById("closeDemoModal");
-
-
-// ===============================
-// SIDEBAR
-// ===============================
-
-const menuItems=document.querySelectorAll("#sidebarMenu li");
-
-menuItems.forEach(item=>{
-
-item.onclick=()=>{
-
-menuItems.forEach(x=>x.classList.remove("active"));
-
-item.classList.add("active");
-
+        alert(`
+Teacher: ${teacher.name}
+Email: ${teacher.email || "-"}
+Phone: ${teacher.phone || "-"}
+Qualification: ${teacher.qualification || "-"}
+Experience: ${teacher.experience || "-"} years
+Area: ${teacher.area || "-"}
+Subjects: ${subjects}
+Status: ${teacher.status}
+        `);
+    } catch (error) {
+        console.error("Error loading teacher profile:", error);
+    }
 };
 
+// ========================
+// ADD TEACHER
+// ========================
+
+addTeacherBtn?.addEventListener("click", () => {
+    teacherModal.classList.add("show");
 });
 
+document.getElementById("closeTeacherModal")?.addEventListener("click", () => {
+    teacherModal.classList.remove("show");
+});
 
-// ===============================
+// ========================
+// SIDEBAR NAVIGATION
+// ========================
+
+sidebarMenu?.addEventListener("click", (e) => {
+    const page = e.target.closest("li")?.dataset.page;
+    if (!page) return;
+
+    document.querySelectorAll(".sidebar li").forEach(li => li.classList.remove("active"));
+    e.target.closest("li").classList.add("active");
+
+    document.querySelectorAll(".section").forEach(section => {
+        section.style.display = "none";
+    });
+
+    const sectionIndex = Array.from(sidebarMenu.querySelectorAll("li")).indexOf(e.target.closest("li"));
+    const sections = document.querySelectorAll(".section");
+    if (sections[sectionIndex]) {
+        sections[sectionIndex].style.display = "block";
+    }
+});
+
+// ========================
+// STATS
+// ========================
+
+async function loadStats() {
+    const total = allBookings.length;
+    const pending = allBookings.filter(b => b.status === "Pending").length;
+    const assigned = allBookings.filter(b => b.status === "Assigned").length;
+    const admissions = allBookings.filter(b => b.status === "Permanent").length;
+
+    totalEnquiriesEl.textContent = total;
+    pendingCountEl.textContent = pending;
+    assignedCountEl.textContent = assigned;
+    admissionCountEl.textContent = admissions;
+}
+
+// ========================
+// SEARCH & FILTER
+// ========================
+
+searchInput?.addEventListener("input", renderBookingTable);
+statusFilter?.addEventListener("change", renderBookingTable);
+
+// ========================
 // LOGOUT
-// ===============================
+// ========================
 
-document.getElementById("logoutBtn").onclick=async()=>{
-
-await signOut(auth);
-
-location.href="admin-login.html";
-
-};
-
-
-// ===============================
-// ROLE AUTH
-// ===============================
-
-onAuthStateChanged(auth,async(user)=>{
-
-if(!user){
-
-location.href="admin-login.html";
-
-return;
-
-}
-
-const userRef=doc(db,"users",user.uid);
-
-const snap=await getDoc(userRef);
-
-if(!snap.exists()){
-
-await signOut(auth);
-
-location.href="admin-login.html";
-
-return;
-
-}
-
-const role=snap.data().role;
-
-if(role!=="admin"){
-
-await signOut(auth);
-
-location.href="admin-login.html";
-
-return;
-
-}
-
-await loadTeachers();
-
-await loadBookings();
-
-});
-/* ==========================
-PART 2
-Replace your loadBookings(), updateDashboard() and renderBookings()
-========================== */
-
-async function loadBookings(){
-
-bookingTable.innerHTML=`
-<tr>
-<td colspan="8">Loading...</td>
-</tr>
-`;
-
-try{
-
-const snap=await getDocs(collection(db,"demoBookings"));
-
-bookings=[];
-
-snap.forEach(docSnap=>{
-
-bookings.push({
-
-id:docSnap.id,
-
-...docSnap.data()
-
+logoutBtn?.addEventListener("click", async () => {
+    if (confirm("Are you sure you want to logout?")) {
+        try {
+            await signOut(auth);
+            window.location.href = "admin-login.html";
+        } catch (error) {
+            alert("Error logging out: " + error.message);
+        }
+    }
 });
 
+// ========================
+// MODAL CLOSE
+// ========================
+
+closeStudentModalBtn?.addEventListener("click", () => {
+    studentModal.classList.remove("show");
 });
 
-bookings.sort((a,b)=>{
-
-const x=a.createdAt?.seconds||0;
-
-const y=b.createdAt?.seconds||0;
-
-return y-x;
-
+closeDemoModalBtn?.addEventListener("click", () => {
+    demoModal.classList.remove("show");
 });
 
-updateDashboard();
-
-renderBookings();
-
-}catch(err){
-
-console.error(err);
-
-bookingTable.innerHTML=`
-<tr>
-<td colspan="8">Unable to load enquiries.</td>
-</tr>
-`;
-
-}
-
-}
-
-
-/* ==========================
-DASHBOARD
-========================== */
-
-function updateDashboard(){
-
-totalEnquiries.textContent=bookings.length;
-
-pendingCount.textContent=bookings.filter(x=>
-
-(x.status||"Pending")==="Pending"
-
-).length;
-
-assignedCount.textContent=bookings.filter(x=>
-
-x.status==="Assigned"
-
-).length;
-
-admissionCount.textContent=bookings.filter(x=>
-
-x.status==="Admitted"
-
-).length;
-
-}
-
-
-/* ==========================
-RENDER BOOKINGS
-========================== */
-
-function renderBookings(){
-
-bookingTable.innerHTML="";
-
-const keyword=searchInput.value.toLowerCase().trim();
-
-const status=statusFilter.value;
-
-const filtered=bookings.filter(b=>{
-
-const name=(b.studentName||"").toLowerCase();
-
-const phone=(b.phone||"").toLowerCase();
-
-const area=(b.area||"").toLowerCase();
-
-const subject=(b.subject||"").toLowerCase();
-
-const matchSearch=
-
-name.includes(keyword) ||
-
-phone.includes(keyword) ||
-
-area.includes(keyword) ||
-
-subject.includes(keyword);
-
-const matchStatus=
-
-status==="" ||
-
-(b.status||"Pending")===status;
-
-return matchSearch && matchStatus;
-
+// Close modals on background click
+[enquiryModal, teacherModal, assignModal, studentModal, demoModal].forEach(modal => {
+    modal?.addEventListener("click", (e) => {
+        if (e.target === modal) {
+            modal.classList.remove("show");
+        }
+    });
 });
-
-if(filtered.length===0){
-
-bookingTable.innerHTML=`
-<tr>
-<td colspan="8">
-No Student Found
-</td>
-</tr>
-`;
-
-return;
-
-}
-
-filtered.forEach(b=>{
-
-bookingTable.innerHTML+=`
-
-<tr>
-
-<td>${b.studentName||"-"}</td>
-
-<td>${b.phone||"-"}</td>
-
-<td>${b.class||"-"}</td>
-
-<td>${b.subject||"-"}</td>
-
-<td>${b.area||"-"}</td>
-
-<td>${b.requestedTutorName || "-"}</td>
-
-<td>${b.assignedTeacher||"-"}</td>
-
-<td>
-
-<span class="${getStatusClass(b.status)}">
-
-${b.status||"Pending"}
-
-</span>
-
-</td>
-
-<td>
-
-<button
-class="call"
-onclick="callStudent('${b.phone}')">
-
-📞
-
-</button>
-
-<button
-class="whatsapp"
-onclick="whatsappStudent('${b.phone}')">
-
-💬
-
-</button>
-
-<button
-class="assign"
-onclick="assignTeacher('${b.id}')">
-
-Assign
-
-</button>
-
-<button
-class="edit"
-onclick="editBooking('${b.id}')">
-
-Edit
-
-</button>
-
-<button
-class="delete"
-onclick="deleteBooking('${b.id}')">
-
-Delete
-
-</button>
-
-</td>
-
-</tr>
-
-`;
-
-});
-
-}
-
-searchInput.oninput=renderBookings;
-
-statusFilter.onchange=renderBookings;
-
-setInterval(loadBookings,30000);
-/* ==========================
-PART 3
-NEW ENQUIRY + EDIT ENQUIRY
-Paste BELOW renderBookings()
-========================== */
-
-
-/* ==========================
-OPEN NEW ENQUIRY
-========================== */
-
-if(addEnquiryBtn){
-
-addEnquiryBtn.onclick=()=>{
-
-editingBooking=null;
-
-studentName.value="";
-studentPhone.value="";
-parentName.value="";
-parentPhone.value="";
-studentClass.value="";
-studentSubject.value="";
-studentArea.value="";
-studentMode.selectedIndex=0;
-studentRemarks.value="";
-
-saveEnquiry.textContent="Save Enquiry";
-
-enquiryModal.classList.add("show");
-
-};
-
-}
-
-
-/* ==========================
-CLOSE MODAL
-========================== */
-
-if(closeEnquiry){
-
-closeEnquiry.onclick=()=>{
-
-enquiryModal.classList.remove("show");
-
-};
-
-}
-
-window.addEventListener("click",e=>{
-
-if(e.target===enquiryModal){
-
-enquiryModal.classList.remove("show");
-
-}
-
-});
-
-
-/* ==========================
-SAVE / UPDATE
-========================== */
-
-saveEnquiry.onclick=async()=>{
-
-if(studentName.value.trim()===""){
-
-alert("Student Name Required");
-
-return;
-
-}
-
-if(studentPhone.value.trim()===""){
-
-alert("Phone Required");
-
-return;
-
-}
-
-const data={
-
-studentName:studentName.value.trim(),
-
-phone:studentPhone.value.trim(),
-
-parentName:parentName.value.trim(),
-
-parentPhone:parentPhone.value.trim(),
-
-class:studentClass.value.trim(),
-
-subject:studentSubject.value.trim(),
-
-area:studentArea.value.trim(),
-
-mode:studentMode.value,
-
-remarks:studentRemarks.value.trim()
-
-};
-
-try{
-
-if(editingBooking){
-
-await updateDoc(
-
-doc(db,"demoBookings",editingBooking),
-
-data
-
-);
-
-alert("Enquiry Updated");
-
-}else{
-
-await addDoc(
-
-collection(db,"demoBookings"),
-
-{
-
-...data,
-
-status:"Pending",
-
-assignedTeacher:"",
-
-teacherId:"",
-
-createdAt:serverTimestamp()
-
-}
-
-);
-
-alert("Enquiry Added");
-
-}
-
-editingBooking=null;
-
-enquiryModal.classList.remove("show");
-
-await loadBookings();
-
-}catch(err){
-
-console.error(err);
-
-alert("Unable to Save");
-
-}
-
-};
-
-
-/* ==========================
-EDIT ENQUIRY
-========================== */
-
-window.editBooking=function(id){
-
-const b=bookings.find(x=>x.id===id);
-
-if(!b)return;
-
-editingBooking=id;
-
-studentName.value=b.studentName||"";
-
-studentPhone.value=b.phone||"";
-
-parentName.value=b.parentName||"";
-
-parentPhone.value=b.parentPhone||"";
-
-studentClass.value=b.class||"";
-
-studentSubject.value=b.subject||"";
-
-studentArea.value=b.area||"";
-
-studentMode.value=b.mode||"Home Tuition";
-
-studentRemarks.value=b.remarks||"";
-
-saveEnquiry.textContent="Update Enquiry";
-
-enquiryModal.classList.add("show");
-
-};
-/* ==========================
-PART 4
-TEACHERS + ASSIGN TEACHER
-Replace your Teacher Section
-========================== */
-
-async function loadTeachers(){
-
-try{
-
-const snap=await getDocs(collection(db,"teachers"));
-
-teachers=[];
-
-snap.forEach(docSnap=>{
-
-teachers.push({
-
-id:docSnap.id,
-
-...docSnap.data()
-
-});
-
-});
-
-teachers.sort((a,b)=>{
-
-return (a.name||"").localeCompare(b.name||"");
-
-});
-
-renderTeachers();
-
-}catch(err){
-
-console.error(err);
-
-}
-
-}
-
-
-
-/* ==========================
-RENDER TEACHERS
-========================== */
-
-function renderTeachers(){
-
-teacherTable.innerHTML="";
-
-if(teachers.length===0){
-
-teacherTable.innerHTML=`
-
-<tr>
-
-<td colspan="6">
-
-No Teachers Found
-
-</td>
-
-</tr>
-
-`;
-
-return;
-
-}
-
-teachers.forEach(t=>{
-
-teacherTable.innerHTML+=`
-
-<tr>
-
-<td>${t.name}</td>
-
-<td>${t.phone}</td>
-
-<td>${(t.subjects||[]).join(", ")}</td>
-
-<td>${(t.areas||[]).join(", ")}</td>
-
-<td>
-
-${t.available===false
-
-?'<span class="badge assigned">Busy</span>'
-
-:'<span class="badge admitted">Available</span>'}
-
-</td>
-
-<td>
-
-<button
-
-class="assign"
-
-onclick="toggleTeacher('${t.id}')">
-
-${t.available===false
-
-?"Make Available"
-
-:"Make Busy"}
-
-</button>
-
-<button
-
-class="delete"
-
-onclick="deleteTeacher('${t.id}')">
-
-Delete
-
-</button>
-
-</td>
-
-</tr>
-
-`;
-
-});
-
-}
-
-
-
-/* ==========================
-ADD TEACHER
-========================== */
-
-addTeacherBtn.onclick=()=>{
-
-teacherModal.classList.add("show");
-
-};
-
-
-
-saveTeacher.onclick=async()=>{
-
-if(teacherName.value.trim()===""){
-
-alert("Teacher Name Required");
-
-return;
-
-}
-
-try{
-
-await addDoc(collection(db,"teachers"),{
-
-name:teacherName.value.trim(),
-
-phone:teacherPhone.value.trim(),
-
-subjects:teacherSubjects.value
-
-.split(",")
-
-.map(x=>x.trim())
-
-.filter(Boolean),
-
-areas:teacherAreas.value
-
-.split(",")
-
-.map(x=>x.trim())
-
-.filter(Boolean),
-
-available:true,
-
-createdAt:serverTimestamp()
-
-});
-
-teacherName.value="";
-
-teacherPhone.value="";
-
-teacherSubjects.value="";
-
-teacherAreas.value="";
-
-teacherModal.classList.remove("show");
-
-await loadTeachers();
-
-alert("Teacher Added");
-
-}catch(err){
-
-console.error(err);
-
-alert("Unable to Add");
-
-}
-
-};
-
-
-
-/* ==========================
-DELETE TEACHER
-========================== */
-
-window.deleteTeacher=async(id)=>{
-
-if(!confirm("Delete Teacher?")) return;
-
-try{
-
-await deleteDoc(doc(db,"teachers",id));
-
-await loadTeachers();
-
-}catch(err){
-
-console.error(err);
-
-alert("Delete Failed");
-
-}
-
-};
-
-
-
-/* ==========================
-BUSY / AVAILABLE
-========================== */
-
-window.toggleTeacher=async(id)=>{
-
-const teacher=teachers.find(t=>t.id===id);
-
-if(!teacher) return;
-
-try{
-
-await updateDoc(
-
-doc(db,"teachers",id),
-
-{
-
-available:!teacher.available
-
-}
-
-);
-
-await loadTeachers();
-
-}catch(err){
-
-console.error(err);
-
-}
-
-};
-
-
-
-/* ==========================
-ASSIGN TEACHER
-========================== */
-
-window.assignTeacher=function(id){
-
-selectedBooking=id;
-
-teacherSelect.innerHTML=
-
-`<option value="">Select Teacher</option>`;
-
-teachers
-
-.filter(t=>t.available!==false)
-
-.forEach(t=>{
-
-teacherSelect.innerHTML+=`
-
-<option value="${t.id}">
-
-${t.name}
-
-</option>
-
-`;
-
-});
-
-assignModal.classList.add("show");
-
-};
-
-
-
-closeAssign.onclick=()=>{
-
-assignModal.classList.remove("show");
-
-};
-
-
-
-saveAssign.onclick=async()=>{
-
-if(!selectedBooking){
-
-alert("No Student Selected");
-
-return;
-
-}
-
-if(teacherSelect.value===""){
-
-alert("Select Teacher");
-
-return;
-
-}
-
-const teacher=teachers.find(
-
-t=>t.id===teacherSelect.value
-
-);
-
-try{
-
-await updateDoc(
-
-doc(db,"demoBookings",selectedBooking),
-
-{
-
-assignedTeacher:teacher.name,
-
-teacherPhone:teacher.phone,
-
-teacherId:teacher.id,
-
-demoDate:demoDate.value,
-
-demoTime:demoTime.value,
-
-remarks:remarks.value,
-
-status:"Assigned"
-
-}
-
-);
-
-assignModal.classList.remove("show");
-
-teacherSelect.value="";
-
-demoDate.value="";
-
-demoTime.value="";
-
-remarks.value="";
-
-selectedBooking=null;
-
-await loadBookings();
-
-alert("Teacher Assigned");
-
-}catch(err){
-
-console.error(err);
-
-alert("Assignment Failed");
-
-}
-
-};
-/* ==========================
-PART 5
-STUDENT DETAILS + DEMO DETAILS + ADMISSION
-Paste below PART 4
-========================== */
-
-
-/* ==========================
-STATUS COLOR
-========================== */
-
-function getStatusClass(status){
-
-switch(status){
-
-case "Assigned":
-return "badge assigned";
-
-case "Admitted":
-return "badge admitted";
-
-case "Rejected":
-return "badge rejected";
-
-default:
-return "badge pending";
-
-}
-
-}
-
-
-/* ==========================
-CALL
-========================== */
-
-window.callStudent=function(phone){
-
-if(!phone)return;
-
-window.location.href=`tel:${phone}`;
-
-};
-
-
-/* ==========================
-WHATSAPP
-========================== */
-
-window.whatsappStudent=function(phone){
-
-if(!phone)return;
-
-window.open(`https://wa.me/91${phone}`,"_blank");
-
-};
-
-
-/* ==========================
-DELETE ENQUIRY
-========================== */
-
-window.deleteBooking=async(id)=>{
-
-if(!confirm("Delete this enquiry?")) return;
-
-try{
-
-await deleteDoc(doc(db,"demoBookings",id));
-
-await loadBookings();
-
-}catch(err){
-
-console.error(err);
-
-alert("Delete Failed");
-
-}
-
-};
-
-
-/* ==========================
-VIEW STUDENT
-========================== */
-
-window.viewStudent=function(id){
-
-const b=bookings.find(x=>x.id===id);
-
-if(!b)return;
-
-studentDetails.innerHTML=`
-
-<h3>${b.studentName}</h3>
-
-<p><b>Phone :</b> ${b.phone||"-"}</p>
-
-<p><b>Parent :</b> ${b.parentName||"-"}</p>
-
-<p><b>Parent Phone :</b> ${b.parentPhone||"-"}</p>
-
-<p><b>Class :</b> ${b.class||"-"}</p>
-
-<p><b>Subject :</b> ${b.subject||"-"}</p>
-
-<p><b>Area :</b> ${b.area||"-"}</p>
-
-<p><b>Mode :</b> ${b.mode||"-"}</p>
-
-<p><b>Status :</b> ${b.status||"Pending"}</p>
-
-<p><b>Remarks :</b> ${b.remarks||"-"}</p>
-
-`;
-
-studentModal.classList.add("show");
-
-};
-
-
-closeStudentModal.onclick=()=>{
-
-studentModal.classList.remove("show");
-
-};
-
-
-/* ==========================
-VIEW DEMO
-========================== */
-
-window.viewDemo=function(id){
-
-const b=bookings.find(x=>x.id===id);
-
-if(!b)return;
-
-demoDetails.innerHTML=`
-
-<h3>${b.studentName}</h3>
-
-<p><b>Teacher :</b> ${b.assignedTeacher||"-"}</p>
-
-<p><b>Teacher Phone :</b> ${b.teacherPhone||"-"}</p>
-
-<p><b>Demo Date :</b> ${b.demoDate||"-"}</p>
-
-<p><b>Demo Time :</b> ${b.demoTime||"-"}</p>
-
-<p><b>Status :</b> ${b.status||"-"}</p>
-
-<p><b>Remarks :</b> ${b.remarks||"-"}</p>
-
-`;
-
-demoModal.classList.add("show");
-
-};
-
-
-closeDemoModal.onclick=()=>{
-
-demoModal.classList.remove("show");
-
-};
-
-
-/* ==========================
-ADMISSION
-========================== */
-
-window.markAdmitted=async(id)=>{
-
-if(!confirm("Convert to Admission?")) return;
-
-try{
-
-await updateDoc(
-
-doc(db,"demoBookings",id),
-
-{
-
-status:"Admitted",
-
-admissionDate:new Date().toLocaleDateString()
-
-}
-
-);
-
-await loadBookings();
-
-alert("Admission Completed");
-
-}catch(err){
-
-console.error(err);
-
-alert("Unable to Update");
-
-}
-
-};
-
-
-/* ==========================
-REJECT
-========================== */
-
-window.markRejected=async(id)=>{
-
-if(!confirm("Reject this enquiry?")) return;
-
-try{
-
-await updateDoc(
-
-doc(db,"demoBookings",id),
-
-{
-
-status:"Rejected"
-
-}
-
-);
-
-await loadBookings();
-
-}catch(err){
-
-console.error(err);
-
-}
-
-};
-
-
-/* ==========================
-MODAL OUTSIDE CLICK
-========================== */
-
-window.onclick=(e)=>{
-
-if(e.target===studentModal){
-
-studentModal.classList.remove("show");
-
-}
-
-if(e.target===demoModal){
-
-demoModal.classList.remove("show");
-
-}
-
-if(e.target===assignModal){
-
-assignModal.classList.remove("show");
-
-}
-
-if(e.target===teacherModal){
-
-teacherModal.classList.remove("show");
-
-}
-
-if(e.target===enquiryModal){
-
-enquiryModal.classList.remove("show");
-
-}
-
-};
-/* =========================================================
-PART 6
-FINAL CLEANUP + INITIALIZATION
-Paste at the END of admin-dashboard-v2.js
-========================================================= */
-
-
-/* ---------- Close Teacher Modal ---------- */
-
-const closeTeacherModal=document.getElementById("closeTeacherModal");
-
-if(closeTeacherModal){
-
-closeTeacherModal.onclick=()=>{
-
-teacherModal.classList.remove("show");
-
-};
-
-}
-
-
-/* ---------- ESC Close ---------- */
-
-document.addEventListener("keydown",(e)=>{
-
-if(e.key!=="Escape") return;
-
-enquiryModal?.classList.remove("show");
-teacherModal?.classList.remove("show");
-assignModal?.classList.remove("show");
-studentModal?.classList.remove("show");
-demoModal?.classList.remove("show");
-
-});
-
-
-/* ---------- Helpers ---------- */
-
-function formatDate(timestamp){
-
-if(!timestamp) return "-";
-
-try{
-
-if(timestamp.seconds){
-
-return new Date(timestamp.seconds*1000).toLocaleDateString();
-
-}
-
-return new Date(timestamp).toLocaleDateString();
-
-}catch{
-
-return "-";
-
-}
-
-}
-
-function formatDateTime(timestamp){
-
-if(!timestamp) return "-";
-
-try{
-
-if(timestamp.seconds){
-
-return new Date(timestamp.seconds*1000).toLocaleString();
-
-}
-
-return new Date(timestamp).toLocaleString();
-
-}catch{
-
-return "-";
-
-}
-
-}
-
-
-/* ---------- Refresh Dashboard ---------- */
-
-async function refreshDashboard(){
-
-await loadTeachers();
-
-await loadBookings();
-
-}
-
-
-/* ---------- Auto Refresh ---------- */
-
-setInterval(async()=>{
-
-try{
-
-await refreshDashboard();
-
-}catch(e){
-
-console.error(e);
-
-}
-
-},60000);
-
-
-/* ---------- Network Status ---------- */
-
-window.addEventListener("offline",()=>{
-
-console.warn("Internet Disconnected");
-
-});
-
-window.addEventListener("online",()=>{
-
-refreshDashboard();
-
-});
-
-
-/* ---------- Firestore Error ---------- */
-
-window.addEventListener("unhandledrejection",(e)=>{
-
-console.error(e.reason);
-
-});
-
-
-/* ---------- Make Functions Global ---------- */
-
-window.loadBookings=loadBookings;
-window.loadTeachers=loadTeachers;
-window.refreshDashboard=refreshDashboard;
-window.renderBookings=renderBookings;
-window.renderTeachers=renderTeachers;
-window.updateDashboard=updateDashboard;
-
-
-/* ---------- Initial UI ---------- */
-
-searchInput.value="";
-statusFilter.value="";
-
-
-/* ---------- Default Modal State ---------- */
-
-[
-enquiryModal,
-teacherModal,
-assignModal,
-studentModal,
-demoModal
-].forEach(modal=>{
-
-if(modal){
-
-modal.classList.remove("show");
-
-}
-
-});
-
-
-console.log("TutorNest Admin CRM Loaded Successfully");
