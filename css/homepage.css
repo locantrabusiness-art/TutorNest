@@ -9387,6 +9387,64 @@ Z INDEX
 }
 
 }
+@media(max-width:768px){
+
+.hero{
+    padding:40px 20px;
+}
+
+.hero-content{
+    text-align:center;
+}
+
+.hero h1{
+    font-size:38px;
+    line-height:1.15;
+}
+
+.hero p{
+    font-size:16px;
+}
+
+
+/* Floating cards fix */
+.hero-stats,
+.stats-floating,
+.floating-cards{
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+    width:100%;
+    align-items:center;
+}
+
+
+.hero-card,
+.stat-card,
+.floating-card{
+    width:90%;
+    max-width:320px;
+}
+
+
+/* Buttons */
+.hero-buttons{
+    flex-direction:column;
+    width:100%;
+}
+
+.hero-buttons button{
+    width:100%;
+}
+
+
+/* Image */
+.hero-image img{
+    width:100%;
+    height:auto;
+}
+
+}
 
 
 /* ===========================
