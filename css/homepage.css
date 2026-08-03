@@ -9389,66 +9389,121 @@ Z INDEX
 }
 @media(max-width:768px){
 
-.hero{
-    padding:40px 20px;
+.container{
+    width:92%;
 }
 
-.hero-content{
+
+.hero{
+    padding:45px 0;
+}
+
+
+.heroGrid{
+    grid-template-columns:1fr;
+    gap:30px;
     text-align:center;
 }
 
-.hero h1{
-    font-size:38px;
-    line-height:1.15;
-}
 
-.hero p{
-    font-size:16px;
+.heroContent{
+    order:2;
 }
 
 
-/* Floating cards fix */
-.hero-stats,
-.stats-floating,
-.floating-cards{
-    display:flex;
+.heroImage{
+    order:1;
+}
+
+
+.heroContent h1{
+    font-size:34px;
+    line-height:1.2;
+}
+
+
+.heroContent p{
+    font-size:15px;
+}
+
+
+.heroButtons{
     flex-direction:column;
-    gap:15px;
     width:100%;
+}
+
+
+.primaryBtn,
+.secondaryBtn{
+    width:100%;
+}
+
+
+.heroStats{
+    flex-direction:column;
     align-items:center;
+    gap:15px;
 }
 
 
-.hero-card,
-.stat-card,
-.floating-card{
-    width:90%;
+.stat{
+    width:100%;
     max-width:320px;
+    text-align:center;
 }
 
 
-/* Buttons */
-.hero-buttons{
-    flex-direction:column;
+.heroCard{
     width:100%;
+    max-width:330px;
+    padding:15px;
 }
 
-.hero-buttons button{
+
+.floatingCard{
+    position:relative;
+    left:auto!important;
+    right:auto!important;
+    top:auto!important;
+    bottom:auto!important;
+    margin:15px auto;
     width:100%;
+    max-width:300px;
 }
 
 
-/* Image */
-.hero-image img{
-    width:100%;
-    height:auto;
-}
-
+header .navContainer{
+    height:72px;
 }
 
 
-/* ===========================
-END OF FILE
-TutorNest Homepage Styles
-Version 1.0
-========================================================== */
+.logo{
+    font-size:22px;
+}
+
+
+.logo img{
+    width:45px;
+}
+
+
+}
+
+
+@media(max-width:420px){
+
+.heroContent h1{
+    font-size:28px;
+}
+
+
+.heroCard{
+    max-width:290px;
+}
+
+
+.stat h2{
+    font-size:28px;
+}
+
+}
