@@ -171,22 +171,14 @@ item.classList.add("active");
 });
 
 
-// =========================================
+// =================================
 // LOGOUT
-// =========================================
+// =================================
 
-document.querySelector(".logoutBtn").onclick = async()=>{
+document.querySelector(".logoutBtn").onclick = async()=> {
     await signOut(auth);
     location.replace("admin-login.html");
 };
-
-await signOut(auth);
-
-location.replace("admin-login.html");
-
-
-
-
 // =========================================
 // AUTH
 // =========================================
