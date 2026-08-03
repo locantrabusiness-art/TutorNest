@@ -1167,11 +1167,11 @@ assignModal.classList.add("show");
 // CLOSE ASSIGN
 // =========================================
 
-closeAssign.onclick=()=>{
-
-assignModal.classList.remove("show");
-
-};
+if(closeAssign){
+    closeAssign.onclick=()=>{
+        assignModal.classList.remove("show");
+    };
+}
 
 
 
