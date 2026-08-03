@@ -187,8 +187,10 @@ if (logoutBtn) {
 onAuthStateChanged(auth, async (user) => {
 
     if (!user) {
+
         location.replace("admin-login.html");
         return;
+
     }
 
     try {
@@ -196,9 +198,11 @@ onAuthStateChanged(auth, async (user) => {
         const snap = await getDoc(doc(db, "admins", user.uid));
 
         if (!snap.exists()) {
+
             await signOut(auth);
             location.replace("admin-login.html");
             return;
+
         }
 
         await initializeDashboard();
@@ -206,7 +210,6 @@ onAuthStateChanged(auth, async (user) => {
     } catch (err) {
 
         console.error(err);
-        alert("Authentication Failed");
         location.replace("admin-login.html");
 
     }

@@ -31,17 +31,19 @@ onAuthStateChanged(auth, async (user) => {
 
         if (snap.exists()) {
 
-            window.location.href="admin-dashboard-v2.html";
+            window.location.replace("admin-dashboard-v2.html");
 
         } else {
 
             await signOut(auth);
+            window.location.replace("admin-login.html");
 
         }
 
     } catch (err) {
 
         console.error(err);
+        window.location.replace("admin-login.html");
 
     }
 
@@ -58,7 +60,6 @@ loginBtn.addEventListener("click", async () => {
     if (!email.value || !password.value) {
 
         error.textContent = "Please fill all fields.";
-
         return;
 
     }
@@ -69,11 +70,9 @@ loginBtn.addEventListener("click", async () => {
     try {
 
         const cred = await signInWithEmailAndPassword(
-
             auth,
             email.value.trim(),
             password.value
-
         );
 
         const snap = await getDoc(doc(db, "admins", cred.user.uid));
@@ -81,24 +80,19 @@ loginBtn.addEventListener("click", async () => {
         if (!snap.exists()) {
 
             await signOut(auth);
-
             error.textContent = "Access Denied.";
-
             loginBtn.disabled = false;
             loginBtn.textContent = "Login";
-
             return;
 
         }
 
-        window.location.href = "admin-dashboard-v2.html";
+        window.location.replace("admin-dashboard-v2.html");
 
     } catch (err) {
 
         console.error(err);
-
         error.textContent = err.message;
-
         loginBtn.disabled = false;
         loginBtn.textContent = "Login";
 
