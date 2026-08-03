@@ -31,7 +31,7 @@ onAuthStateChanged(auth, async (user) => {
 
         if (snap.exists()) {
 
-            window.location.href = "admin.html";
+            window.location.href="admin-dashboard-v2.html";
 
         } else {
 
