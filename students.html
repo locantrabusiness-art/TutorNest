@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>
+Students | TutorNest
+</title>
+
+<link rel="stylesheet" href="css/students.css">
+
+<link
+rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+</head>
+
+
+<body>
+
+
+<div class="sidebar">
+
+<h2>
+TutorNest
+</h2>
+
+<p class="role">
+Tutor Panel
+</p>
+
+
+<a href="tutor-dashboard.html">
+
+<i class="fa fa-home"></i>
+
+Dashboard
+
+</a>
+
+
+<a href="attendance.html">
+
+<i class="fa fa-calendar-check"></i>
+
+Attendance
+
+</a>
+
+
+<a class="active" href="students.html">
+
+<i class="fa fa-user-graduate"></i>
+
+Students
+
+</a>
+
+
+<a href="homework.html">
+
+<i class="fa fa-book"></i>
+
+Homework
+
+</a>
+
+
+<a href="salary.html">
+
+<i class="fa fa-wallet"></i>
+
+Salary
+
+</a>
+
+
+<a href="tutor-profile.html">
+
+<i class="fa fa-user"></i>
+
+Profile
+
+</a>
+
+
+</div>
+
+
+
+
+<div class="main">
+
+
+
+<div class="topbar">
+
+
+<div>
+
+<h1>
+
+My Students
+
+</h1>
+
+
+<p>
+
+Manage your assigned students
+
+</p>
+
+</div>
+
+
+<button id="addStudentBtn">
+
++ Add Student
+
+</button>
+
+
+</div>
+
+
+
+
+
+<div class="cards">
+
+
+<div class="card">
+
+<h2 id="totalStudents">
+
+0
+
+</h2>
+
+<p>
+
+Total Students
+
+</p>
+
+</div>
+
+
+
+<div class="card">
+
+<h2 id="activeStudents">
+
+0
+
+</h2>
+
+<p>
+
+Active Students
+
+</p>
+
+</div>
+
+
+
+<div class="card">
+
+<h2 id="classCount">
+
+0
+
+</h2>
+
+<p>
+
+Classes
+
+</p>
+
+</div>
+
+
+
+<div class="card">
+
+<h2 id="feePending">
+
+0
+
+</h2>
+
+<p>
+
+Fee Pending
+
+</p>
+
+</div>
+
+
+</div>
+
+
+
+
+
+<div class="section">
+
+
+<div class="sectionHeader">
+
+
+<h2>
+
+Student List
+
+</h2>
+
+
+<div>
+
+
+<input
+
+id="studentSearch"
+
+placeholder="Search Student">
+
+
+<select id="classFilter">
+
+
+<option value="">
+
+All Classes
+
+</option>
+
+
+<option>
+
+Class 1
+
+</option>
+
+
+<option>
+
+Class 2
+
+</option>
+
+
+<option>
+
+Class 3
+
+</option>
+
+
+<option>
+
+Class 4
+
+</option>
+
+
+<option>
+
+Class 5
+
+</option>
+
+
+<option>
+
+Class 6
+
+</option>
+
+
+<option>
+
+Class 7
+
+</option>
+
+
+<option>
+
+Class 8
+
+</option>
+
+
+<option>
+
+Class 9
+
+</option>
+
+
+<option>
+
+Class 10
+
+</option>
+
+
+<option>
+
+Class 11
+
+</option>
+
+
+<option>
+
+Class 12
+
+</option>
+
+
+</select>
+
+
+</div>
+
+
+</div>
+<!-- ================= STUDENT TABLE ================= -->
+
+<table class="studentTable">
+
+
+<thead>
+
+<tr>
+
+<th>
+Photo
+</th>
+
+<th>
+Student Name
+</th>
+
+<th>
+Class
+</th>
+
+<th>
+Subject
+</th>
+
+<th>
+Mode
+</th>
+
+<th>
+Fees
+</th>
+
+<th>
+Action
+</th>
+
+</tr>
+
+</thead>
+
+
+<tbody id="studentTableBody">
+
+
+</tbody>
+
+
+</table>
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+<!-- ================= STUDENT PROFILE MODAL ================= -->
+
+
+<div id="studentModal" class="modal">
+
+
+<div class="modalBox">
+
+
+<div class="modalHeader">
+
+
+<h2>
+
+Student Profile
+
+</h2>
+
+
+<button id="closeModal">
+
+✖
+
+</button>
+
+
+</div>
+
+
+
+<div id="studentDetails">
+
+
+Loading...
+
+</div>
+
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+<!-- ================= ADD STUDENT MODAL ================= -->
+
+
+<div id="addModal" class="modal">
+
+
+<div class="modalBox">
+
+
+<div class="modalHeader">
+
+
+<h2>
+
+Add Student
+
+</h2>
+
+
+<button id="closeAddModal">
+
+✖
+
+</button>
+
+
+</div>
+
+
+
+<input
+
+id="studentName"
+
+placeholder="Student Name">
+
+
+<input
+
+id="studentClass"
+
+placeholder="Class">
+
+
+<input
+
+id="studentSubject"
+
+placeholder="Subjects">
+
+
+<input
+
+id="parentName"
+
+placeholder="Parent Name">
+
+
+<input
+
+id="parentPhone"
+
+placeholder="Parent Phone">
+
+
+<input
+
+id="studentFees"
+
+placeholder="Fees">
+
+
+<button id="saveStudent">
+
+Save Student
+
+</button>
+
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+<script type="module" src="js/students.js"></script>
+
+
+</body>
+
+</html>

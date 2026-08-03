@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+<title>
+Documents | TutorNest
+</title>
+
+
+<link rel="stylesheet" href="css/documents.css">
+
+
+<link
+rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+
+</head>
+
+
+<body>
+
+
+<!-- ================= SIDEBAR ================= -->
+
+
+<div class="sidebar">
+
+
+<h2>
+TutorNest
+</h2>
+
+
+<p>
+Tutor Panel
+</p>
+
+
+
+<a href="tutor-dashboard.html">
+
+<i class="fa fa-home"></i>
+
+Dashboard
+
+</a>
+
+
+
+<a href="attendance.html">
+
+<i class="fa fa-calendar-check"></i>
+
+Attendance
+
+</a>
+
+
+
+<a href="students.html">
+
+<i class="fa fa-user-graduate"></i>
+
+Students
+
+</a>
+
+
+
+<a href="homework.html">
+
+<i class="fa fa-book"></i>
+
+Homework
+
+</a>
+
+
+
+<a href="salary.html">
+
+<i class="fa fa-wallet"></i>
+
+Salary
+
+</a>
+
+
+
+<a class="active" href="documents.html">
+
+<i class="fa fa-file"></i>
+
+Documents
+
+</a>
+
+
+
+<a href="tutor-profile.html">
+
+<i class="fa fa-user"></i>
+
+Profile
+
+</a>
+
+
+</div>
+
+
+
+
+
+<!-- ================= MAIN ================= -->
+
+
+<div class="main">
+
+
+
+<div class="topbar">
+
+
+<div>
+
+
+<h1>
+
+My Documents
+
+</h1>
+
+
+<p>
+
+Upload and manage your verification documents
+
+</p>
+
+
+</div>
+
+
+
+<button id="uploadDocumentBtn">
+
++ Upload Document
+
+</button>
+
+
+
+</div>
+
+
+
+
+
+<!-- ================= STATUS CARDS ================= -->
+
+
+<div class="cards">
+
+
+<div class="card">
+
+
+<h2 id="totalDocuments">
+
+0
+
+</h2>
+
+
+<p>
+
+Total Documents
+
+</p>
+
+
+</div>
+
+
+
+
+<div class="card">
+
+
+<h2 id="approvedDocuments">
+
+0
+
+</h2>
+
+
+<p>
+
+Approved
+
+</p>
+
+
+</div>
+
+
+
+
+<div class="card">
+
+
+<h2 id="pendingDocuments">
+
+0
+
+</h2>
+
+
+<p>
+
+Pending
+
+</p>
+
+
+</div>
+
+
+
+
+<div class="card">
+
+
+<h2 id="rejectedDocuments">
+
+0
+
+</h2>
+
+
+<p>
+
+Rejected
+
+</p>
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+<!-- ================= DOCUMENT LIST ================= -->
+
+
+<div class="section">
+
+
+<div class="sectionHeader">
+
+
+<h2>
+
+Uploaded Documents
+
+</h2>
+
+
+
+<div>
+
+
+<select id="documentFilter">
+
+
+<option value="">
+
+All
+
+</option>
+
+
+<option value="Approved">
+
+Approved
+
+</option>
+
+
+<option value="Pending">
+
+Pending
+
+</option>
+
+
+<option value="Rejected">
+
+Rejected
+
+</option>
+
+
+</select>
+
+
+</div>
+
+
+</div>
+<!-- ================= DOCUMENT TABLE ================= -->
+
+
+<table class="documentTable">
+
+
+<thead>
+
+<tr>
+
+
+<th>
+
+Document Name
+
+</th>
+
+
+<th>
+
+Type
+
+</th>
+
+
+<th>
+
+Uploaded Date
+
+</th>
+
+
+<th>
+
+Status
+
+</th>
+
+
+<th>
+
+Action
+
+</th>
+
+
+</tr>
+
+
+</thead>
+
+
+
+<tbody id="documentTableBody">
+
+
+</tbody>
+
+
+
+</table>
+
+
+
+</div>
+
+
+
+
+
+<!-- ================= UPLOAD DOCUMENT MODAL ================= -->
+
+
+<div id="uploadModal" class="modal">
+
+
+<div class="modalBox">
+
+
+<div class="modalHeader">
+
+
+<h2>
+
+Upload Document
+
+</h2>
+
+
+<button id="closeUploadModal">
+
+✖
+
+</button>
+
+
+</div>
+
+
+
+
+<input
+
+id="documentName"
+
+placeholder="Document Name">
+
+
+
+<select id="documentType">
+
+
+<option>
+
+Aadhaar Card
+
+</option>
+
+
+<option>
+
+Qualification Certificate
+
+</option>
+
+
+<option>
+
+Experience Certificate
+
+</option>
+
+
+<option>
+
+ID Proof
+
+</option>
+
+
+<option>
+
+Other
+
+</option>
+
+
+</select>
+
+
+
+
+
+<input
+
+type="file"
+
+id="documentFile">
+
+
+
+
+
+<button id="uploadDocument">
+
+Upload
+
+</button>
+
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+<!-- ================= PREVIEW MODAL ================= -->
+
+
+<div id="previewModal" class="modal">
+
+
+<div class="modalBox">
+
+
+
+<div class="modalHeader">
+
+
+<h2>
+
+Document Preview
+
+</h2>
+
+
+
+<button id="closePreviewModal">
+
+✖
+
+</button>
+
+
+</div>
+
+
+
+
+<div id="documentPreview">
+
+
+Loading...
+
+</div>
+
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+<script type="module" src="js/documents.js"></script>
+
+
+</body>
+
+
+</html>

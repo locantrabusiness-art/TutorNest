@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
@@ -9,112 +10,594 @@
 
 <title>Book Free Demo | TutorNest</title>
 
-<link rel="stylesheet" href="css/style.css">
+<link
+rel="stylesheet"
+href="css/book-demo.css">
 
-<link rel="stylesheet" href="css/book-demo.css">
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+<link
+rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css">
 
 </head>
 
 <body>
 
-<section class="form-section">
+<!-- =========================
+HEADER
+========================= -->
 
-<div class="demo-container">
+<header id="header">
 
-<h1>📚 Book Free Demo</h1>
+<div class="container">
+
+<a
+href="index.html"
+class="logo">
+
+<img
+src="assets/logo/logo.png">
+
+<span>
+
+TutorNest
+
+</span>
+
+</a>
+
+<nav>
+
+<a href="index.html">
+
+Home
+
+</a>
+
+<a href="teacher-search.html">
+
+Find Tutors
+
+</a>
+
+<a href="contact.html">
+
+Contact
+
+</a>
+
+<a
+href="student-login.html"
+class="loginBtn">
+
+Login
+
+</a>
+
+</nav>
+
+</div>
+
+</header>
+
+
+
+<!-- =========================
+HERO
+========================= -->
+
+<section class="hero">
+
+<div class="container">
+
+<h1>
+
+Book Your
+
+<span>
+
+FREE DEMO
+
+</span>
+
+Class
+
+</h1>
 
 <p>
 
-Fill the form below. Our team will contact you shortly and assign the best tutor.
+Fill your requirements.
+
+Our team will contact you within minutes.
 
 </p>
 
-<form id="demoForm" class="demo-form">
+</div>
+
+</section>
+
+
+
+<!-- =========================
+FORM
+========================= -->
+
+<section class="bookingSection">
+
+<div class="container">
+
+<div class="bookingGrid">
+
+<div class="left">
+
+<h2>
+
+Why TutorNest?
+
+</h2>
+
+<div class="feature">
+
+<i class="fa-solid fa-circle-check"></i>
+
+Verified Tutors
+
+</div>
+
+<div class="feature">
+
+<i class="fa-solid fa-circle-check"></i>
+
+Free Demo
+
+</div>
+
+<div class="feature">
+
+<i class="fa-solid fa-circle-check"></i>
+
+Affordable Fees
+
+</div>
+
+<div class="feature">
+
+<i class="fa-solid fa-circle-check"></i>
+
+Offline + Online
+
+</div>
+
+<div class="feature">
+
+<i class="fa-solid fa-circle-check"></i>
+
+Replacement Guarantee
+
+</div>
+
+</div>
+
+
+
+<div class="right">
+
+<form id="bookingForm">
+
+<h2>
+
+Student Details
+
+</h2>
+<label>
+
+Student Name
+
+</label>
 
 <input
 type="text"
 id="studentName"
-placeholder="Student Name"
+placeholder="Enter Full Name"
 required>
+
+
+
+<label>
+
+Mobile Number
+
+</label>
 
 <input
 type="tel"
-id="phone"
-placeholder="Phone Number"
+id="studentPhone"
+maxlength="10"
+placeholder="10 Digit Mobile Number"
 required>
 
-<select id="class" required>
 
-<option value="">Select Class</option>
 
-<option>Nursery</option>
-<option>LKG</option>
-<option>UKG</option>
+<label>
 
-<option>1</option>
-<option>2</option>
-<option>3</option>
-<option>4</option>
-<option>5</option>
-<option>6</option>
-<option>7</option>
-<option>8</option>
-<option>9</option>
-<option>10</option>
-<option>11</option>
-<option>12</option>
+Parent Name
+
+</label>
+
+<input
+type="text"
+id="parentName"
+placeholder="Parent Name">
+
+
+
+<label>
+
+Parent Mobile
+
+</label>
+
+<input
+type="tel"
+id="parentPhone"
+maxlength="10"
+placeholder="Parent Mobile Number">
+
+
+
+<label>
+
+Email
+
+</label>
+
+<input
+type="email"
+id="studentEmail"
+placeholder="Email Address">
+
+
+
+<label>
+
+Gender
+
+</label>
+
+<select id="gender">
+
+<option value="">
+
+Select
+
+</option>
+
+<option>
+
+Male
+
+</option>
+
+<option>
+
+Female
+
+</option>
+
+<option>
+
+Other
+
+</option>
 
 </select>
+
+
+
+<label>
+
+Class
+
+</label>
+
+<select id="studentClass" required>
+
+<option value="">
+
+Select Class
+
+</option>
+
+<option>
+
+Nursery
+
+</option>
+
+<option>
+
+LKG
+
+</option>
+
+<option>
+
+UKG
+
+</option>
+
+<option>
+
+1
+
+</option>
+
+<option>
+
+2
+
+</option>
+
+<option>
+
+3
+
+</option>
+
+<option>
+
+4
+
+</option>
+
+<option>
+
+5
+
+</option>
+
+<option>
+
+6
+
+</option>
+
+<option>
+
+7
+
+</option>
+
+<option>
+
+8
+
+</option>
+
+<option>
+
+9
+
+</option>
+
+<option>
+
+10
+
+</option>
+
+<option>
+
+11
+
+</option>
+
+<option>
+
+12
+
+</option>
+
+<option>
+
+JEE
+
+</option>
+
+<option>
+
+NEET
+
+</option>
+
+<option>
+
+CUET
+
+</option>
+
+<option>
+
+NDA
+
+</option>
+
+</select>
+<label>
+
+Subject
+
+</label>
 
 <input
 type="text"
 id="subject"
-placeholder="Subject"
+placeholder="Maths, Physics, English..."
 required>
+
+
+
+<label>
+
+Mode
+
+</label>
+
+<select id="mode" required>
+
+<option value="">
+
+Select Mode
+
+</option>
+
+<option>
+
+Home Tuition
+
+</option>
+
+<option>
+
+Online
+
+</option>
+
+<option>
+
+Both
+
+</option>
+
+</select>
+
+
+
+<label>
+
+Preferred Tutor
+
+</label>
+
+<select id="preferredGender">
+
+<option value="">
+
+No Preference
+
+</option>
+
+<option>
+
+Male Tutor
+
+</option>
+
+<option>
+
+Female Tutor
+
+</option>
+
+</select>
+
+
+
+<label>
+
+Preferred Time
+
+</label>
+
+<input
+type="time"
+id="preferredTime">
+
+
+
+<label>
+
+City
+
+</label>
+
+<input
+type="text"
+id="city"
+placeholder="City"
+required>
+
+
+
+<label>
+
+Area / Locality
+
+</label>
 
 <input
 type="text"
 id="area"
-placeholder="Area / Locality"
+placeholder="Area / Colony"
 required>
 
-<input
-type="text"
-id="preferredTime"
-placeholder="Preferred Time (Morning / Evening)">
+
+
+<label>
+
+Full Address
+
+</label>
 
 <textarea
-id="message"
-placeholder="Any special requirements (Optional)"></textarea>
+id="address"
+rows="4"
+placeholder="Complete Address"></textarea>
+
+
+
+<label>
+
+Additional Requirement
+
+</label>
+
+<textarea
+id="requirement"
+rows="5"
+placeholder="Anything you want to tell us..."></textarea>
+<div class="formActions">
 
 <button
 type="submit"
-class="demo-btn">
+id="submitBtn">
 
-<i class="fa-solid fa-calendar-check"></i>
+<i class="fa-solid fa-paper-plane"></i>
 
-Book Free Demo
+Book FREE Demo
 
 </button>
 
+<button
+type="reset"
+class="resetBtn">
+
+<i class="fa-solid fa-rotate-right"></i>
+
+Reset Form
+
+</button>
+
+</div>
+
+<div
+id="bookingStatus"
+class="bookingStatus">
+
+</div>
+
 </form>
 
-<div class="demo-note">
-
-<p>✅ Your request will first be verified by TutorNest.</p>
-
-<p>👨‍🏫 We personally match you with the best tutor.</p>
-
-<p>📞 Our team will contact you shortly.</p>
+</div>
 
 </div>
 
@@ -122,7 +605,119 @@ Book Free Demo
 
 </section>
 
-<script type="module" src="js/book-demo.js"></script>
+
+
+<!-- =========================
+HOW IT WORKS
+========================= -->
+
+<section class="stepsSection">
+
+<div class="container">
+
+<h2>
+
+How TutorNest Works
+
+</h2>
+
+<div class="stepsGrid">
+
+<div class="step">
+
+<i class="fa-solid fa-file-circle-check"></i>
+
+<h3>
+
+Submit Requirement
+
+</h3>
+
+<p>
+
+Fill the booking form with your tuition requirements.
+
+</p>
+
+</div>
+
+<div class="step">
+
+<i class="fa-solid fa-phone-volume"></i>
+
+<h3>
+
+Verification Call
+
+</h3>
+
+<p>
+
+Our team contacts you and verifies your requirement.
+
+</p>
+
+</div>
+
+<div class="step">
+
+<i class="fa-solid fa-user-check"></i>
+
+<h3>
+
+Tutor Assigned
+
+</h3>
+
+<p>
+
+Best verified tutor is assigned for your FREE demo.
+
+</p>
+
+</div>
+
+<div class="step">
+
+<i class="fa-solid fa-school"></i>
+
+<h3>
+
+Start Learning
+
+</h3>
+
+<p>
+
+If you like the demo, continue regular classes.
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+
+<footer>
+
+<p>
+
+© 2026 TutorNest. All Rights Reserved.
+
+</p>
+
+</footer>
+
+<script
+type="module"
+src="js/book-demo.js">
+
+</script>
 
 </body>
 

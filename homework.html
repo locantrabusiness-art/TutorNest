@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>
+Homework | TutorNest
+</title>
+
+
+<link rel="stylesheet" href="css/homework.css">
+
+
+<link
+rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+
+</head>
+
+
+<body>
+
+
+<!-- ================= SIDEBAR ================= -->
+
+
+<div class="sidebar">
+
+
+<h2>
+TutorNest
+</h2>
+
+
+<p>
+Tutor Panel
+</p>
+
+
+
+<a href="tutor-dashboard.html">
+
+<i class="fa fa-home"></i>
+
+Dashboard
+
+</a>
+
+
+
+<a href="attendance.html">
+
+<i class="fa fa-calendar-check"></i>
+
+Attendance
+
+</a>
+
+
+
+<a href="students.html">
+
+<i class="fa fa-user-graduate"></i>
+
+Students
+
+</a>
+
+
+
+<a class="active" href="homework.html">
+
+<i class="fa fa-book"></i>
+
+Homework
+
+</a>
+
+
+
+<a href="salary.html">
+
+<i class="fa fa-wallet"></i>
+
+Salary
+
+</a>
+
+
+
+<a href="tutor-profile.html">
+
+<i class="fa fa-user"></i>
+
+Profile
+
+</a>
+
+
+
+</div>
+
+
+
+
+
+<!-- ================= MAIN ================= -->
+
+
+<div class="main">
+
+
+
+<div class="topbar">
+
+
+<div>
+
+
+<h1>
+
+Homework Management
+
+</h1>
+
+
+<p>
+
+Create and manage student homework
+
+</p>
+
+
+</div>
+
+
+
+<button id="addHomeworkBtn">
+
++ Add Homework
+
+</button>
+
+
+
+</div>
+
+
+
+
+
+<!-- ================= CARDS ================= -->
+
+
+<div class="cards">
+
+
+<div class="card">
+
+
+<h2 id="totalHomework">
+
+0
+
+</h2>
+
+
+<p>
+
+Total Homework
+
+</p>
+
+
+</div>
+
+
+
+
+<div class="card">
+
+
+<h2 id="pendingHomework">
+
+0
+
+</h2>
+
+
+<p>
+
+Pending
+
+</p>
+
+
+</div>
+
+
+
+
+<div class="card">
+
+
+<h2 id="completedHomework">
+
+0
+
+</h2>
+
+
+<p>
+
+Completed
+
+</p>
+
+
+</div>
+
+
+
+
+<div class="card">
+
+
+<h2 id="studentHomework">
+
+0
+
+</h2>
+
+
+<p>
+
+Students
+
+</p>
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+<!-- ================= FILTER ================= -->
+
+
+<div class="section">
+
+
+<div class="sectionHeader">
+
+
+<h2>
+
+Homework List
+
+</h2>
+
+
+
+<div>
+
+
+<input
+
+id="homeworkSearch"
+
+placeholder="Search Homework">
+
+
+
+<select id="subjectFilter">
+
+
+<option value="">
+
+All Subjects
+
+</option>
+
+
+<option>
+
+Physics
+
+</option>
+
+
+<option>
+
+Chemistry
+
+</option>
+
+
+<option>
+
+Maths
+
+</option>
+
+
+<option>
+
+Biology
+
+</option>
+
+
+<option>
+
+English
+
+</option>
+
+
+</select>
+
+
+</div>
+
+
+</div>
+<!-- ================= HOMEWORK TABLE ================= -->
+
+
+<table class="homeworkTable">
+
+
+<thead>
+
+<tr>
+
+
+<th>
+
+Title
+
+</th>
+
+
+<th>
+
+Subject
+
+</th>
+
+
+<th>
+
+Class
+
+</th>
+
+
+<th>
+
+Assigned Date
+
+</th>
+
+
+<th>
+
+Due Date
+
+</th>
+
+
+<th>
+
+Status
+
+</th>
+
+
+<th>
+
+Action
+
+</th>
+
+
+</tr>
+
+
+</thead>
+
+
+
+<tbody id="homeworkTableBody">
+
+
+</tbody>
+
+
+</table>
+
+
+</div>
+
+
+
+
+
+<!-- ================= ADD HOMEWORK MODAL ================= -->
+
+
+<div id="homeworkModal" class="modal">
+
+
+<div class="modalBox">
+
+
+<div class="modalHeader">
+
+
+<h2>
+
+Add Homework
+
+</h2>
+
+
+
+<button id="closeHomeworkModal">
+
+✖
+
+</button>
+
+
+</div>
+
+
+
+
+<input
+
+id="homeworkTitle"
+
+placeholder="Homework Title">
+
+
+
+<select id="homeworkSubject">
+
+
+<option>
+
+Physics
+
+</option>
+
+
+<option>
+
+Chemistry
+
+</option>
+
+
+<option>
+
+Biology
+
+</option>
+
+
+<option>
+
+Maths
+
+</option>
+
+
+<option>
+
+English
+
+</option>
+
+
+</select>
+
+
+
+
+<input
+
+id="homeworkClass"
+
+placeholder="Class">
+
+
+
+
+
+<textarea
+
+id="homeworkDescription"
+
+placeholder="Homework Description">
+
+</textarea>
+
+
+
+
+<input
+
+type="date"
+
+id="homeworkDueDate">
+
+
+
+
+
+<button id="saveHomework">
+
+Save Homework
+
+</button>
+
+
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+<!-- ================= DETAILS MODAL ================= -->
+
+
+<div id="viewHomeworkModal" class="modal">
+
+
+<div class="modalBox">
+
+
+
+<div class="modalHeader">
+
+
+<h2>
+
+Homework Details
+
+</h2>
+
+
+<button id="closeViewHomework">
+
+✖
+
+</button>
+
+
+</div>
+
+
+
+<div id="homeworkDetails">
+
+
+Loading...
+
+</div>
+
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+<script type="module" src="js/homework.js"></script>
+
+
+
+</body>
+
+
+</html>

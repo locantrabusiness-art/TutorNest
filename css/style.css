@@ -1219,3 +1219,23 @@ font-weight:600;
 letter-spacing:.5px;
 text-transform:uppercase;
 }
+.logo img{
+
+width:70px;
+
+height:70px;
+
+object-fit:contain;
+
+}
+
+
+.logo span{
+
+font-size:38px;
+
+font-weight:800;
+
+color:#2563eb;
+
+}

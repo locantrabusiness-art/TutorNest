@@ -1,921 +1,102 @@
+<!-- =========================================================
+FILE : index.html
+PART 1 / 40
+START FROM <!DOCTYPE html>
+========================================================= -->
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>TutorNest | Find Trusted Home Tutors</title>
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0">
 
-<link rel="stylesheet" href="css/style.css">
+<meta
+name="description"
+content="TutorNest - India's Premium Home Tuition Platform">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<meta
+name="keywords"
+content="Home Tuition, Tutor, Tuition Teacher, Lucknow, Online Tutor">
 
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+TutorNest • Premium Home Tuition Platform
 
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</title>
+
+<link
+rel="preconnect"
+href="https://fonts.googleapis.com">
+
+<link
+rel="preconnect"
+href="https://fonts.gstatic.com"
+crossorigin>
+
+<link
+href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+rel="stylesheet">
+
+<link
+rel="stylesheet"
+href="css/homepage.css">
+
+<link
+rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css">
 
 </head>
 
 <body>
 
-<!-- ================= NAVBAR ================= -->
 
-<header>
 
-<nav class="navbar">
+<!-- ===========================
+PRELOADER
+============================ -->
 
-<div class="logo">
+<div id="preloader">
 
-<a href="index.html">TutorNest</a>
+<div class="loader">
 
-</div>
-
-<ul class="nav-links">
-
-<li>
-<a href="index.html" class="active">
-Home
-</a>
-</li>
-
-<li>
-<a href="search.html">
-Find Tutors
-</a>
-</li>
-
-<li>
-<a href="tutor-register.html">
-Become a Tutor
-</a>
-</li>
-
-<li>
-<a href="tutor-login.html" id="loginLink">
-Tutor Login
-</a>
-</li>
-
-<li>
-<a href="admin-login.html">
-Admin
-</a>
-</li>
-
-</ul>
-
-<div class="mobile-menu">
-
-<i class="fa-solid fa-bars"></i>
-
-</div>
-
-</nav>
-
-</header>
-
-<!-- ================= HERO ================= -->
-
-<section class="hero">
-
-<div class="hero-content">
-
-<h1>
-
-Find Trusted Home Tutors Near You
-
-</h1>
-
-<p>
-
-Verified tutors for CBSE, ICSE, State Boards, JEE, NEET, CUET and Competitive Exams.
-
-</p>
-
-<div class="search-box">
-
-<select id="subject">
-
-<option value="">Subject</option>
-
-<option>Mathematics</option>
-<option>Physics</option>
-<option>Chemistry</option>
-<option>Biology</option>
-<option>English</option>
-<option>Hindi</option>
-<option>Computer Science</option>
-<option>Economics</option>
-<option>Commerce</option>
-
-</select>
-
-<select id="class">
-
-<option value="">Class</option>
-
-<option>Nursery - UKG</option>
-<option>Class 1</option>
-<option>Class 2</option>
-<option>Class 3</option>
-<option>Class 4</option>
-<option>Class 5</option>
-<option>Class 6</option>
-<option>Class 7</option>
-<option>Class 8</option>
-<option>Class 9</option>
-<option>Class 10</option>
-<option>Class 11</option>
-<option>Class 12</option>
-<option>JEE</option>
-<option>NEET</option>
-<option>CUET</option>
-
-</select>
-
-<select id="area">
-
-<option value="">Area</option>
-
-<option>Gomti Nagar</option>
-<option>Indira Nagar</option>
-<option>Aliganj</option>
-<option>Hazratganj</option>
-<option>Jankipuram</option>
-<option>Rajajipuram</option>
-<option>Ashiyana</option>
-<option>Alambagh</option>
-<option>Chinhat</option>
-<option>Mahanagar</option>
-
-</select>
-
-<button id="homeSearchBtn">
-
-<i class="fa-solid fa-magnifying-glass"></i>
-
-Find Tutor
-
-</button>
-
-</div>
-
-<div class="hero-buttons">
-
-<a href="search.html" class="primary-btn">
-
-Find Tutors
-
-</a>
-
-<a href="tutor-register.html" class="secondary-btn">
-
-Become a Tutor
-
-</a>
-
-<a href="tutor-login.html" class="outline-btn">
-
-Tutor Login
-
-</a>
-
-</div>
-
-</div>
-
-<div class="hero-image">
+<div class="loader-circle"></div>
 
 <img
-src="assets/images/hero.png"
-alt="TutorNest Hero">
-
-</div>
-
-</section>
-<!-- ================= STATS ================= -->
-
-<section class="stats">
-
-<div class="stat-card">
-
-<h2>10,000+</h2>
-
-<p>Verified Tutors</p>
-
-</div>
-
-<div class="stat-card">
-
-<h2>25+</h2>
-
-<p>Subjects</p>
-
-</div>
-
-<div class="stat-card">
-
-<h2>5000+</h2>
-
-<p>Happy Students</p>
-
-</div>
-
-<div class="stat-card">
-
-<h2>100+</h2>
-
-<p>Cities Covered</p>
-
-</div>
-
-</section>
-<!-- ================= FOUNDER ================= -->
-
-<section class="section">
-
-<div class="section-header">
-
-<h2 class="section-title">
-
-👑 Meet Our Founder
-
-</h2>
-
-<p class="section-subtitle">
-
-Meet the founder of TutorNest, dedicated to connecting students with trusted tutors.
-
-</p>
-
-</div>
-
-<div id="founderContainer" class="featured-grid">
-
-<div class="loading">
-
-<i class="fa-solid fa-spinner fa-spin"></i>
-
-<p>Loading Founder...</p>
+src="assets/logo/logo.png"
+alt="TutorNest">
 
 </div>
 
 </div>
 
-</section>
-<!-- ================= FEATURED TUTORS ================= -->
 
-<section class="section">
 
-<div class="section-header">
+<!-- ===========================
+TOP INFO BAR
+============================ -->
 
-<h2 class="section-title">
+<div class="topbar">
 
-Featured Tutors
+<div class="container">
 
-</h2>
+<div class="top-left">
 
-<p class="section-subtitle">
+<i class="fa-solid fa-phone"></i>
 
-Meet our top-rated and verified tutors carefully selected by TutorNest.
+<span>
 
-</p>
++91 95111 19120
 
-</div>
-
-<div
-id="featuredTutorsContainer"
-class="featured-grid">
-
-<div class="loading">
-
-<i class="fa-solid fa-spinner fa-spin"></i>
-
-<p>Loading Featured Tutors...</p>
+</span>
 
 </div>
 
-</div>
-
-<div class="section-btn">
-
-<a href="search.html" class="primary-btn">
-
-View All Tutors
-
-</a>
-
-</div>
-
-</section>
-<!-- ================= POPULAR SUBJECTS ================= -->
-
-<section class="section">
-
-<div class="section-header">
-
-<h2 class="section-title">
-
-Popular Subjects
-
-</h2>
-
-<p class="section-subtitle">
-
-Choose your preferred subject and learn from experienced tutors.
-
-</p>
-
-</div>
-
-<div class="grid">
-
-<div class="card">
-
-<i class="fa-solid fa-square-root-variable"></i>
-
-<h3>Mathematics</h3>
-
-<p>CBSE • ICSE • JEE • Olympiads</p>
-
-</div>
-
-<div class="card">
-
-<i class="fa-solid fa-atom"></i>
-
-<h3>Physics</h3>
-
-<p>School • JEE • NEET</p>
-
-</div>
-
-<div class="card">
-
-<i class="fa-solid fa-flask"></i>
-
-<h3>Chemistry</h3>
-
-<p>Organic • Physical • Inorganic</p>
-
-</div>
-
-<div class="card">
-
-<i class="fa-solid fa-dna"></i>
-
-<h3>Biology</h3>
-
-<p>School • NEET Preparation</p>
-
-</div>
-
-<div class="card">
-
-<i class="fa-solid fa-book-open"></i>
-
-<h3>English</h3>
-
-<p>Grammar • Spoken • Literature</p>
-
-</div>
-
-<div class="card">
-
-<i class="fa-solid fa-laptop-code"></i>
-
-<h3>Computer Science</h3>
-
-<p>Python • Java • AI</p>
-
-</div>
-
-<div class="card">
-
-<i class="fa-solid fa-chart-line"></i>
-
-<h3>Commerce</h3>
-
-<p>Accounts • Business Studies • Economics</p>
-
-</div>
-
-<div class="card">
-
-<i class="fa-solid fa-globe"></i>
-
-<h3>Social Science</h3>
-
-<p>History • Civics • Geography</p>
-
-</div>
-
-</div>
-
-</section>
-
-<!-- ================= BROWSE BY CLASSES ================= -->
-
-<section class="section">
-
-<div class="section-header">
-
-<h2 class="section-title">
-
-Browse by Classes
-
-</h2>
-
-<p class="section-subtitle">
-
-Find tutors according to your class and exam.
-
-</p>
-
-</div>
-
-<div class="grid">
-
-<div class="card">
-
-<h3>Nursery – UKG</h3>
-
-<p>Early Learning</p>
-
-</div>
-
-<div class="card">
-
-<h3>Class 1 – 5</h3>
-
-<p>Foundation Courses</p>
-
-</div>
-
-<div class="card">
-
-<h3>Class 6 – 8</h3>
-
-<p>Middle School</p>
-
-</div>
-
-<div class="card">
-
-<h3>Class 9 – 10</h3>
-
-<p>Board Preparation</p>
-
-</div>
-
-<div class="card">
-
-<h3>Class 11 – 12</h3>
-
-<p>PCM • PCB • Commerce</p>
-
-</div>
-
-<div class="card">
-
-<h3>JEE</h3>
-
-<p>Main & Advanced</p>
-
-</div>
-
-<div class="card">
-
-<h3>NEET</h3>
-
-<p>Medical Entrance</p>
-
-</div>
-
-<div class="card">
-
-<h3>CUET</h3>
-
-<p>UG Entrance Preparation</p>
-
-</div>
-
-</div>
-
-</section>
-
-<!-- ================= WHY CHOOSE TUTORNEST ================= -->
-
-<section class="section why-section">
-
-<div class="section-header">
-
-<h2 class="section-title">
-
-Why Choose TutorNest?
-
-</h2>
-
-<p class="section-subtitle">
-
-Thousands of students trust TutorNest to find the right tutor.
-
-</p>
-
-</div>
-
-<div class="features">
-
-<div class="feature">
-
-<i class="fa-solid fa-user-check"></i>
-
-<h3>Verified Tutors</h3>
-
-<p>Every tutor profile is reviewed and approved by our admin team.</p>
-
-</div>
-
-<div class="feature">
-
-<i class="fa-solid fa-graduation-cap"></i>
-
-<h3>Experienced Faculty</h3>
-
-<p>Choose tutors based on qualifications, experience and subjects.</p>
-
-</div>
-
-<div class="feature">
-
-<i class="fa-solid fa-house"></i>
-
-<h3>Home & Online Tuition</h3>
-
-<p>Select home tuition, online classes or both according to your needs.</p>
-
-</div>
-
-<div class="feature">
-
-<i class="fa-solid fa-location-dot"></i>
-
-<h3>Nearby Tutors</h3>
-
-<p>Find tutors available in your locality and surrounding areas.</p>
-
-</div>
-
-<div class="feature">
-
-<i class="fa-solid fa-wallet"></i>
-
-<h3>Affordable Fees</h3>
-
-<p>Compare monthly fees and choose the tutor that fits your budget.</p>
-
-</div>
-
-<div class="feature">
-
-<i class="fa-solid fa-headset"></i>
-
-<h3>Dedicated Support</h3>
-
-<p>Our support team helps students and tutors throughout the process.</p>
-
-</div>
-
-</div>
-
-</section>
-<!-- ================= HOW TUTORNEST WORKS ================= -->
-
-<section class="section">
-
-<div class="section-header">
-
-<h2 class="section-title">
-
-How TutorNest Works
-
-</h2>
-
-<p class="section-subtitle">
-
-Finding the right tutor is quick and simple.
-
-</p>
-
-</div>
-
-<div class="grid">
-
-<div class="card">
-
-<i class="fa-solid fa-magnifying-glass"></i>
-
-<h3>Search Tutors</h3>
-
-<p>
-
-Search tutors by subject, class, location or teaching mode.
-
-</p>
-
-</div>
-
-<div class="card">
-
-<i class="fa-solid fa-address-card"></i>
-
-<h3>Compare Profiles</h3>
-
-<p>
-
-View tutor qualifications, experience, fees and subjects before choosing.
-
-</p>
-
-</div>
-
-<div class="card">
-
-<i class="fa-solid fa-calendar-check"></i>
-
-<h3>Book Demo</h3>
-
-<p>
-
-Request a demo class and interact with the tutor before enrolling.
-
-</p>
-
-</div>
-
-<div class="card">
-
-<i class="fa-solid fa-graduation-cap"></i>
-
-<h3>Start Learning</h3>
-
-<p>
-
-Begin your learning journey with a trusted TutorNest educator.
-
-</p>
-
-</div>
-
-</div>
-
-</section>
-
-
-
-<!-- ================= TESTIMONIALS ================= -->
-
-<section class="section">
-
-<div class="section-header">
-
-<h2 class="section-title">
-
-What Students Say
-
-</h2>
-
-<p class="section-subtitle">
-
-Trusted by students and parents.
-
-</p>
-
-</div>
-
-<div class="grid">
-
-<div class="card testimonial-card">
-
-<div class="stars">
-
-★★★★★
-
-</div>
-
-<p>
-
-"The tutor was very friendly and explained every concept clearly. My Maths marks improved significantly."
-
-</p>
-
-<h4>
-
-— Priya Sharma
-
-</h4>
-
-</div>
-
-<div class="card testimonial-card">
-
-<div class="stars">
-
-★★★★★
-
-</div>
-
-<p>
-
-"Within one day I found an excellent Physics tutor through TutorNest. The whole process was smooth."
-
-</p>
-
-<h4>
-
-— Aditya Verma
-
-</h4>
-
-</div>
-
-<div class="card testimonial-card">
-
-<div class="stars">
-
-★★★★★
-
-</div>
-
-<p>
-
-"Highly recommended platform for finding experienced home tutors in Lucknow."
-
-</p>
-
-<h4>
-
-— Riya Singh
-
-</h4>
-
-</div>
-
-</div>
-
-</section>
-
-
-
-<!-- ================= FAQ ================= -->
-
-<section class="section">
-
-<div class="section-header">
-
-<h2 class="section-title">
-
-Frequently Asked Questions
-
-</h2>
-
-</div>
-
-<div class="faq-container">
-
-<div class="faq-item">
-
-<h3>
-
-Is TutorNest free for students?
-
-</h3>
-
-<p>
-
-Yes. Students can browse tutor profiles and choose tutors without any registration fee.
-
-</p>
-
-</div>
-
-<div class="faq-item">
-
-<h3>
-
-Are tutors verified?
-
-</h3>
-
-<p>
-
-Every tutor profile is reviewed by the TutorNest admin team before approval.
-
-</p>
-
-</div>
-
-<div class="faq-item">
-
-<h3>
-
-Do tutors provide home tuition?
-
-</h3>
-
-<p>
-
-Many tutors provide home tuition, online classes, or both depending on their profile.
-
-</p>
-
-</div>
-
-<div class="faq-item">
-
-<h3>
-
-Can I compare tutor fees?
-
-</h3>
-
-<p>
-
-Yes. Tutor profiles display fees, qualifications, experience and subjects for easy comparison.
-
-</p>
-
-</div>
-
-</div>
-
-</section>
-
-
-
-<!-- ================= CALL TO ACTION ================= -->
-
-<section class="cta">
-
-<div class="cta-content">
-
-<h2>
-
-Become a Tutor with TutorNest
-
-</h2>
-
-<p>
-
-Create your tutor profile, get verified and start receiving student enquiries.
-
-</p>
-
-<div class="cta-buttons">
-
-<a
-href="tutor-register.html"
-class="primary-btn">
-
-Register as Tutor
-
-</a>
-
-<a
-href="search.html"
-class="outline-btn">
-
-Find Tutors
-
-</a>
-
-</div>
-
-</div>
-
-</section>
-<!-- ================= FOOTER ================= -->
-
-<footer>
-
-<div class="footer-container">
-
-<div class="footer-col">
-
-<h3>TutorNest</h3>
-
-<p>
-
-TutorNest helps students connect with trusted home tutors and online educators across India.
-
-</p>
-
-<div class="social-links">
+<div class="top-right">
 
 <a href="#">
 
@@ -931,7 +112,7 @@ TutorNest helps students connect with trusted home tutors and online educators a
 
 <a href="#">
 
-<i class="fa-brands fa-linkedin-in"></i>
+<i class="fa-brands fa-linkedin"></i>
 
 </a>
 
@@ -945,15 +126,44 @@ TutorNest helps students connect with trusted home tutors and online educators a
 
 </div>
 
-<div class="footer-col">
+</div>
 
-<h3>Quick Links</h3>
+
+
+<!-- ===========================
+HEADER
+============================ -->
+
+<header id="header">
+
+<div class="container navContainer">
+
+<a
+href="index.html"
+class="logo">
+
+<img
+src="assets/logo/logo.png"
+alt="TutorNest">
+
+<span>
+
+TutorNest
+
+</span>
+
+</a>
+
+
+
+<nav id="navbar">
 
 <ul>
 
 <li>
 
-<a href="index.html">
+<a
+href="#home">
 
 Home
 
@@ -963,19 +173,10 @@ Home
 
 <li>
 
-<a href="search.html">
+<a
+href="#tutors">
 
-Find Tutors
-
-</a>
-
-</li>
-
-<li>
-
-<a href="tutor-register.html">
-
-Become a Tutor
+Tutors
 
 </a>
 
@@ -983,9 +184,10 @@ Become a Tutor
 
 <li>
 
-<a href="tutor-login.html">
+<a
+href="#why">
 
-Tutor Login
+Why Us
 
 </a>
 
@@ -993,9 +195,32 @@ Tutor Login
 
 <li>
 
-<a href="admin-login.html">
+<a
+href="#reviews">
 
-Admin Login
+Reviews
+
+</a>
+
+</li>
+
+<li>
+
+<a
+href="#faq">
+
+FAQ
+
+</a>
+
+</li>
+
+<li>
+
+<a
+href="contact.html">
+
+Contact
 
 </a>
 
@@ -1003,19 +228,1364 @@ Admin Login
 
 </ul>
 
+</nav>
+
+
+
+<div class="navButtons">
+
+<a
+href="student-login.html"
+class="loginBtn">
+
+Student Login
+
+</a>
+
+<a
+href="tutor-login.html"
+class="loginBtn">
+
+Tutor Login
+
+</a>
+
+<a
+href="book-demo.html"
+class="demoBtn">
+
+Book Free Demo
+
+</a>
+
 </div>
 
-<div class="footer-col">
 
-<h3>Students</h3>
+
+<button id="menuBtn">
+
+<i class="fa-solid fa-bars"></i>
+
+</button>
+
+</div>
+
+</header>
+
+
+
+<!-- ===========================
+HERO
+============================ -->
+
+<section
+class="hero"
+id="home">
+
+<div class="container heroGrid">
+
+<div class="heroContent">
+
+<span class="badge">
+
+🏆 Trusted by Hundreds of Parents
+
+</span>
+
+<h1>
+
+India's Premium
+
+<span>
+
+Home Tuition
+
+</span>
+
+Platform
+
+</h1>
+
+<p>
+
+Find verified home tutors,
+schedule a free demo class,
+and start learning from the comfort
+of your home.
+
+</p>
+
+<div class="heroButtons">
+
+<a
+href="book-demo.html"
+class="primaryBtn">
+
+Book Free Demo
+
+</a>
+
+<a
+href="#tutors"
+class="secondaryBtn">
+
+Explore Tutors
+
+</a>
+
+</div>
+<!-- =========================================================
+FILE : index.html
+PART 2 / 40
+CONTINUE BELOW HERO BUTTONS
+========================================================= -->
+
+<div class="heroStats">
+
+<div class="stat">
+
+<h2>
+
+500+
+
+</h2>
+
+<p>
+
+Verified Tutors
+
+</p>
+
+</div>
+
+<div class="stat">
+
+<h2>
+
+3000+
+
+</h2>
+
+<p>
+
+Happy Students
+
+</p>
+
+</div>
+
+<div class="stat">
+
+<h2>
+
+98%
+
+</h2>
+
+<p>
+
+Success Rate
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<div class="heroImage">
+
+<div class="heroCard">
+
+<img
+
+src="assets/images/hero-tutor.png"
+
+alt="Tutor">
+
+</div>
+
+<div class="floatingCard one">
+
+<i class="fa-solid fa-user-graduate"></i>
+
+<div>
+
+<h4>
+
+Free Demo
+
+</h4>
+
+<p>
+
+Book in 30 Seconds
+
+</p>
+
+</div>
+
+</div>
+
+<div class="floatingCard two">
+
+<i class="fa-solid fa-star"></i>
+
+<div>
+
+<h4>
+
+4.9 Rating
+
+</h4>
+
+<p>
+
+Parents Love Us
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+
+<!-- ===========================
+SEARCH SECTION
+============================ -->
+
+<section
+class="searchSection">
+
+<div class="container">
+
+<div class="searchBox">
+
+<h2>
+
+Find Your Perfect Tutor
+
+</h2>
+
+<p>
+
+Search tutors by class, subject and location.
+
+</p>
+
+<form
+id="searchForm">
+
+<div class="field">
+
+<select id="classSearch">
+
+<option value="">
+
+Select Class
+
+</option>
+
+<option>
+
+LKG
+
+</option>
+
+<option>
+
+UKG
+
+</option>
+
+<option>
+
+1
+
+</option>
+
+<option>
+
+2
+
+</option>
+
+<option>
+
+3
+
+</option>
+
+<option>
+
+4
+
+</option>
+
+<option>
+
+5
+
+</option>
+
+<option>
+
+6
+
+</option>
+
+<option>
+
+7
+
+</option>
+
+<option>
+
+8
+
+</option>
+
+<option>
+
+9
+
+</option>
+
+<option>
+
+10
+
+</option>
+
+<option>
+
+11
+
+</option>
+
+<option>
+
+12
+
+</option>
+
+</select>
+
+</div>
+
+<div class="field">
+
+<input
+
+type="text"
+
+id="subjectSearch"
+
+placeholder="Subject">
+
+</div>
+
+<div class="field">
+
+<input
+
+type="text"
+
+id="areaSearch"
+
+placeholder="Area">
+
+</div>
+
+<button
+type="submit">
+
+Search Tutor
+
+</button>
+
+</form>
+
+</div>
+
+</div>
+
+</section>
+
+
+
+<!-- ===========================
+FEATURED TUTORS
+============================ -->
+
+<section
+id="tutors"
+class="featuredSection">
+
+<div class="container">
+
+<div class="sectionTitle">
+
+<span>
+
+FEATURED TUTORS
+
+</span>
+
+<h2>
+
+Meet Our Best Tutors
+
+</h2>
+
+<p>
+
+Verified teachers with excellent experience.
+
+</p>
+
+</div>
+
+<div
+id="featuredTutors"
+
+class="tutorGrid">
+
+<!-- JS WILL LOAD -->
+
+</div>
+
+</div>
+
+</section>
+<!-- =========================================================
+FILE : index.html
+PART 3 / 40
+CONTINUE BELOW FEATURED TUTORS SECTION
+========================================================= -->
+
+
+
+<!-- ===========================
+WHY TUTORNEST
+============================ -->
+
+<section
+id="why"
+class="whySection">
+
+<div class="container">
+
+<div class="sectionTitle">
+
+<span>
+
+WHY CHOOSE US
+
+</span>
+
+<h2>
+
+Why Thousands Choose TutorNest
+
+</h2>
+
+<p>
+
+Premium Home Tuition Experience
+
+</p>
+
+</div>
+
+<div class="whyGrid">
+
+<div class="whyCard">
+
+<i class="fa-solid fa-user-check"></i>
+
+<h3>
+
+Verified Tutors
+
+</h3>
+
+<p>
+
+Every tutor is manually verified before approval.
+
+</p>
+
+</div>
+
+<div class="whyCard">
+
+<i class="fa-solid fa-house"></i>
+
+<h3>
+
+Home Tuition
+
+</h3>
+
+<p>
+
+Experienced teachers at your doorstep.
+
+</p>
+
+</div>
+
+<div class="whyCard">
+
+<i class="fa-solid fa-book-open"></i>
+
+<h3>
+
+Personal Learning
+
+</h3>
+
+<p>
+
+Customized study plans for every student.
+
+</p>
+
+</div>
+
+<div class="whyCard">
+
+<i class="fa-solid fa-calendar-check"></i>
+
+<h3>
+
+Free Demo
+
+</h3>
+
+<p>
+
+Book a free demo before selecting your tutor.
+
+</p>
+
+</div>
+
+<div class="whyCard">
+
+<i class="fa-solid fa-headset"></i>
+
+<h3>
+
+Dedicated Support
+
+</h3>
+
+<p>
+
+Quick support whenever you need help.
+
+</p>
+
+</div>
+
+<div class="whyCard">
+
+<i class="fa-solid fa-shield-halved"></i>
+
+<h3>
+
+Safe & Trusted
+
+</h3>
+
+<p>
+
+Secure platform trusted by parents.
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+
+<!-- ===========================
+HOW IT WORKS
+============================ -->
+
+<section class="processSection">
+
+<div class="container">
+
+<div class="sectionTitle">
+
+<span>
+
+PROCESS
+
+</span>
+
+<h2>
+
+How TutorNest Works
+
+</h2>
+
+</div>
+
+<div class="processGrid">
+
+<div class="step">
+
+<div class="stepNo">
+
+1
+
+</div>
+
+<h3>
+
+Book Demo
+
+</h3>
+
+<p>
+
+Fill the enquiry form in less than one minute.
+
+</p>
+
+</div>
+
+<div class="step">
+
+<div class="stepNo">
+
+2
+
+</div>
+
+<h3>
+
+Admin Verification
+
+</h3>
+
+<p>
+
+Our team verifies your requirements.
+
+</p>
+
+</div>
+
+<div class="step">
+
+<div class="stepNo">
+
+3
+
+</div>
+
+<h3>
+
+Tutor Assigned
+
+</h3>
+
+<p>
+
+Best tutor is assigned according to your needs.
+
+</p>
+
+</div>
+
+<div class="step">
+
+<div class="stepNo">
+
+4
+
+</div>
+
+<h3>
+
+Start Learning
+
+</h3>
+
+<p>
+
+Enjoy personalized home tuition.
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+
+<!-- ===========================
+LIVE STATS
+============================ -->
+
+<section class="statsSection">
+
+<div class="container">
+
+<div class="statsGrid">
+
+<div class="statsCard">
+
+<h2 id="studentCounter">
+
+0
+
+</h2>
+
+<p>
+
+Students
+
+</p>
+
+</div>
+
+<div class="statsCard">
+
+<h2 id="teacherCounter">
+
+0
+
+</h2>
+
+<p>
+
+Teachers
+
+</p>
+
+</div>
+
+<div class="statsCard">
+
+<h2 id="demoCounter">
+
+0
+
+</h2>
+
+<p>
+
+Free Demos
+
+</p>
+
+</div>
+
+<div class="statsCard">
+
+<h2>
+
+98%
+
+</h2>
+
+<p>
+
+Parent Satisfaction
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+<!-- =========================================================
+FILE : index.html
+PART 4 / 40
+CONTINUE BELOW LIVE STATS
+========================================================= -->
+
+
+<!-- ===========================
+COURSES
+============================ -->
+
+<section class="courseSection">
+
+<div class="container">
+
+<div class="sectionTitle">
+
+<span>
+
+POPULAR CLASSES
+
+</span>
+
+<h2>
+
+Classes We Cover
+
+</h2>
+
+<p>
+
+From Nursery to Competitive Exams
+
+</p>
+
+</div>
+
+<div class="courseGrid">
+
+<div class="courseCard">
+
+<i class="fa-solid fa-child-reaching"></i>
+
+<h3>
+
+Pre Primary
+
+</h3>
+
+<p>
+
+Nursery • LKG • UKG
+
+</p>
+
+</div>
+
+<div class="courseCard">
+
+<i class="fa-solid fa-school"></i>
+
+<h3>
+
+Primary
+
+</h3>
+
+<p>
+
+Class 1 - 5
+
+</p>
+
+</div>
+
+<div class="courseCard">
+
+<i class="fa-solid fa-book"></i>
+
+<h3>
+
+Middle School
+
+</h3>
+
+<p>
+
+Class 6 - 8
+
+</p>
+
+</div>
+
+<div class="courseCard">
+
+<i class="fa-solid fa-graduation-cap"></i>
+
+<h3>
+
+Secondary
+
+</h3>
+
+<p>
+
+Class 9 - 10
+
+</p>
+
+</div>
+
+<div class="courseCard">
+
+<i class="fa-solid fa-flask"></i>
+
+<h3>
+
+Senior Secondary
+
+</h3>
+
+<p>
+
+Class 11 - 12
+
+</p>
+
+</div>
+
+<div class="courseCard">
+
+<i class="fa-solid fa-brain"></i>
+
+<h3>
+
+Competitive Exams
+
+</h3>
+
+<p>
+
+JEE • NEET • CUET • NDA
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+
+<!-- ===========================
+REVIEWS
+============================ -->
+
+<section
+id="reviews"
+class="reviewSection">
+
+<div class="container">
+
+<div class="sectionTitle">
+
+<span>
+
+TESTIMONIALS
+
+</span>
+
+<h2>
+
+Parents Love TutorNest
+
+</h2>
+
+</div>
+
+<div class="reviewGrid">
+
+<div class="reviewCard">
+
+<div class="stars">
+
+★★★★★
+
+</div>
+
+<p>
+
+Excellent tutor provided within one day.
+Very professional service.
+
+</p>
+
+<h4>
+
+— Parent
+
+</h4>
+
+</div>
+
+<div class="reviewCard">
+
+<div class="stars">
+
+★★★★★
+
+</div>
+
+<p>
+
+My daughter improved her maths marks
+significantly.
+
+</p>
+
+<h4>
+
+— Class 10 Parent
+
+</h4>
+
+</div>
+
+<div class="reviewCard">
+
+<div class="stars">
+
+★★★★★
+
+</div>
+
+<p>
+
+Very smooth demo booking process.
+Highly recommended.
+
+</p>
+
+<h4>
+
+— Lucknow
+
+</h4>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+
+<!-- ===========================
+CALL TO ACTION
+============================ -->
+
+<section class="ctaSection">
+
+<div class="container">
+
+<div class="ctaBox">
+
+<h2>
+
+Book Your Free Demo Today
+
+</h2>
+
+<p>
+
+Get the best tutor matched to your requirements.
+
+</p>
+
+<a
+
+href="book-demo.html"
+
+class="ctaButton">
+
+Book Free Demo
+
+</a>
+
+</div>
+
+</div>
+
+</section>
+<!-- =========================================================
+FILE : index.html
+PART 5 / 40
+CONTINUE BELOW CTA SECTION
+========================================================= -->
+
+
+<!-- ===========================
+FAQ
+============================ -->
+
+<section
+id="faq"
+class="faqSection">
+
+<div class="container">
+
+<div class="sectionTitle">
+
+<span>
+
+FAQ
+
+</span>
+
+<h2>
+
+Frequently Asked Questions
+
+</h2>
+
+<p>
+
+Everything you need to know.
+
+</p>
+
+</div>
+
+<div class="faqWrapper">
+
+<div class="faqItem">
+
+<button class="faqQuestion">
+
+How does TutorNest work?
+
+<i class="fa-solid fa-plus"></i>
+
+</button>
+
+<div class="faqAnswer">
+
+<p>
+
+Submit your requirement,
+our team verifies it,
+assigns the best tutor,
+conducts a free demo,
+and after your approval
+the tutor starts regular classes.
+
+</p>
+
+</div>
+
+</div>
+
+
+
+<div class="faqItem">
+
+<button class="faqQuestion">
+
+Is Demo Class Free?
+
+<i class="fa-solid fa-plus"></i>
+
+</button>
+
+<div class="faqAnswer">
+
+<p>
+
+Yes.
+
+Every student receives one
+completely free demo class
+before confirmation.
+
+</p>
+
+</div>
+
+</div>
+
+
+
+<div class="faqItem">
+
+<button class="faqQuestion">
+
+How are tutors verified?
+
+<i class="fa-solid fa-plus"></i>
+
+</button>
+
+<div class="faqAnswer">
+
+<p>
+
+Every tutor goes through
+profile verification,
+document verification,
+phone verification
+and admin approval.
+
+</p>
+
+</div>
+
+</div>
+
+
+
+<div class="faqItem">
+
+<button class="faqQuestion">
+
+Can I change my tutor later?
+
+<i class="fa-solid fa-plus"></i>
+
+</button>
+
+<div class="faqAnswer">
+
+<p>
+
+Yes.
+
+If you are not satisfied,
+TutorNest can arrange
+another demo tutor.
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+
+<!-- ===========================
+DOWNLOAD APP
+============================ -->
+
+<section class="ctaSection">
+
+<div class="container">
+
+<div class="ctaBox">
+
+<h2>
+Need a Home Tutor?
+</h2>
+
+
+<p>
+Get verified tutors near you with a free demo class.
+</p>
+
+
+
+<div class="ctaButtons">
+
+
+<a 
+href="book-demo.html"
+class="ctaButton">
+
+Book Free Demo
+
+</a>
+
+
+
+<a 
+href="https://wa.me/91951119120"
+class="ctaButton whatsappCta">
+
+<i class="fa-brands fa-whatsapp"></i>
+
+WhatsApp Now
+
+</a>
+
+
+</div>
+
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- ===========================
+FOOTER
+============================ -->
+
+<footer>
+
+<div class="container footerGrid">
+
+<div>
+
+<img
+
+src="assets/logo/logo.png"
+
+class="footerLogo"
+
+alt="TutorNest">
+
+<p>
+
+TutorNest is India's premium
+home tuition platform
+connecting students with
+verified tutors.
+
+</p>
+
+</div>
+
+
+
+<div>
+
+<h3>
+
+Quick Links
+
+</h3>
 
 <ul>
 
 <li>
 
-<a href="search.html">
+<a href="#home">
 
-Browse Tutors
+Home
 
 </a>
 
@@ -1023,7 +1593,17 @@ Browse Tutors
 
 <li>
 
-<a href="#">
+<a href="#tutors">
+
+Tutors
+
+</a>
+
+</li>
+
+<li>
+
+<a href="book-demo.html">
 
 Book Demo
 
@@ -1033,19 +1613,9 @@ Book Demo
 
 <li>
 
-<a href="#">
+<a href="contact.html">
 
-FAQs
-
-</a>
-
-</li>
-
-<li>
-
-<a href="#">
-
-Support
+Contact
 
 </a>
 
@@ -1055,31 +1625,71 @@ Support
 
 </div>
 
-<div class="footer-col">
 
-<h3>Contact</h3>
+
+<div>
+
+<h3>
+
+Services
+
+</h3>
+
+<ul>
+
+<li>
+
+Home Tuition
+
+</li>
+
+<li>
+
+Online Classes
+
+</li>
+
+<li>
+
+Competitive Coaching
+
+</li>
+
+<li>
+
+Exam Preparation
+
+</li>
+
+</ul>
+
+</div>
+
+
+
+<div>
+
+<h3>
+
+Contact
+
+</h3>
 
 <p>
 
-<i class="fa-solid fa-phone"></i>
-
-+91 9511119120
+📍 Lucknow, Uttar Pradesh
 
 </p>
 
 <p>
 
-<i class="fa-solid fa-envelope"></i>
-
-support@tutornest.in
+📞 +91 95111 19120
 
 </p>
 
 <p>
 
-<i class="fa-solid fa-location-dot"></i>
-
-Lucknow, Uttar Pradesh
+✉ support@tutornest.in
 
 </p>
 
@@ -1087,13 +1697,13 @@ Lucknow, Uttar Pradesh
 
 </div>
 
-<div class="footer-bottom">
 
-<p>
 
-© 2026 TutorNest. All Rights Reserved.
+<div class="copyright">
 
-</p>
+© 2026 TutorNest.
+
+All Rights Reserved.
 
 </div>
 
@@ -1101,17 +1711,15 @@ Lucknow, Uttar Pradesh
 
 
 
-<!-- ================= FLOATING BUTTONS ================= -->
+<!-- ===========================
+FLOATING BUTTONS
+============================ -->
 
 <a
 
-href="https://wa.me/919511119120"
+href="https://wa.me/91XXXXXXXXXX"
 
-target="_blank"
-
-class="whatsapp-float"
-
-title="Chat on WhatsApp">
+class="floatingWhatsapp">
 
 <i class="fa-brands fa-whatsapp"></i>
 
@@ -1119,33 +1727,15 @@ title="Chat on WhatsApp">
 
 <a
 
-href="tel:+919511119120"
+href="tel:+91XXXXXXXXXX"
 
-class="call-float"
-
-title="Call Now">
+class="floatingCall">
 
 <i class="fa-solid fa-phone"></i>
 
 </a>
 
 
-
-<button
-
-id="topBtn"
-
-title="Back to Top">
-
-<i class="fa-solid fa-arrow-up"></i>
-
-</button>
-
-
-
-<!-- ================= SCRIPTS ================= -->
-
-<script src="script.js"></script>
 
 <script
 type="module"

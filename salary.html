@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>
+Salary | TutorNest
+</title>
+
+
+<link rel="stylesheet" href="css/salary.css">
+
+
+<link
+rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+
+</head>
+
+
+<body>
+
+
+<!-- ================= SIDEBAR ================= -->
+
+
+<div class="sidebar">
+
+
+<h2>
+TutorNest
+</h2>
+
+
+<p>
+Tutor Panel
+</p>
+
+
+
+<a href="tutor-dashboard.html">
+
+<i class="fa fa-home"></i>
+
+Dashboard
+
+</a>
+
+
+
+<a href="attendance.html">
+
+<i class="fa fa-calendar-check"></i>
+
+Attendance
+
+</a>
+
+
+
+<a href="students.html">
+
+<i class="fa fa-user-graduate"></i>
+
+Students
+
+</a>
+
+
+
+<a href="homework.html">
+
+<i class="fa fa-book"></i>
+
+Homework
+
+</a>
+
+
+
+<a class="active" href="salary.html">
+
+<i class="fa fa-wallet"></i>
+
+Salary
+
+</a>
+
+
+
+<a href="tutor-profile.html">
+
+<i class="fa fa-user"></i>
+
+Profile
+
+</a>
+
+
+</div>
+
+
+
+
+
+<!-- ================= MAIN ================= -->
+
+
+<div class="main">
+
+
+
+<div class="topbar">
+
+
+<div>
+
+
+<h1>
+
+Salary & Payments
+
+</h1>
+
+
+<p>
+
+Track your earnings and payment history
+
+</p>
+
+
+</div>
+
+
+
+<button id="refreshSalary">
+
+Refresh
+
+</button>
+
+
+
+</div>
+
+
+
+
+
+<!-- ================= SUMMARY CARDS ================= -->
+
+
+<div class="cards">
+
+
+<div class="card">
+
+
+<h2 id="totalEarning">
+
+₹0
+
+</h2>
+
+
+<p>
+
+Total Earnings
+
+</p>
+
+
+</div>
+
+
+
+
+<div class="card">
+
+
+<h2 id="pendingAmount">
+
+₹0
+
+</h2>
+
+
+<p>
+
+Pending Payment
+
+</p>
+
+
+</div>
+
+
+
+
+<div class="card">
+
+
+<h2 id="paidAmount">
+
+₹0
+
+</h2>
+
+
+<p>
+
+Paid Amount
+
+</p>
+
+
+</div>
+
+
+
+
+<div class="card">
+
+
+<h2 id="totalPayments">
+
+0
+
+</h2>
+
+
+<p>
+
+Total Payments
+
+</p>
+
+
+</div>
+
+
+
+</div>
+<!-- ================= PAYMENT HISTORY ================= -->
+
+
+<div class="section">
+
+
+<div class="sectionHeader">
+
+
+<h2>
+
+Payment History
+
+</h2>
+
+
+<div>
+
+
+<input
+
+id="paymentSearch"
+
+placeholder="Search Payment">
+
+
+<select id="paymentFilter">
+
+
+<option value="">
+
+All
+
+</option>
+
+
+<option value="Paid">
+
+Paid
+
+</option>
+
+
+<option value="Pending">
+
+Pending
+
+</option>
+
+
+</select>
+
+
+</div>
+
+
+</div>
+
+
+
+
+<table class="salaryTable">
+
+
+<thead>
+
+
+<tr>
+
+
+<th>
+
+Month
+
+</th>
+
+
+<th>
+
+Amount
+
+</th>
+
+
+<th>
+
+Status
+
+</th>
+
+
+<th>
+
+Payment Date
+
+</th>
+
+
+<th>
+
+Action
+
+</th>
+
+
+</tr>
+
+
+</thead>
+
+
+
+<tbody id="salaryTableBody">
+
+
+</tbody>
+
+
+
+</table>
+
+
+
+</div>
+
+
+
+
+
+<!-- ================= SALARY DETAILS MODAL ================= -->
+
+
+<div id="salaryModal" class="modal">
+
+
+<div class="modalBox">
+
+
+<div class="modalHeader">
+
+
+<h2>
+
+Payment Details
+
+</h2>
+
+
+
+<button id="closeSalaryModal">
+
+✖
+
+</button>
+
+
+</div>
+
+
+
+
+<div id="salaryDetails">
+
+
+Loading...
+
+</div>
+
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+<!-- ================= DOWNLOAD ================= -->
+
+
+<div class="section">
+
+
+<h2>
+
+Reports
+
+</h2>
+
+
+<div style="margin-top:20px;">
+
+
+<button id="exportSalary">
+
+Export CSV
+
+</button>
+
+
+
+<button id="printSalary">
+
+Print Report
+
+</button>
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+<script type="module" src="js/salary.js"></script>
+
+
+</body>
+
+</html>
