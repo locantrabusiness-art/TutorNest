@@ -184,51 +184,32 @@ if (logoutBtn) {
 // AUTH
 // =========================================
 
-onAuthStateChanged(auth,async(user)=>{
+onAuthStateChanged(auth, async (user) => {
 
-if(!user){
+    if (!user) {
+        location.replace("admin-login.html");
+        return;
+    }
 
-location.replace("admin-login.html");
+    try {
 
-return;
+        const snap = await getDoc(doc(db, "admins", user.uid));
 
-}
+        if (!snap.exists()) {
+            await signOut(auth);
+            location.replace("admin-login.html");
+            return;
+        }
 
-try{
+        await initializeDashboard();
 
-const snap=await getDoc(doc(db,"users",user.uid));
+    } catch (err) {
 
-if(!snap.exists()){
+        console.error(err);
+        alert("Authentication Failed");
+        location.replace("admin-login.html");
 
-await signOut(auth);
-
-location.replace("admin-login.html");
-
-return;
-
-}
-
-if(snap.data().role!=="admin"){
-
-await signOut(auth);
-
-location.replace("admin-login.html");
-
-return;
-
-}
-
-await initializeDashboard();
-
-}catch(err){
-
-console.error(err);
-
-alert("Authentication Failed");
-
-location.replace("admin-login.html");
-
-}
+    }
 
 });
 
@@ -965,7 +946,7 @@ Delete
 
 });
 
-}
+
 
 
 
@@ -2016,3 +1997,4 @@ console.log(
 "===================================="
 
 );
+}
