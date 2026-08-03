@@ -1333,3 +1333,127 @@ html,body{
 }
 
 }
+/*=========================
+MOBILE OPTIMIZATION
+=========================*/
+
+@media(max-width:480px){
+
+  .section{
+    padding:50px 16px;
+  }
+
+  .section-title{
+    font-size:26px;
+  }
+
+  .section-subtitle{
+    font-size:15px;
+  }
+
+  .hero{
+    padding:40px 16px;
+    gap:30px;
+  }
+
+  .hero-content h1{
+    font-size:28px;
+    line-height:1.35;
+  }
+
+  .hero-content p{
+    font-size:15px;
+    margin-bottom:24px;
+  }
+
+  .search-box{
+    padding:14px;
+    gap:12px;
+  }
+
+  .search-box select,
+  .search-box button{
+    height:48px;
+    font-size:14px;
+  }
+
+  .hero-buttons{
+    gap:12px;
+  }
+
+  .primary-btn,
+  .secondary-btn,
+  .outline-btn{
+    width:100%;
+    padding:12px 20px;
+    font-size:14px;
+  }
+
+  .stats{
+    padding:50px 16px;
+  }
+
+  .stat-card{
+    padding:24px 18px;
+  }
+
+  .stat-card h2{
+    font-size:34px;
+  }
+
+  .card,
+  .feature,
+  .faq-item{
+    padding:22px 18px;
+  }
+
+  .cta{
+    padding:70px 16px;
+  }
+
+  .cta h2{
+    font-size:28px;
+  }
+
+  .cta p{
+    font-size:15px;
+  }
+
+  .cta-buttons{
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  .footer-container{
+    gap:24px;
+  }
+
+  .whatsapp-float,
+  .call-float,
+  #topBtn{
+    width:50px;
+    height:50px;
+    right:14px;
+  }
+
+  .whatsapp-float{
+    bottom:122px;
+  }
+
+  .call-float{
+    bottom:68px;
+  }
+
+  #topBtn{
+    bottom:14px;
+  }
+
+  .logo span{
+    font-size:28px;
+  }
+
+  .logo img{
+    width:42px;
+    height:42px;
+  }
+}
