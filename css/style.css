@@ -1239,3 +1239,97 @@ font-weight:800;
 color:#2563eb;
 
 }
+/* MOBILE FINAL OVERRIDE */
+
+@media(max-width:768px){
+
+html,body{
+    overflow-x:hidden;
+}
+
+.container{
+    width:94%;
+    margin:auto;
+}
+
+
+/* Header */
+.navContainer{
+    height:70px;
+    padding:0 15px;
+}
+
+.logo{
+    font-size:22px;
+}
+
+.logo img{
+    width:42px;
+}
+
+
+/* Mobile menu */
+#navbar{
+    width:280px !important;
+    right:-100%;
+}
+
+#navbar.active{
+    right:0;
+}
+
+
+/* Hero */
+.heroGrid{
+    display:flex !important;
+    flex-direction:column !important;
+    gap:25px;
+}
+
+.heroContent{
+    text-align:center;
+}
+
+.heroContent h1{
+    font-size:32px;
+}
+
+.heroContent p{
+    font-size:15px;
+}
+
+
+.heroImage{
+    order:-1;
+}
+
+
+.heroStats{
+    flex-direction:column;
+    align-items:center;
+}
+
+
+.stat{
+    width:100%;
+    max-width:320px;
+}
+
+
+/* Buttons */
+.heroButtons{
+    flex-direction:column;
+}
+
+.primaryBtn,
+.secondaryBtn{
+    width:100%;
+}
+
+
+/* Cookie popup hide */
+.cookieConsent{
+    display:none !important;
+}
+
+}
