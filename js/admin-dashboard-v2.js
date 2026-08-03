@@ -171,6 +171,7 @@ item.classList.add("active");
 });
 
 
+
 const logoutBtn = document.querySelector(".logoutBtn");
 
 if (logoutBtn) {
@@ -580,7 +581,8 @@ enquiryModal.classList.remove("show");
 // SAVE ENQUIRY
 // =========================================
 
-saveEnquiry.onclick=async()=>{
+if(saveEnquiry)
+    saveEnquiry.onclick = async()=>{
 
 if(studentName.value.trim()===""){
 
