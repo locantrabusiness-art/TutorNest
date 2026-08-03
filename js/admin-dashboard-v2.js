@@ -994,7 +994,9 @@ teacherModal.classList.add("show");
 // SAVE TEACHER
 // =========================================
 
-saveTeacher.onclick=async()=>{
+if(saveTeacher){
+
+saveTeacher.onclick = async()=>{
 
 if(teacherName.value.trim()===""){
 
@@ -1055,6 +1057,7 @@ alert("Unable to Save Teacher");
 }
 
 };
+}
 
 
 
