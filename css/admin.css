@@ -2977,7 +2977,122 @@ background-position:-100%;
 }
 
 }
+/* ===============================
+   MOBILE OPTIMIZATION
+================================ */
 
+@media(max-width:768px){
+
+.dashboard{
+    display:block;
+}
+
+/* Sidebar mobile */
+.sidebar{
+    position:relative;
+    width:100%;
+    height:auto;
+    padding:20px 15px;
+}
+
+.brand{
+    margin-bottom:20px;
+}
+
+.brand h2{
+    font-size:20px;
+}
+
+/* Main content */
+.mainContent{
+    padding:15px;
+}
+
+/* Topbar */
+.topbar{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:15px;
+}
+
+.topLeft h1{
+    font-size:24px;
+}
+
+.topRight{
+    width:100%;
+    justify-content:flex-start;
+}
+
+/* Stats cards */
+.statsGrid{
+    grid-template-columns:1fr;
+    gap:15px;
+}
+
+.statCard{
+    padding:20px;
+}
+
+
+/* Quick actions */
+.quickActions{
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+}
+
+.quickActions button{
+    padding:18px 10px;
+}
+
+
+/* Tables */
+.tableWrapper{
+    overflow-x:auto;
+}
+
+table{
+    min-width:800px;
+}
+
+
+/* Modal */
+.modal{
+    padding:10px;
+}
+
+.modalContent{
+    max-height:90vh;
+    overflow-y:auto;
+}
+
+}
+
+
+/* Small phones */
+@media(max-width:480px){
+
+.quickActions{
+    grid-template-columns:1fr;
+}
+
+
+.sectionCard{
+    padding:18px;
+}
+
+
+.headerActions{
+    width:100%;
+}
+
+.headerActions input,
+.headerActions select,
+.headerActions button{
+    width:100%;
+}
+
+}
 
 
 /* ===========================
