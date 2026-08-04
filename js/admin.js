@@ -3293,16 +3293,7 @@ window.print();
 
 };
 /* ==========================================================
-ADD THIS BUTTON INSIDE renderStudents()
 
-PASTE INSIDE ACTION COLUMN
-========================================================== */
-
-<button
-class="tableBtn purple attendanceBtn"
-data-id="${student.id}">
-<i class="fa-solid fa-calendar-days"></i>
-</button>
 
 /* ==========================================================
 ATTENDANCE ANALYTICS
