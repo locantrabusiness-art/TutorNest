@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Demo Booked Successfully | TutorNest</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"/>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
+
+body{
+
+min-height:100vh;
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+padding:20px;
+
+background:
+linear-gradient(135deg,#2563eb,#1e40af);
+
+overflow:hidden;
+
+}
+
+body::before{
+
+content:"";
+
+position:absolute;
+
+width:550px;
+height:550px;
+
+background:rgba(255,255,255,.08);
+
+border-radius:50%;
+
+top:-220px;
+left:-170px;
+
+}
+
+body::after{
+
+content:"";
+
+position:absolute;
+
+width:420px;
+height:420px;
+
+background:rgba(255,255,255,.08);
+
+bottom:-160px;
+right:-120px;
+
+border-radius:50%;
+
+}
+
+.card{
+
+position:relative;
+
+z-index:5;
+
+width:100%;
+max-width:520px;
+
+background:#fff;
+
+border-radius:28px;
+
+padding:45px 35px;
+
+text-align:center;
+
+box-shadow:0 30px 60px rgba(0,0,0,.18);
+
+animation:card .7s ease;
+
+}
+
+@keyframes card{
+
+from{
+
+opacity:0;
+
+transform:translateY(40px);
+
+}
+
+to{
+
+opacity:1;
+
+transform:translateY(0);
+
+}
+
+}
+
+.success{
+
+width:95px;
+height:95px;
+
+margin:auto;
+
+border-radius:50%;
+
+background:#22c55e;
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+font-size:45px;
+color:#fff;
+
+animation:pop .7s ease;
+
+}
+
+@keyframes pop{
+
+0%{
+
+transform:scale(.2);
+
+}
+
+80%{
+
+transform:scale(1.15);
+
+}
+
+100%{
+
+transform:scale(1);
+
+}
+
+}
+
+h1{
+
+margin-top:25px;
+
+font-size:30px;
+
+font-weight:700;
+
+color:#111827;
+
+}
+
+.subtitle{
+
+margin-top:15px;
+
+font-size:15px;
+
+line-height:1.8;
+
+color:#6b7280;
+
+}
+
+.info{
+
+margin:35px 0;
+
+background:#f8fafc;
+
+border-radius:18px;
+
+padding:22px;
+
+text-align:left;
+
+}
+
+.row{
+
+display:flex;
+justify-content:space-between;
+align-items:center;
+
+padding:13px 0;
+
+border-bottom:1px solid #e5e7eb;
+
+gap:15px;
+
+}
+
+.row:last-child{
+
+border:none;
+
+}
+
+.label{
+
+font-size:14px;
+color:#6b7280;
+
+}
+
+.value{
+
+font-size:15px;
+font-weight:600;
+color:#111827;
+
+text-align:right;
+
+word-break:break-word;
+
+}
+
+.notice{
+
+background:#ecfdf5;
+
+border:1px solid #bbf7d0;
+
+padding:15px;
+
+border-radius:14px;
+
+color:#166534;
+
+font-size:14px;
+
+line-height:1.7;
+
+margin-bottom:25px;
+
+}
+
+.buttons{
+
+display:flex;
+
+gap:15px;
+
+}
+
+.btn{
+
+flex:1;
+
+text-decoration:none;
+
+padding:14px;
+
+border-radius:14px;
+
+font-weight:600;
+
+transition:.25s;
+
+}
+
+.home{
+
+background:#2563eb;
+
+color:#fff;
+
+}
+
+.home:hover{
+
+background:#1d4ed8;
+
+}
+
+.whatsapp{
+
+background:#22c55e;
+
+color:#fff;
+
+}
+
+.whatsapp:hover{
+
+background:#16a34a;
+
+}
+
+.footer{
+
+margin-top:28px;
+
+font-size:13px;
+
+color:#94a3b8;
+
+}
+
+.footer b{
+
+color:#2563eb;
+
+}
+
+@media(max-width:550px){
+
+.card{
+
+padding:35px 22px;
+
+}
+
+h1{
+
+font-size:25px;
+
+}
+
+.buttons{
+
+flex-direction:column;
+
+}
+
+.success{
+
+width:85px;
+height:85px;
+
+font-size:40px;
+
+}
+
+.subtitle{
+
+font-size:14px;
+
+}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+<div class="success">
+
+<i class="fa-solid fa-check"></i>
+
+</div>
+
+<h1>Demo Booked Successfully!</h1>
+
+<p class="subtitle">
+
+Thank you for choosing <b>TutorNest</b> 🎉<br>
+
+Your request has been received successfully.
+
+</p>
+
+<div class="info">
+
+<div class="row">
+
+<span class="label">👨 Student</span>
+
+<span class="value" id="studentName">Student</span>
+
+</div>
+
+<div class="row">
+
+<span class="label">🆔 Demo ID</span>
+
+<span class="value" id="demoId">TN000001</span>
+
+</div>
+
+<div class="row">
+
+<span class="label">📞 Mobile</span>
+
+<span class="value" id="phone">----------</span>
+
+</div>
+
+</div>
+
+<div class="notice">
+
+✅ Our team will contact you within <b>30 minutes</b> to confirm your FREE Demo Class.
+
+</div>
+
+<div class="buttons">
+
+<a href="index.html" class="btn home">
+
+<i class="fa-solid fa-house"></i>
+
+&nbsp;Back Home
+
+</a>
+
+<a id="waBtn" class="btn whatsapp" target="_blank">
+
+<i class="fa-brands fa-whatsapp"></i>
+
+&nbsp;WhatsApp
+
+</a>
+
+</div>
+<div class="timeline">
+
+<h3>What Happens Next?</h3>
+
+<div class="step">
+
+<div class="icon">
+<i class="fa-solid fa-phone"></i>
+</div>
+
+<div>
+
+<h4>Call Confirmation</h4>
+
+<p>Our team will call you shortly to verify your demo booking.</p>
+
+</div>
+
+</div>
+
+
+<div class="step">
+
+<div class="icon">
+<i class="fa-solid fa-user-check"></i>
+</div>
+
+<div>
+
+<h4>Tutor Assignment</h4>
+
+<p>We'll match you with the most suitable tutor based on your requirements.</p>
+
+</div>
+
+</div>
+
+
+<div class="step">
+
+<div class="icon">
+<i class="fa-solid fa-graduation-cap"></i>
+</div>
+
+<div>
+
+<h4>FREE Demo Class</h4>
+
+<p>Attend your free demo class and continue only if you're satisfied.</p>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="footer">
+
+Need Help?
+
+<b>9511119120</b>
+
+<br><br>
+
+© 2026 TutorNest • Learn Better. Grow Faster.
+
+</div>
+
+</div>
+
+<script>
+
+const params=new URLSearchParams(window.location.search);
+
+const student=params.get("student")||"Student";
+
+const phone=params.get("phone")||"----------";
+
+const id=params.get("id")||
+
+"TN"+Date.now().toString().slice(-6);
+
+document.getElementById("studentName").textContent=student;
+
+document.getElementById("phone").textContent=phone;
+
+document.getElementById("demoId").textContent=id;
+
+document.getElementById("waBtn").href=
+
+`https://wa.me/919511119120?text=Hi%20TutorNest,%20My%20Demo%20ID%20is%20${id}`;
+
+</script>
+
+</body>
+</html>
