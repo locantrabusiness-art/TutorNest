@@ -8,6 +8,7 @@ function renderDemoBookings() {
 
     const keyword = demoSearch.value.trim().toLowerCase();
     const status = demoFilter.value;
+    const $ = (id) => document.getElementById(id);
 
     const data = state.demoBookings.filter(item => {
 
@@ -44,6 +45,7 @@ function renderDemoBookings() {
     }
 
     let html = `
+    
 
 <table class="adminTable">
 
