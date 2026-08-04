@@ -213,7 +213,34 @@ function showToast(message, type = "success") {
 //=====================================================
 // Utility
 //=====================================================
+//=====================================================
+// Utility Functions
+//=====================================================
 
+function formatMoney(amount = 0){
+
+    return "₹" + Number(amount)
+        .toLocaleString("en-IN");
+
+}
+
+
+function today(){
+
+    return new Date()
+        .toISOString()
+        .split("T")[0];
+
+}
+
+
+function monthValue(){
+
+    return new Date()
+        .toISOString()
+        .slice(0,7);
+
+}
 function formatDate(date){
 
     if(!date) return "--";
