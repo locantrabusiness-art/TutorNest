@@ -67,7 +67,7 @@ window.addEventListener("load",()=>{
 
 });
 const demoRef = collection(db, "demoBookings");
-const teacherRef = collection(db, "teachers");
+const teacherRef = collection(db,"tutors");
 const studentRef = collection(db, "students");
 const attendanceRef = collection(db, "attendance");
 const feesRef = collection(db, "fees");
