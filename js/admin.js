@@ -25,6 +25,7 @@ import {
     deleteDoc,
     setDoc,
     onSnapshot,
+    limit,
     query,
     where,
     orderBy,
@@ -718,7 +719,7 @@ function populateTutorDropdown() {
     select.innerHTML =
         `<option value="">Choose Tutor</option>`;
 
-    cache.teachers.forEach(teacher => {
+    cache.teachers.forEach(tutor => {
 
         if (teacher.active === false) return;
 
@@ -1308,9 +1309,9 @@ data-id="${teacher.id}">
 
 </button>
 
-<button onclick="toggleFeatured('${tutor.id}',${tutor.featured})">
+<button onclick="toggleFeatured('${teacher.id}',${teacher.featured || false})">
 
-${tutor.featured 
+${teacher.featured 
 ? "Remove Feature"
 : "Feature Tutor"}
 
