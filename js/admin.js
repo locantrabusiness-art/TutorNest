@@ -925,6 +925,10 @@ data-id="${item.id}">
 
 </button>
 
+<button onclick="deleteTutor('${tutor.id}')">
+<i class="fa-solid fa-trash"></i>
+</button>
+
 <button
 class="actionBtn assignDemo"
 data-id="${item.id}">
@@ -1301,6 +1305,14 @@ class="actionBtn teacherView"
 data-id="${teacher.id}">
 
 <i class="fa-solid fa-eye"></i>
+
+</button>
+
+<button onclick="toggleFeatured('${tutor.id}',${tutor.featured})">
+
+${tutor.featured 
+? "Remove Feature"
+: "Feature Tutor"}
 
 </button>
 
@@ -1994,6 +2006,36 @@ $("confirmAssign")?.addEventListener(
     assignTutorToDemo
 
 );
+async function toggleFeatured(id,currentStatus){
+
+    try{
+
+        await updateDoc(
+
+            doc(db,"tutors",id),
+
+            {
+
+                featured:
+                    !currentStatus
+
+            }
+
+        );
+
+        showToast(
+            "Feature Status Updated"
+        );
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+    }
+
+}
 
 async function assignTutorToDemo() {
 
@@ -2176,56 +2218,64 @@ async function convertDemoToStudent() {
     try {
 
         await addDoc(
+    studentRef,
+    {
 
-            studentRef,
+        demoId: selectedDemo.id || "",
 
-            {
+        name:
+            selectedDemo.studentName || "",
 
-                demoId: selectedDemo.id,
+        parentName:
+            selectedDemo.parentName || "",
 
-                name: selectedDemo.studentName,
+        phone:
+            selectedDemo.phone || selectedDemo.mobile || selectedDemo.phoneNumber || "",
 
-                parentName: selectedDemo.parentName,
+        parentPhone:
+            selectedDemo.parentPhone || "",
 
-                phone: selectedDemo.phone,
+        class:
+            selectedDemo.class || "",
 
-                parentPhone: selectedDemo.parentPhone,
+        subject:
+            selectedDemo.subject || "",
 
-                class: selectedDemo.class,
+        area:
+            selectedDemo.area || "",
 
-                subject: selectedDemo.subject,
+        city:
+            selectedDemo.city || "",
 
-                area: selectedDemo.area,
+        teacherId:
+            selectedDemo.teacherId || "",
 
-                city: selectedDemo.city,
+        teacherName:
+            selectedDemo.teacherName || "",
 
-                teacherId: teacher?.id || "",
+        monthlyFees:
+            Number(
+                $("monthlyFees").value || 0
+            ),
 
-                teacherName: teacher?.name || "",
+        commissionPercent:
+            Number(
+                $("commissionPercent").value || 10
+            ),
 
-                monthlyFees: Number(
-                    $("monthlyFees").value
-                ),
+        admissionDate:
+            $("admissionDate").value || today(),
 
-                commissionPercent: Number(
-                    $("commissionPercent").value
-                ),
+        duration:
+            $("courseDuration").value || "",
 
-                admissionDate:
-                    $("admissionDate").value,
+        active:true,
 
-                duration:
-                    $("courseDuration").value,
+        createdAt:
+            serverTimestamp()
 
-                active: true,
-
-                createdAt:
-                    serverTimestamp()
-
-            }
-
-        );
-
+    }
+);
         await updateDoc(
 
             doc(
@@ -4014,6 +4064,34 @@ async function uploadProfileImage(
         imageRef
 
     );
+
+}
+async function deleteTutor(id){
+
+    if(!confirm("Remove this tutor?")) return;
+
+    try{
+
+        await deleteDoc(
+            doc(db,"tutors",id)
+        );
+
+        showToast(
+            "Tutor Removed Successfully"
+        );
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+        showToast(
+            "Delete Failed",
+            "error"
+        );
+
+    }
 
 }
 
