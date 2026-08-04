@@ -214,50 +214,37 @@ function showToast(message, type = "success") {
 // Utility
 //=====================================================
 
-function formatDate(date) {
+function formatDate(date){
 
-    if (!date) return "--";
+    if(!date) return "--";
 
-    if (date instanceof Timestamp)
-        date = date.toDate();
+    try{
 
-    return new Intl.DateTimeFormat("en-IN", {
+        if(date?.toDate){
+            date = date.toDate();
+        }
 
-        day: "2-digit",
-        month: "short",
-        year: "numeric"
+        const d = new Date(date);
 
-    }).format(date);
+        if(isNaN(d.getTime()))
+            return "--";
 
-}
+        return new Intl.DateTimeFormat("en-IN",{
 
-function formatMoney(amount = 0) {
+            day:"2-digit",
+            month:"short",
+            year:"numeric"
 
-    return "₹" + Number(amount).toLocaleString("en-IN");
+        }).format(d);
 
-}
+    }
+    catch(e){
 
-function uid(length = 10) {
+        return "--";
 
-    return Math.random()
-        .toString(36)
-        .substring(2, 2 + length);
-
-}
-
-function today() {
-
-    return new Date().toISOString().split("T")[0];
+    }
 
 }
-
-function monthValue() {
-
-    return new Date().toISOString().slice(0, 7);
-
-}
-
-
 
 //=====================================================
 // Theme
@@ -721,22 +708,21 @@ function populateTutorDropdown() {
 
     cache.teachers.forEach(tutor => {
 
-        if (teacher.active === false) return;
+    if (tutor.active === false) return;
 
-        const option =
-            document.createElement("option");
+    const option =
+        document.createElement("option");
 
-        option.value = teacher.id;
+    option.value = tutor.id;
 
-        option.textContent =
-            teacher.name +
-            " • " +
-            teacher.subject;
+    option.textContent =
+        tutor.name +
+        " • " +
+        (tutor.subject || "Tutor");
 
-        select.appendChild(option);
+    select.appendChild(option);
 
-    });
-
+});
 }
 
 
@@ -926,7 +912,7 @@ data-id="${item.id}">
 
 </button>
 
-<button onclick="deleteTutor('${tutor.id}')">
+<button class="actionBtn deleteDemo" data-id="${item.id}">
 <i class="fa-solid fa-trash"></i>
 </button>
 
