@@ -1,59 +1,869 @@
-const $ = (id) => document.getElementById(id);
-/* =====================================================
-                RENDER DEMO BOOKINGS
-===================================================== */
+//=====================================================
+// TutorNest Admin Dashboard
+// admin.js
+// Part 1
+//=====================================================
 
-function renderDemoBookings() {
+import {
+    auth,
+    db,
+    storage
+} from "./firebase.js";
 
-    if (!demoBookingsTable) return;
+import {
+    onAuthStateChanged,
+    signOut
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
-    const keyword = demoSearch.value.trim().toLowerCase();
-    const status = demoFilter.value;
+import {
+    collection,
+    doc,
+    addDoc,
+    getDoc,
+    getDocs,
+    updateDoc,
+    deleteDoc,
+    setDoc,
+    onSnapshot,
+    query,
+    where,
+    orderBy,
+    serverTimestamp,
+    Timestamp,
+    writeBatch
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-    const data = state.demoBookings.filter(item => {
+import {
+    ref,
+    uploadBytes,
+    getDownloadURL,
+    deleteObject
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
 
-        const search =
-            (item.studentName || "").toLowerCase().includes(keyword) ||
-            (item.phone || "").includes(keyword) ||
-            (item.parentName || "").toLowerCase().includes(keyword) ||
-            (item.subject || "").toLowerCase().includes(keyword) ||
-            (item.area || "").toLowerCase().includes(keyword);
 
-        const filter =
-            status === "All" ||
-            status === "" ||
-            (item.status || "Pending") === status;
 
-        return search && filter;
+//=====================================================
+// Collections
+//=====================================================
+const pageLoader = document.getElementById("pageLoader");
+
+function hidePageLoader(){
+
+    if(pageLoader){
+
+        pageLoader.style.display = "none";
+
+    }
+
+}
+
+window.addEventListener("load",()=>{
+
+    setTimeout(()=>{
+
+        hidePageLoader();
+
+    },1000);
+
+});
+const demoRef = collection(db, "demoBookings");
+const teacherRef = collection(db, "teachers");
+const studentRef = collection(db, "students");
+const attendanceRef = collection(db, "attendance");
+const feesRef = collection(db, "fees");
+const settingsRef = collection(db, "settings");
+const commissionRef = collection(db, "commission");
+
+
+
+//=====================================================
+// DOM
+//=====================================================
+
+const $ = id => document.getElementById(id);
+
+const loader = $("pageLoader");
+const toastMessage = $("toastMessage");
+const toastContainer = $("toastContainer");
+
+const demoTable = $("demoBookingsTable");
+const studentsTable = $("studentsTable");
+const teachersTable = $("teachersTable");
+const attendanceTable = $("attendanceTable");
+const feesTable = $("feesTable");
+const commissionTable = $("commissionTable");
+
+const demoCount = $("demoCount");
+const studentCount = $("studentCount");
+const teacherCount = $("teacherCount");
+const revenueCount = $("revenueCount");
+
+const demoSearch = $("demoSearch");
+const demoFilter = $("demoFilter");
+
+const studentSearch = $("studentSearch");
+const teacherSearch = $("teacherSearch");
+
+const notificationBtn = $("notificationBtn");
+const themeBtn = $("themeBtn");
+
+const assignTutorModal = $("assignTutorModal");
+const studentModal = $("studentModal");
+const convertStudentModal = $("convertStudentModal");
+const deleteModal = $("deleteModal");
+
+
+
+//=====================================================
+// State
+//=====================================================
+
+let demoBookings = [];
+let students = [];
+let teachers = [];
+let attendance = [];
+let fees = [];
+let commissions = [];
+
+let selectedDemo = null;
+let selectedStudent = null;
+let selectedTeacher = null;
+let deleteTarget = null;
+
+let darkMode = false;
+
+
+
+//=====================================================
+// Loader
+//=====================================================
+
+function showLoader() {
+
+    if (!loader) return;
+
+    loader.style.display = "flex";
+
+}
+
+function hideLoader() {
+
+    if (!loader) return;
+
+    loader.style.display = "none";
+
+}
+
+
+
+//=====================================================
+// Toast
+//=====================================================
+
+let toastTimer;
+
+function showToast(message, type = "success") {
+
+    if (!toastContainer) return;
+
+    clearTimeout(toastTimer);
+
+    toastContainer.style.display = "block";
+
+    const toast = toastContainer.querySelector(".toast");
+
+    toast.className = "toast";
+
+    toast.classList.add(type);
+
+    const icon = toast.querySelector("i");
+
+    switch (type) {
+
+        case "success":
+            icon.className = "fa-solid fa-circle-check";
+            break;
+
+        case "error":
+            icon.className = "fa-solid fa-circle-xmark";
+            break;
+
+        case "warning":
+            icon.className = "fa-solid fa-triangle-exclamation";
+            break;
+
+        default:
+            icon.className = "fa-solid fa-circle-info";
+
+    }
+
+    toastMessage.textContent = message;
+
+    toastTimer = setTimeout(() => {
+
+        toastContainer.style.display = "none";
+
+    }, 3500);
+
+}
+
+
+
+//=====================================================
+// Utility
+//=====================================================
+
+function formatDate(date) {
+
+    if (!date) return "--";
+
+    if (date instanceof Timestamp)
+        date = date.toDate();
+
+    return new Intl.DateTimeFormat("en-IN", {
+
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+
+    }).format(date);
+
+}
+
+function formatMoney(amount = 0) {
+
+    return "₹" + Number(amount).toLocaleString("en-IN");
+
+}
+
+function uid(length = 10) {
+
+    return Math.random()
+        .toString(36)
+        .substring(2, 2 + length);
+
+}
+
+function today() {
+
+    return new Date().toISOString().split("T")[0];
+
+}
+
+function monthValue() {
+
+    return new Date().toISOString().slice(0, 7);
+
+}
+
+
+
+//=====================================================
+// Theme
+//=====================================================
+
+function loadTheme() {
+
+    const saved = localStorage.getItem("admin-theme");
+
+    if (saved === "dark") {
+
+        enableDark();
+
+    }
+
+}
+
+function enableDark() {
+
+    document.body.classList.add("dark");
+
+    darkMode = true;
+
+    localStorage.setItem("admin-theme", "dark");
+
+    if (themeBtn)
+        themeBtn.innerHTML =
+        '<i class="fa-solid fa-sun"></i>';
+
+}
+
+function disableDark() {
+
+    document.body.classList.remove("dark");
+
+    darkMode = false;
+
+    localStorage.setItem("admin-theme", "light");
+
+    if (themeBtn)
+        themeBtn.innerHTML =
+        '<i class="fa-solid fa-moon"></i>';
+
+}
+
+themeBtn?.addEventListener("click", () => {
+
+    darkMode ? disableDark() : enableDark();
+
+});
+
+
+
+//=====================================================
+// Auth
+//=====================================================
+
+onAuthStateChanged(auth, async user => {
+
+    try {
+
+        if (!user) {
+
+            window.location.href = "../login.html";
+
+            return;
+
+        }
+
+        console.log(
+            "Admin Logged In:",
+            user.email
+        );
+
+        await initializeDashboard();
+
+        hideLoader();
+
+    }
+
+    catch(error){
+
+        console.error(
+            "Dashboard Load Error:",
+            error
+        );
+
+        hideLoader();
+
+        showToast(
+            "Dashboard loading failed",
+            "error"
+        );
+
+    }
+
+});
+
+async function logout() {
+
+    await signOut(auth);
+
+    location.href = "../login.html";
+
+}
+
+document.querySelector(".logoutBtn")?.addEventListener("click", e => {
+
+    e.preventDefault();
+
+    logout();
+
+});
+
+
+
+//=====================================================
+// Initializer
+//=====================================================
+
+async function initializeDashboard() {
+
+    showLoader();
+
+    try {
+
+        loadTheme();
+
+        startRealtimeListeners();
+
+        bindEvents();
+
+        renderAnalytics();
+
+        updateDashboardStats();
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+    }
+
+    finally{
+
+        hideLoader();
+
+    }
+
+}
+//============================================================
+// FIRESTORE REALTIME ENGINE
+//============================================================
+
+const cache = {
+    demos: [],
+    students: [],
+    teachers: [],
+    attendance: [],
+    fees: [],
+    commissions: [],
+    settings: {}
+};
+
+const unsubscribe = {};
+
+let dashboardReady = false;
+
+function startRealtimeListeners() {
+
+    unsubscribe.demo = onSnapshot(
+
+        query(
+            demoRef,
+            orderBy("createdAt", "desc")
+        ),
+
+        snapshot => {
+
+            cache.demos = snapshot.docs.map(doc => ({
+
+                id: doc.id,
+                ...doc.data()
+
+            }));
+
+            renderDemoTable();
+
+            updateDashboardStats();
+
+        }
+
+    );
+
+
+
+    unsubscribe.students = onSnapshot(
+
+        query(
+            studentRef,
+            orderBy("createdAt", "desc")
+        ),
+
+        snapshot => {
+
+            cache.students = snapshot.docs.map(doc => ({
+
+                id: doc.id,
+                ...doc.data()
+
+            }));
+
+            renderStudentsTable();
+
+            updateDashboardStats();
+
+        }
+
+    );
+
+
+
+    unsubscribe.teachers = onSnapshot(
+
+        query(
+            teacherRef,
+            orderBy("createdAt", "desc")
+        ),
+
+        snapshot => {
+
+            cache.teachers = snapshot.docs.map(doc => ({
+
+                id: doc.id,
+                ...doc.data()
+
+            }));
+
+            renderTeachersTable();
+
+            updateDashboardStats();
+
+            populateTutorDropdown();
+
+        }
+
+    );
+
+
+
+    unsubscribe.attendance = onSnapshot(
+
+        attendanceRef,
+
+        snapshot => {
+
+            cache.attendance = snapshot.docs.map(doc => ({
+
+                id: doc.id,
+                ...doc.data()
+
+            }));
+
+            renderAttendanceTable();
+
+        }
+
+    );
+
+
+
+    unsubscribe.fees = onSnapshot(
+
+        feesRef,
+
+        snapshot => {
+
+            cache.fees = snapshot.docs.map(doc => ({
+
+                id: doc.id,
+                ...doc.data()
+
+            }));
+
+            renderFeesTable();
+
+            updateDashboardStats();
+
+        }
+
+    );
+
+
+
+    unsubscribe.commission = onSnapshot(
+
+        commissionRef,
+
+        snapshot => {
+
+            cache.commissions = snapshot.docs.map(doc => ({
+
+                id: doc.id,
+                ...doc.data()
+
+            }));
+
+            renderCommissionTable();
+
+        }
+
+    );
+
+
+
+    unsubscribe.settings = onSnapshot(
+
+        doc(db, "settings", "company"),
+
+        snap => {
+
+            if (!snap.exists()) return;
+
+            cache.settings = snap.data();
+
+            fillCompanySettings();
+
+        }
+
+    );
+
+}
+
+
+
+//============================================================
+// DASHBOARD STATS
+//============================================================
+
+function updateDashboardStats() {
+
+    demoCount.textContent =
+        cache.demos.filter(x =>
+            x.status === "Pending"
+        ).length;
+
+    studentCount.textContent =
+        cache.students.filter(x =>
+            x.active !== false
+        ).length;
+
+    teacherCount.textContent =
+        cache.teachers.filter(x =>
+            x.active !== false
+        ).length;
+
+    const revenue = cache.fees.reduce(
+
+        (sum, fee) => {
+
+            if (fee.status === "Paid")
+                return sum + Number(fee.amount || 0);
+
+            return sum;
+
+        },
+
+        0
+
+    );
+
+    revenueCount.textContent = formatMoney(revenue);
+
+}
+
+
+
+//============================================================
+// SETTINGS
+//============================================================
+
+function fillCompanySettings() {
+
+    if ($("companyName"))
+        $("companyName").value =
+        cache.settings.companyName || "";
+
+    if ($("founderName"))
+        $("founderName").value =
+        cache.settings.founderName || "";
+
+    if ($("companyPhone"))
+        $("companyPhone").value =
+        cache.settings.phone || "";
+
+    if ($("companyWhatsapp"))
+        $("companyWhatsapp").value =
+        cache.settings.whatsapp || "";
+
+    if ($("companyEmail"))
+        $("companyEmail").value =
+        cache.settings.email || "";
+
+    if ($("companyLocation"))
+        $("companyLocation").value =
+        cache.settings.location || "";
+
+    if ($("companyTagline"))
+        $("companyTagline").value =
+        cache.settings.tagline || "";
+
+}
+
+async function saveCompanySettings() {
+
+    await setDoc(
+
+        doc(db, "settings", "company"),
+
+        {
+
+            companyName: $("companyName").value.trim(),
+
+            founderName: $("founderName").value.trim(),
+
+            phone: $("companyPhone").value.trim(),
+
+            whatsapp: $("companyWhatsapp").value.trim(),
+
+            email: $("companyEmail").value.trim(),
+
+            location: $("companyLocation").value.trim(),
+
+            tagline: $("companyTagline").value.trim(),
+
+            updatedAt: serverTimestamp()
+
+        }
+
+    );
+
+    showToast("Settings Saved");
+
+}
+
+
+
+//============================================================
+// TUTOR DROPDOWN
+//============================================================
+
+function populateTutorDropdown() {
+
+    const select = $("assignTutor");
+
+    if (!select) return;
+
+    select.innerHTML =
+        `<option value="">Choose Tutor</option>`;
+
+    cache.teachers.forEach(teacher => {
+
+        if (teacher.active === false) return;
+
+        const option =
+            document.createElement("option");
+
+        option.value = teacher.id;
+
+        option.textContent =
+            teacher.name +
+            " • " +
+            teacher.subject;
+
+        select.appendChild(option);
 
     });
 
-    if (!data.length) {
+}
 
-        demoBookingsTable.innerHTML = `
-        <table>
-            <tr>
-                <td style="padding:40px;text-align:center;">
-                    No Demo Bookings Found
-                </td>
-            </tr>
-        </table>
-        `;
+
+
+//============================================================
+// SEARCH
+//============================================================
+
+demoSearch?.addEventListener(
+
+    "input",
+
+    renderDemoTable
+
+);
+
+demoFilter?.addEventListener(
+
+    "change",
+
+    renderDemoTable
+
+);
+
+studentSearch?.addEventListener(
+
+    "input",
+
+    renderStudentsTable
+
+);
+
+teacherSearch?.addEventListener(
+
+    "input",
+
+    renderTeachersTable
+
+);
+
+$("saveSettings")?.addEventListener(
+
+    "click",
+
+    saveCompanySettings
+
+);
+//============================================================
+// DEMO BOOKINGS TABLE
+//============================================================
+
+function renderDemoTable() {
+
+    if (!demoTable) return;
+
+    const keyword = demoSearch.value.trim().toLowerCase();
+
+    const filter = demoFilter.value;
+
+    let records = [...cache.demos];
+
+    if (keyword) {
+
+        records = records.filter(item => {
+
+            return (
+
+                (item.studentName || "")
+                .toLowerCase()
+                .includes(keyword)
+
+                ||
+
+                (item.parentName || "")
+                .toLowerCase()
+                .includes(keyword)
+
+                ||
+
+                (item.phone || "")
+                .toLowerCase()
+                .includes(keyword)
+
+                ||
+
+                (item.city || "")
+                .toLowerCase()
+                .includes(keyword)
+
+            );
+
+        });
+
+    }
+
+    if (filter !== "All") {
+
+        records = records.filter(
+
+            item => item.status === filter
+
+        );
+
+    }
+
+    if (!records.length) {
+
+        demoTable.innerHTML = emptyTable(
+
+            "No Demo Booking Found"
+
+        );
 
         return;
 
     }
 
     let html = `
-    
 
-<table class="adminTable">
+<table>
 
 <thead>
 
 <tr>
 
 <th>Student</th>
+
+<th>Parent</th>
 
 <th>Phone</th>
 
@@ -65,11 +875,7 @@ function renderDemoBookings() {
 
 <th>Status</th>
 
-<th>Tutor</th>
-
-<th>Demo</th>
-
-<th>Actions</th>
+<th>Action</th>
 
 </tr>
 
@@ -79,35 +885,29 @@ function renderDemoBookings() {
 
 `;
 
-    data.forEach(item => {
+    records.forEach(item => {
 
         html += `
 
 <tr>
 
-<td>
+<td>${item.studentName || "--"}</td>
 
-<b>${item.studentName || "-"}</b>
+<td>${item.parentName || "--"}</td>
 
-<br>
+<td>${item.phone || "--"}</td>
 
-<small>${item.parentName || ""}</small>
+<td>${item.class || "--"}</td>
 
-</td>
+<td>${item.subject || "--"}</td>
 
-<td>${item.phone || "-"}</td>
-
-<td>${item.class || "-"}</td>
-
-<td>${item.subject || "-"}</td>
-
-<td>${item.area || "-"}</td>
+<td>${item.area || "--"}</td>
 
 <td>
 
-<span class="${statusBadge(item.status)}">
+<span class="status ${String(item.status).toLowerCase()}">
 
-${item.status || "Pending"}
+${item.status}
 
 </span>
 
@@ -115,53 +915,41 @@ ${item.status || "Pending"}
 
 <td>
 
-${item.assignedTeacher || "-"}
-
-</td>
-
-<td>
-
-${item.demoDate || "-"}
-
-<br>
-
-<small>${item.demoTime || ""}</small>
-
-</td>
-
-<td>
+<div class="actionButtons">
 
 <button
-class="tableBtn blue"
-onclick="viewBooking('${item.id}')">
+class="actionBtn viewDemo"
+data-id="${item.id}">
 
 <i class="fa-solid fa-eye"></i>
 
 </button>
 
 <button
-class="tableBtn green"
-onclick="openAssignModal('${item.id}')">
+class="actionBtn assignDemo"
+data-id="${item.id}">
 
 <i class="fa-solid fa-user-check"></i>
 
 </button>
 
 <button
-class="tableBtn orange"
-onclick="convertToPermanent('${item.id}')">
+class="actionBtn convertDemo"
+data-id="${item.id}">
 
 <i class="fa-solid fa-user-graduate"></i>
 
 </button>
 
 <button
-class="tableBtn red"
-onclick="openDeleteModal('demoBookings','${item.id}')">
+class="actionBtn deleteDemo"
+data-id="${item.id}">
 
 <i class="fa-solid fa-trash"></i>
 
 </button>
+
+</div>
 
 </td>
 
@@ -179,447 +967,66 @@ onclick="openDeleteModal('demoBookings','${item.id}')">
 
 `;
 
-    demoBookingsTable.innerHTML = html;
+    demoTable.innerHTML = html;
 
 }
 
-/* =====================================================
-                STATUS BADGE
-===================================================== */
 
-function statusBadge(status) {
 
-    switch (status) {
+//============================================================
+// STUDENTS TABLE
+//============================================================
 
-        case "Pending":
-            return "badge pending";
-
-        case "Assigned":
-            return "badge assigned";
-
-        case "Completed":
-            return "badge completed";
-
-        case "Cancelled":
-            return "badge cancelled";
-
-        case "Admitted":
-            return "badge admitted";
-
-        default:
-            return "badge pending";
-
-    }
-
-}
-
-/* =====================================================
-                VIEW BOOKING
-===================================================== */
-
-window.viewBooking = function (id) {
-
-    const booking = state.demoBookings.find(
-        x => x.id === id
-    );
-
-    if (!booking) return;
-
-    $("studentNameView").textContent =
-        booking.studentName || "--";
-
-    $("studentClassView").textContent =
-        booking.class || "--";
-
-    $("studentStatusView").textContent =
-        booking.status || "Pending";
-
-    $("studentPhoneView").textContent =
-        booking.phone || "--";
-
-    $("parentNameView").textContent =
-        booking.parentName || "--";
-
-    $("parentPhoneView").textContent =
-        booking.parentPhone || "--";
-
-    $("studentSubjectView").textContent =
-        booking.subject || "--";
-
-    $("studentAreaView").textContent =
-        booking.area || "--";
-
-    $("studentCityView").textContent =
-        booking.city || "--";
-
-    studentModal.classList.add("show");
-
-};
-
-/* =====================================================
-                ASSIGN MODAL
-===================================================== */
-
-window.openAssignModal = function (id) {
-
-    state.selectedBooking = id;
-
-    const booking = state.demoBookings.find(
-        x => x.id === id
-    );
-
-    if (!booking) return;
-
-    assignStudent.value =
-        booking.studentName;
-
-    assignTutor.innerHTML =
-        `<option value="">Choose Tutor</option>`;
-
-    state.teachers
-
-        .filter(t => t.available !== false)
-
-        .forEach(t => {
-
-            assignTutor.innerHTML += `
-
-<option value="${t.id}">
-
-${t.name}
-
-</option>
-
-`;
-
-        });
-
-    demoDate.value = "";
-
-    demoTime.value = "";
-
-    assignNotes.value = "";
-
-    assignTutorModal.classList.add("show");
-
-};
-
-/* =====================================================
-                SAVE ASSIGNMENT
-===================================================== */
-
-async function saveAssignment() {
-
-    if (!state.selectedBooking) return;
-
-    if (assignTutor.value === "") {
-
-        showToast(
-            "Select Tutor",
-            "error"
-        );
-
-        return;
-
-    }
-
-    const teacher = state.teachers.find(
-        x => x.id === assignTutor.value
-    );
-
-    if (!teacher) return;
-
-    try {
-
-        await updateDoc(
-
-            doc(
-                db,
-                "demoBookings",
-                state.selectedBooking
-            ),
-
-            {
-
-                teacherId: teacher.id,
-
-                assignedTeacher: teacher.name,
-
-                teacherPhone: teacher.phone,
-
-                demoDate: demoDate.value,
-
-                demoTime: demoTime.value,
-
-                notes: assignNotes.value,
-
-                status: "Assigned",
-
-                assignedAt: serverTimestamp()
-
-            }
-
-        );
-
-        assignTutorModal.classList.remove("show");
-
-        state.selectedBooking = null;
-
-        await loadDemoBookings();
-
-        updateDashboard();
-
-        showToast(
-            "Tutor Assigned Successfully"
-        );
-
-    }
-
-    catch (err) {
-
-        console.error(err);
-
-        showToast(
-            "Assignment Failed",
-            "error"
-        );
-
-    }
-
-}
-/* =====================================================
-                CONVERT TO PERMANENT
-===================================================== */
-
-window.convertToPermanent = function (id) {
-
-    state.selectedStudent = id;
-
-    $("monthlyFees").value = "";
-
-    $("admissionDate").value =
-        new Date().toISOString().split("T")[0];
-
-    $("courseDuration").selectedIndex = 0;
-
-    $("commissionPercent").value = 10;
-
-    convertStudentModal.classList.add("show");
-
-};
-
-async function convertStudent() {
-
-    if (!state.selectedStudent) return;
-
-    const booking = state.demoBookings.find(
-        x => x.id === state.selectedStudent
-    );
-
-    if (!booking) return;
-
-    const fees = Number($("monthlyFees").value);
-
-    if (!fees) {
-
-        showToast(
-            "Enter Monthly Fees",
-            "error"
-        );
-
-        return;
-
-    }
-
-    try {
-
-        await addDoc(
-
-            collection(db, "students"),
-
-            {
-
-                bookingId: booking.id,
-
-                studentName: booking.studentName,
-
-                phone: booking.phone,
-
-                parentName: booking.parentName,
-
-                parentPhone: booking.parentPhone,
-
-                class: booking.class,
-
-                subject: booking.subject,
-
-                area: booking.area,
-
-                city: booking.city,
-
-                teacherId: booking.teacherId,
-
-                teacherName: booking.assignedTeacher,
-
-                monthlyFees: fees,
-
-                courseDuration: $("courseDuration").value,
-
-                commission:
-
-                Number(
-
-                    $("commissionPercent").value
-
-                ),
-
-                admissionDate:
-
-                Timestamp.fromDate(
-
-                    new Date(
-
-                        $("admissionDate").value
-
-                    )
-
-                ),
-
-                joinedAt: serverTimestamp(),
-
-                status: "Active"
-
-            }
-
-        );
-
-        await updateDoc(
-
-            doc(
-
-                db,
-
-                "demoBookings",
-
-                booking.id
-
-            ),
-
-            {
-
-                status: "Admitted",
-
-                admittedAt: serverTimestamp()
-
-            }
-
-        );
-
-        convertStudentModal.classList.remove("show");
-
-        await loadStudents();
-
-        await loadDemoBookings();
-
-        updateDashboard();
-
-        showToast(
-
-            "Student Converted Successfully"
-
-        );
-
-    }
-
-    catch (err) {
-
-        console.error(err);
-
-        showToast(
-
-            "Conversion Failed",
-
-            "error"
-
-        );
-
-    }
-
-}
-
-/* =====================================================
-                RENDER STUDENTS
-===================================================== */
-
-function renderStudents() {
+function renderStudentsTable() {
 
     if (!studentsTable) return;
 
-    const keyword =
-
-        studentSearch.value
-
+    const keyword = studentSearch.value
         .trim()
-
         .toLowerCase();
 
-    const data =
+    let records = cache.students;
 
-        state.students.filter(student => {
+    if (keyword) {
+
+        records = records.filter(student => {
 
             return (
 
-                (student.studentName || "")
-
+                (student.name || "")
                 .toLowerCase()
+                .includes(keyword)
 
+                ||
+
+                (student.parentName || "")
+                .toLowerCase()
                 .includes(keyword)
 
                 ||
 
                 (student.phone || "")
-
                 .includes(keyword)
 
                 ||
 
                 (student.teacherName || "")
-
                 .toLowerCase()
-
-                .includes(keyword)
-
-                ||
-
-                (student.subject || "")
-
-                .toLowerCase()
-
                 .includes(keyword)
 
             );
 
         });
 
-    if (!data.length) {
+    }
 
-        studentsTable.innerHTML = `
+    if (!records.length) {
 
-<table>
+        studentsTable.innerHTML = emptyTable(
 
-<tr>
+            "No Student Found"
 
-<td style="padding:40px;text-align:center;">
-
-No Students Found
-
-</td>
-
-</tr>
-
-</table>
-
-`;
+        );
 
         return;
 
@@ -627,25 +1034,25 @@ No Students Found
 
     let html = `
 
-<table class="adminTable">
+<table>
 
 <thead>
 
 <tr>
 
-<th>Name</th>
-
-<th>Phone</th>
-
-<th>Class</th>
+<th>Student</th>
 
 <th>Teacher</th>
 
+<th>Class</th>
+
 <th>Fees</th>
+
+<th>Admission</th>
 
 <th>Status</th>
 
-<th>Actions</th>
+<th>Action</th>
 
 </tr>
 
@@ -655,59 +1062,27 @@ No Students Found
 
 `;
 
-    data.forEach(student => {
+    records.forEach(student => {
 
         html += `
 
 <tr>
 
-<td>
+<td>${student.name}</td>
 
-<b>
+<td>${student.teacherName || "--"}</td>
 
-${student.studentName}
+<td>${student.class}</td>
 
-</b>
+<td>${formatMoney(student.monthlyFees)}</td>
 
-<br>
-
-<small>
-
-${student.parentName || ""}
-
-</small>
-
-</td>
+<td>${formatDate(student.admissionDate)}</td>
 
 <td>
 
-${student.phone || "-"}
+<span class="status active">
 
-</td>
-
-<td>
-
-${student.class || "-"}
-
-</td>
-
-<td>
-
-${student.teacherName || "-"}
-
-</td>
-
-<td>
-
-₹${student.monthlyFees || 0}
-
-</td>
-
-<td>
-
-<span class="badge admitted">
-
-${student.status || "Active"}
+Active
 
 </span>
 
@@ -715,35 +1090,41 @@ ${student.status || "Active"}
 
 <td>
 
+<div class="actionButtons">
+
 <button
-
-class="tableBtn blue"
-
-onclick="viewPermanentStudent('${student.id}')">
+class="actionBtn studentView"
+data-id="${student.id}">
 
 <i class="fa-solid fa-eye"></i>
 
 </button>
 
 <button
+class="actionBtn attendanceHistory"
+data-id="${student.id}">
 
-class="tableBtn green"
-
-onclick="collectStudentFee('${student.id}')">
-
-<i class="fa-solid fa-indian-rupee-sign"></i>
+<i class="fa-solid fa-calendar-days"></i>
 
 </button>
 
 <button
+class="actionBtn collectFee"
+data-id="${student.id}">
 
-class="tableBtn red"
+<i class="fa-solid fa-money-bill-wave"></i>
 
-onclick="openDeleteModal('students','${student.id}')">
+</button>
+
+<button
+class="actionBtn deleteStudent"
+data-id="${student.id}">
 
 <i class="fa-solid fa-trash"></i>
 
 </button>
+
+</div>
 
 </td>
 
@@ -765,158 +1146,85 @@ onclick="openDeleteModal('students','${student.id}')">
 
 }
 
-/* =====================================================
-                VIEW PERMANENT STUDENT
-===================================================== */
 
-window.viewPermanentStudent = function(id){
 
-    const student = state.students.find(
+//============================================================
+// EMPTY STATE
+//============================================================
 
-        x => x.id === id
+function emptyTable(title) {
 
-    );
+    return `
 
-    if(!student) return;
+<div class="emptyState">
 
-    $("studentNameView").textContent =
-    student.studentName || "--";
+<i class="fa-solid fa-box-open"></i>
 
-    $("studentClassView").textContent =
-    student.class || "--";
+<h3>${title}</h3>
 
-    $("studentStatusView").textContent =
-    student.status || "--";
+<p>
 
-    $("studentPhoneView").textContent =
-    student.phone || "--";
+There is no available data at this moment.
 
-    $("parentNameView").textContent =
-    student.parentName || "--";
+</p>
 
-    $("parentPhoneView").textContent =
-    student.parentPhone || "--";
-
-    $("studentSubjectView").textContent =
-    student.subject || "--";
-
-    $("studentAreaView").textContent =
-    student.area || "--";
-
-    $("studentCityView").textContent =
-    student.city || "--";
-
-    studentModal.classList.add("show");
-
-};
-/* =====================================================
-                COLLECT STUDENT FEE
-===================================================== */
-
-window.collectStudentFee = async function (id) {
-
-    const student = state.students.find(
-        x => x.id === id
-    );
-
-    if (!student) return;
-
-    const amount = prompt(
-        "Enter Fee Amount",
-        student.monthlyFees || 0
-    );
-
-    if (amount === null) return;
-
-    const month = prompt(
-        "Enter Month (Example: August 2026)"
-    );
-
-    if (month === null) return;
-
-    const mode = prompt(
-        "Payment Mode (Cash / UPI / Bank)"
-    );
-
-    if (mode === null) return;
-
-    try {
-
-        await addDoc(
-
-            collection(db, "fees"),
-
-            {
-
-                studentId: student.id,
-
-                studentName: student.studentName,
-
-                teacherId: student.teacherId,
-
-                teacherName: student.teacherName,
-
-                amount: Number(amount),
-
-                month,
-
-                paymentMode: mode,
-
-                status: "Paid",
-
-                createdAt: serverTimestamp()
-
-            }
-
-        );
-
-        await loadFees();
-
-        updateDashboard();
-
-        renderFees();
-
-        showToast("Fee Collected");
-
-    }
-
-    catch (err) {
-
-        console.error(err);
-
-        showToast("Fee Collection Failed", "error");
-
-    }
-
-};
-
-/* =====================================================
-                LOAD FEES TABLE
-===================================================== */
-
-function renderFees() {
-
-    if (!feesTable) return;
-
-    if (!state.fees.length) {
-
-        feesTable.innerHTML = `
-
-<table>
-
-<tr>
-
-<td style="padding:40px;text-align:center">
-
-No Fee Records
-
-</td>
-
-</tr>
-
-</table>
+</div>
 
 `;
+
+}
+//============================================================
+// TEACHERS TABLE
+//============================================================
+
+function renderTeachersTable() {
+
+    if (!teachersTable) return;
+
+    const keyword = teacherSearch.value
+        .trim()
+        .toLowerCase();
+
+    let records = [...cache.teachers];
+
+    if (keyword) {
+
+        records = records.filter(teacher => {
+
+            return (
+
+                (teacher.name || "")
+                .toLowerCase()
+                .includes(keyword)
+
+                ||
+
+                (teacher.phone || "")
+                .includes(keyword)
+
+                ||
+
+                (teacher.subject || "")
+                .toLowerCase()
+                .includes(keyword)
+
+                ||
+
+                (teacher.city || "")
+                .toLowerCase()
+                .includes(keyword)
+
+            );
+
+        });
+
+    }
+
+    if (!records.length) {
+
+        teachersTable.innerHTML = emptyTable(
+            "No Teacher Found"
+        );
 
         return;
 
@@ -924,21 +1232,21 @@ No Fee Records
 
     let html = `
 
-<table class="adminTable">
+<table>
 
 <thead>
 
 <tr>
 
-<th>Student</th>
-
 <th>Teacher</th>
 
-<th>Month</th>
+<th>Phone</th>
 
-<th>Amount</th>
+<th>Subject</th>
 
-<th>Mode</th>
+<th>Students</th>
+
+<th>Commission</th>
 
 <th>Status</th>
 
@@ -952,47 +1260,295 @@ No Fee Records
 
 `;
 
-    state.fees.forEach(fee => {
+    records.forEach(teacher => {
+
+        const totalStudents = cache.students.filter(
+
+            student => student.teacherId === teacher.id
+
+        ).length;
 
         html += `
 
 <tr>
 
+<td>${teacher.name}</td>
+
+<td>${teacher.phone || "--"}</td>
+
+<td>${teacher.subject || "--"}</td>
+
+<td>${totalStudents}</td>
+
+<td>${teacher.commission || 10}%</td>
+
 <td>
 
-${fee.studentName || "-"}
+<span class="status active">
+
+${teacher.active === false ? "Inactive" : "Active"}
+
+</span>
 
 </td>
 
 <td>
 
-${fee.teacherName || "-"}
+<div class="actionButtons">
+
+<button
+class="actionBtn teacherView"
+data-id="${teacher.id}">
+
+<i class="fa-solid fa-eye"></i>
+
+</button>
+
+<button
+class="actionBtn teacherEdit"
+data-id="${teacher.id}">
+
+<i class="fa-solid fa-pen"></i>
+
+</button>
+
+<button
+class="actionBtn teacherDelete"
+data-id="${teacher.id}">
+
+<i class="fa-solid fa-trash"></i>
+
+</button>
+
+</div>
 
 </td>
 
+</tr>
+
+`;
+
+    });
+
+    html += `
+
+</tbody>
+
+</table>
+
+`;
+
+    teachersTable.innerHTML = html;
+
+}
+
+
+
+//============================================================
+// ATTENDANCE TABLE
+//============================================================
+
+function renderAttendanceTable() {
+
+    if (!attendanceTable) return;
+
+    if (!cache.students.length) {
+
+        attendanceTable.innerHTML = emptyTable(
+            "No Student Available"
+        );
+
+        return;
+
+    }
+
+    const selectedDate =
+        $("attendanceDate").value || today();
+
+    let html = `
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Student</th>
+
+<th>Teacher</th>
+
+<th>Class</th>
+
+<th>Status</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+`;
+
+    cache.students.forEach(student => {
+
+        const record = cache.attendance.find(item => {
+
+            return (
+
+                item.studentId === student.id
+
+                &&
+
+                item.date === selectedDate
+
+            );
+
+        });
+
+        html += `
+
+<tr>
+
+<td>${student.name}</td>
+
+<td>${student.teacherName || "--"}</td>
+
+<td>${student.class}</td>
+
 <td>
 
-${fee.month || "-"}
+<select
+class="attendanceSelect"
+data-id="${student.id}">
+
+<option
+value="Present"
+${record?.status === "Present" ? "selected" : ""}>
+
+Present
+
+</option>
+
+<option
+value="Absent"
+${record?.status === "Absent" ? "selected" : ""}>
+
+Absent
+
+</option>
+
+<option
+value="Leave"
+${record?.status === "Leave" ? "selected" : ""}>
+
+Leave
+
+</option>
+
+</select>
 
 </td>
 
+</tr>
+
+`;
+
+    });
+
+    html += `
+
+</tbody>
+
+</table>
+
+`;
+
+    attendanceTable.innerHTML = html;
+
+}
+
+
+
+//============================================================
+// FEES TABLE
+//============================================================
+
+function renderFeesTable() {
+
+    if (!feesTable) return;
+
+    if (!cache.students.length) {
+
+        feesTable.innerHTML =
+            emptyTable("No Student Found");
+
+        return;
+
+    }
+
+    const month = $("feesMonth").value;
+
+    let html = `
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Student</th>
+
+<th>Teacher</th>
+
+<th>Fees</th>
+
+<th>Month</th>
+
+<th>Status</th>
+
+<th>Action</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+`;
+
+    cache.students.forEach(student => {
+
+        const fee = cache.fees.find(item => {
+
+            return (
+
+                item.studentId === student.id
+
+                &&
+
+                item.month === month
+
+            );
+
+        });
+
+        html += `
+
+<tr>
+
+<td>${student.name}</td>
+
+<td>${student.teacherName || "--"}</td>
+
+<td>${formatMoney(student.monthlyFees)}</td>
+
+<td>${month}</td>
+
 <td>
 
-₹${Number(fee.amount || 0).toLocaleString()}
+<span class="status ${fee?.status === "Paid" ? "completed" : "pending"}">
 
-</td>
-
-<td>
-
-${fee.paymentMode || "-"}
-
-</td>
-
-<td>
-
-<span class="badge admitted">
-
-${fee.status}
+${fee?.status || "Pending"}
 
 </span>
 
@@ -1001,12 +1557,10 @@ ${fee.status}
 <td>
 
 <button
+class="actionBtn collectFeeBtn"
+data-id="${student.id}">
 
-class="tableBtn red"
-
-onclick="openDeleteModal('fees','${fee.id}')">
-
-<i class="fa-solid fa-trash"></i>
+<i class="fa-solid fa-money-bill-wave"></i>
 
 </button>
 
@@ -1029,786 +1583,29 @@ onclick="openDeleteModal('fees','${fee.id}')">
     feesTable.innerHTML = html;
 
 }
+//============================================================
+// COMMISSION TABLE
+//============================================================
 
-/* =====================================================
-                DELETE MODAL
-===================================================== */
+function renderCommissionTable() {
 
-window.openDeleteModal = function (
+    if (!commissionTable) return;
 
-    collectionName,
+    if (!cache.teachers.length) {
 
-    id
-
-) {
-
-    state.deleteCollection = collectionName;
-
-    state.deleteId = id;
-
-    deleteModal.classList.add("show");
-
-};
-
-async function deleteRecord() {
-
-    if (!state.deleteId) return;
-
-    try {
-
-        await deleteDoc(
-
-            doc(
-
-                db,
-
-                state.deleteCollection,
-
-                state.deleteId
-
-            )
-
+        commissionTable.innerHTML = emptyTable(
+            "No Teacher Found"
         );
-
-        deleteModal.classList.remove("show");
-
-        switch (state.deleteCollection) {
-
-            case "demoBookings":
-
-                await loadDemoBookings();
-
-                break;
-
-            case "students":
-
-                await loadStudents();
-
-                break;
-
-            case "teachers":
-
-                await loadTeachers();
-
-                break;
-
-            case "fees":
-
-                await loadFees();
-
-                renderFees();
-
-                break;
-
-        }
-
-        updateDashboard();
-
-        showToast("Deleted Successfully");
-
-    }
-
-    catch (err) {
-
-        console.error(err);
-
-        showToast("Delete Failed", "error");
-
-    }
-
-}
-
-/* =====================================================
-                CLOSE MODALS
-===================================================== */
-
-document
-
-.querySelectorAll(".closeModal")
-
-.forEach(btn => {
-
-    btn.onclick = () => {
-
-        btn.closest(".modal")
-
-        .classList
-
-        .remove("show");
-
-    };
-
-});
-
-window.onclick = e => {
-
-    [
-
-        assignTutorModal,
-
-        studentModal,
-
-        convertStudentModal,
-
-        deleteModal
-
-    ]
-
-    .forEach(modal => {
-
-        if (e.target === modal) {
-
-            modal.classList.remove("show");
-
-        }
-
-    });
-
-};
-
-document.addEventListener(
-
-    "keydown",
-
-    e => {
-
-        if (e.key === "Escape") {
-
-            [
-
-                assignTutorModal,
-
-                studentModal,
-
-                convertStudentModal,
-
-                deleteModal
-
-            ]
-
-            .forEach(modal => {
-
-                modal.classList.remove("show");
-
-            });
-
-        }
-
-    }
-
-);
-
-/* =====================================================
-                AUTO REFRESH
-===================================================== */
-
-setInterval(async () => {
-
-    await loadDemoBookings();
-
-    await loadStudents();
-
-    await loadTeachers();
-
-    await loadFees();
-
-    updateDashboard();
-
-}, 60000);
-/* =====================================================
-                THEME TOGGLE
-===================================================== */
-
-function toggleTheme() {
-
-    document.body.classList.toggle("dark");
-
-    const isDark =
-        document.body.classList.contains("dark");
-
-    localStorage.setItem(
-        "tn_theme",
-        isDark ? "dark" : "light"
-    );
-
-    themeBtn.innerHTML = isDark
-        ? `<i class="fa-solid fa-sun"></i>`
-        : `<i class="fa-solid fa-moon"></i>`;
-
-}
-
-(function () {
-
-    const theme =
-        localStorage.getItem("tn_theme");
-
-    if (theme === "dark") {
-
-        document.body.classList.add("dark");
-
-        themeBtn.innerHTML =
-            `<i class="fa-solid fa-sun"></i>`;
-
-    }
-
-})();
-
-/* =====================================================
-                NOTIFICATIONS
-===================================================== */
-
-async function openNotifications() {
-
-    const snap = await getDocs(
-
-        query(
-
-            collection(db, "notifications"),
-
-            orderBy("createdAt", "desc"),
-
-            limit(10)
-
-        )
-
-    );
-
-    let html = "";
-
-    snap.forEach(docSnap => {
-
-        const n = docSnap.data();
-
-        html += `
-
-<div class="notificationItem">
-
-<h4>
-
-${n.title || "Notification"}
-
-</h4>
-
-<p>
-
-${n.message || ""}
-
-</p>
-
-<small>
-
-${formatDate(n.createdAt)}
-
-</small>
-
-</div>
-
-`;
-
-    });
-
-    if (html === "") {
-
-        html = `
-
-<div
-style="padding:20px;text-align:center;">
-
-No Notifications
-
-</div>
-
-`;
-
-    }
-
-    analyticsCharts.innerHTML = html;
-
-}
-
-/* =====================================================
-                ATTENDANCE
-===================================================== */
-
-function renderAttendance() {
-
-    if (!attendanceTable) return;
-
-    if (!state.students.length) {
-
-        attendanceTable.innerHTML = `
-
-<table>
-
-<tr>
-
-<td style="padding:40px;text-align:center;">
-
-No Students
-
-</td>
-
-</tr>
-
-</table>
-
-`;
 
         return;
 
     }
 
-    let html = `
-
-<table class="adminTable">
-
-<thead>
-
-<tr>
-
-<th>Student</th>
-
-<th>Teacher</th>
-
-<th>Status</th>
-
-<th>Action</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-`;
-
-    state.students.forEach(student => {
-
-        const today =
-            new Date()
-
-            .toISOString()
-
-            .split("T")[0];
-
-        const attendance =
-
-            state.attendance.find(a =>
-
-                a.studentId === student.id &&
-
-                a.date === today
-
-            );
-
-        html += `
-
-<tr>
-
-<td>
-
-${student.studentName}
-
-</td>
-
-<td>
-
-${student.teacherName}
-
-</td>
-
-<td>
-
-${attendance
-    ? attendance.status
-    : "Not Marked"}
-
-</td>
-
-<td>
-
-<button
-
-class="tableBtn green"
-
-onclick="markAttendance('${student.id}')">
-
-Present
-
-</button>
-
-<button
-
-class="tableBtn red"
-
-onclick="markAbsent('${student.id}')">
-
-Absent
-
-</button>
-
-</td>
-
-</tr>
-
-`;
-
-    });
-
-    html += `
-
-</tbody>
-
-</table>
-
-`;
-
-    attendanceTable.innerHTML = html;
-
-}
-
-/* =====================================================
-                MARK PRESENT
-===================================================== */
-
-window.markAttendance = async function (id) {
-
-    const student = state.students.find(
-
-        x => x.id === id
-
-    );
-
-    if (!student) return;
-
-    await addDoc(
-
-        collection(db, "attendance"),
-
-        {
-
-            studentId: student.id,
-
-            studentName: student.studentName,
-
-            teacherId: student.teacherId,
-
-            teacherName: student.teacherName,
-
-            status: "Present",
-
-            date: new Date()
-
-                .toISOString()
-
-                .split("T")[0],
-
-            createdAt: serverTimestamp()
-
-        }
-
-    );
-
-    await loadAttendance();
-
-    renderAttendance();
-
-    showToast("Attendance Marked");
-
-};
-
-/* =====================================================
-                MARK ABSENT
-===================================================== */
-
-window.markAbsent = async function (id) {
-
-    const student = state.students.find(
-
-        x => x.id === id
-
-    );
-
-    if (!student) return;
-
-    await addDoc(
-
-        collection(db, "attendance"),
-
-        {
-
-            studentId: student.id,
-
-            studentName: student.studentName,
-
-            teacherId: student.teacherId,
-
-            teacherName: student.teacherName,
-
-            status: "Absent",
-
-            date: new Date()
-
-                .toISOString()
-
-                .split("T")[0],
-
-            createdAt: serverTimestamp()
-
-        }
-
-    );
-
-    await loadAttendance();
-
-    renderAttendance();
-
-    showToast("Attendance Updated");
-
-};
-
-/* =====================================================
-                DATE FORMAT
-===================================================== */
-
-function formatDate(date) {
-
-    if (!date) return "-";
-
-    if (date.seconds) {
-
-        return new Date(
-
-            date.seconds * 1000
-
-        ).toLocaleString();
-
-    }
-
-    return new Date(date)
-
-        .toLocaleString();
-
-}
-/* =====================================================
-                REPORTS
-===================================================== */
-
-function renderReports() {
-
-    if (!analyticsCharts) return;
-
-    const totalRevenue = state.fees.reduce(
-
-        (sum, fee) => sum + Number(fee.amount || 0),
-
-        0
-
-    );
-
-    const pendingDemo = state.demoBookings.filter(
-
-        x => (x.status || "Pending") === "Pending"
-
-    ).length;
-
-    const assignedDemo = state.demoBookings.filter(
-
-        x => x.status === "Assigned"
-
-    ).length;
-
-    const admittedStudents = state.students.length;
-
-    analyticsCharts.innerHTML = `
-
-<div class="reportGrid">
-
-<div class="reportCard">
-
-<h2>${state.demoBookings.length}</h2>
-
-<p>Total Demo Bookings</p>
-
-</div>
-
-<div class="reportCard">
-
-<h2>${pendingDemo}</h2>
-
-<p>Pending Demo</p>
-
-</div>
-
-<div class="reportCard">
-
-<h2>${assignedDemo}</h2>
-
-<p>Assigned Demo</p>
-
-</div>
-
-<div class="reportCard">
-
-<h2>${admittedStudents}</h2>
-
-<p>Permanent Students</p>
-
-</div>
-
-<div class="reportCard">
-
-<h2>${state.teachers.length}</h2>
-
-<p>Total Teachers</p>
-
-</div>
-
-<div class="reportCard">
-
-<h2>₹${totalRevenue.toLocaleString()}</h2>
-
-<p>Total Revenue</p>
-
-</div>
-
-</div>
-
-`;
-
-}
-
-/* =====================================================
-                SETTINGS
-===================================================== */
-
-$("saveSettings").onclick = async () => {
-
-    try {
-
-        await updateDoc(
-
-            doc(db, "settings", "company"),
-
-            {
-
-                companyName: $("companyName").value,
-
-                founder: $("founderName").value,
-
-                phone: $("companyPhone").value,
-
-                whatsapp: $("companyWhatsapp").value,
-
-                email: $("companyEmail").value,
-
-                location: $("companyLocation").value,
-
-                tagline: $("companyTagline").value,
-
-                updatedAt: serverTimestamp()
-
-            }
-
-        );
-
-        showToast("Settings Saved");
-
-    }
-
-    catch (err) {
-
-        console.error(err);
-
-        showToast("Unable To Save", "error");
-
-    }
-
-};
-
-/* =====================================================
-                EXPORT EXCEL
-===================================================== */
-
-$("exportExcel").onclick = () => {
-
-    let csv =
-
-`Student,Phone,Teacher,Class,Subject,Status\n`;
-
-    state.students.forEach(student => {
-
-        csv +=
-
-`${student.studentName},
-
-${student.phone},
-
-${student.teacherName},
-
-${student.class},
-
-${student.subject},
-
-${student.status}
-
-\n`;
-
-    });
-
-    const blob = new Blob(
-
-        [csv],
-
-        {
-
-            type:
-
-            "text/csv;charset=utf-8;"
-
-        }
-
-    );
-
-    const url =
-
-        URL.createObjectURL(blob);
-
-    const link =
-
-        document.createElement("a");
-
-    link.href = url;
-
-    link.download =
-
-        "TutorNest-Students.csv";
-
-    link.click();
-
-};
-
-/* =====================================================
-                EXPORT PDF
-===================================================== */
-
-$("exportPDF").onclick = () => {
-
-    window.print();
-
-};
-
-/* =====================================================
-                COMMISSION
-===================================================== */
-
-function renderCommission() {
-
-    if (!commissionTable) return;
+    const month = $("commissionMonth").value;
 
     let html = `
 
-<table class="adminTable">
+<table>
 
 <thead>
 
@@ -1818,9 +1615,13 @@ function renderCommission() {
 
 <th>Students</th>
 
-<th>Revenue</th>
+<th>Total Fees</th>
+
+<th>Commission %</th>
 
 <th>Commission</th>
+
+<th>Status</th>
 
 </tr>
 
@@ -1830,55 +1631,58 @@ function renderCommission() {
 
 `;
 
-    state.teachers.forEach(teacher => {
+    cache.teachers.forEach(teacher => {
 
-        const students =
+        const teacherStudents = cache.students.filter(
 
-            state.students.filter(
+            student => student.teacherId === teacher.id
 
-                x => x.teacherId === teacher.id
+        );
+
+        let totalFees = 0;
+
+        teacherStudents.forEach(student => {
+
+            const fee = cache.fees.find(item =>
+
+                item.studentId === student.id &&
+                item.month === month &&
+                item.status === "Paid"
 
             );
 
-        let revenue = 0;
-
-        students.forEach(student => {
-
-            revenue +=
-
-            Number(student.monthlyFees || 0);
+            if (fee)
+                totalFees += Number(fee.amount || 0);
 
         });
 
-        const commission =
+        const percent =
+            Number(teacher.commission || 10);
 
-            revenue * 0.10;
+        const commissionAmount =
+            (totalFees * percent) / 100;
 
         html += `
 
 <tr>
 
-<td>
+<td>${teacher.name}</td>
 
-${teacher.name}
+<td>${teacherStudents.length}</td>
 
-</td>
+<td>${formatMoney(totalFees)}</td>
 
-<td>
+<td>${percent}%</td>
 
-${students.length}
-
-</td>
+<td>${formatMoney(commissionAmount)}</td>
 
 <td>
 
-₹${revenue.toLocaleString()}
+<span class="status completed">
 
-</td>
+Calculated
 
-<td>
-
-₹${commission.toLocaleString()}
+</span>
 
 </td>
 
@@ -1900,73 +1704,1168 @@ ${students.length}
 
 }
 
-/* =====================================================
-                FLOATING ACTIONS
-===================================================== */
 
-window.scrollToTop = () => {
 
-    window.scrollTo({
+//============================================================
+// EVENTS
+//============================================================
 
-        top: 0,
+function bindEvents() {
 
-        behavior: "smooth"
+    document.addEventListener(
 
-    });
+        "click",
 
-};
+        handleGlobalClick
 
-/* =====================================================
-                INITIAL PAGE LOAD
-===================================================== */
+    );
 
-window.addEventListener(
+    $("attendanceDate")?.addEventListener(
 
-    "load",
+        "change",
 
-    () => {
+        renderAttendanceTable
 
-        renderReports();
+    );
 
-        renderAttendance();
+    $("feesMonth")?.addEventListener(
 
-        renderFees();
+        "change",
 
-        renderCommission();
+        renderFeesTable
 
-    }
+    );
 
-);
+    $("commissionMonth")?.addEventListener(
 
-/* =====================================================
-                ONLINE / OFFLINE
-===================================================== */
+        "change",
 
-window.addEventListener(
+        renderCommissionTable
 
-    "online",
+    );
 
-    () => {
+    $("calculateCommission")?.addEventListener(
 
-        showToast(
+        "click",
 
-            "Internet Connected"
+        renderCommissionTable
+
+    );
+
+    $("collectFeesBtn")?.addEventListener(
+
+        "click",
+
+        collectMonthlyFees
+
+    );
+
+    $("markAttendanceBtn")?.addEventListener(
+
+        "click",
+
+        saveAttendance
+
+    );
+
+}
+
+
+
+//============================================================
+// GLOBAL CLICK
+//============================================================
+
+function handleGlobalClick(e) {
+
+    const btn = e.target.closest("button");
+
+    if (!btn) return;
+
+    if (btn.classList.contains("viewDemo")) {
+
+        openStudentDetails(
+
+            btn.dataset.id
 
         );
 
     }
 
-);
+    else if (btn.classList.contains("assignDemo")) {
+
+        openAssignTutor(
+
+            btn.dataset.id
+
+        );
+
+    }
+
+    else if (btn.classList.contains("convertDemo")) {
+
+        openConvertModal(
+
+            btn.dataset.id
+
+        );
+
+    }
+
+    else if (btn.classList.contains("deleteDemo")) {
+
+        askDelete(
+
+            "demo",
+
+            btn.dataset.id
+
+        );
+
+    }
+
+    else if (btn.classList.contains("studentView")) {
+
+        openPermanentStudent(
+
+            btn.dataset.id
+
+        );
+
+    }
+
+    else if (btn.classList.contains("attendanceHistory")) {
+
+        openAttendanceHistory(
+
+            btn.dataset.id
+
+        );
+
+    }
+
+    else if (btn.classList.contains("collectFee")) {
+
+        collectSingleFee(
+
+            btn.dataset.id
+
+        );
+
+    }
+
+    else if (btn.classList.contains("deleteStudent")) {
+
+        askDelete(
+
+            "student",
+
+            btn.dataset.id
+
+        );
+
+    }
+
+    else if (btn.classList.contains("teacherView")) {
+
+        openTeacherProfile(
+
+            btn.dataset.id
+
+        );
+
+    }
+
+    else if (btn.classList.contains("teacherEdit")) {
+
+        editTeacher(
+
+            btn.dataset.id
+
+        );
+
+    }
+
+    else if (btn.classList.contains("teacherDelete")) {
+
+        askDelete(
+
+            "teacher",
+
+            btn.dataset.id
+
+        );
+
+    }
+
+}
+
+
+
+//============================================================
+// MODALS
+//============================================================
+
+function openModal(modal) {
+
+    modal?.classList.add("show");
+
+}
+
+function closeModal(modal) {
+
+    modal?.classList.remove("show");
+
+}
+
+document
+
+.querySelectorAll(".closeModal")
+
+.forEach(button => {
+
+    button.addEventListener(
+
+        "click",
+
+        () => {
+
+            closeModal(
+
+                button.closest(".modal")
+
+            );
+
+        }
+
+    );
+
+});
 
 window.addEventListener(
 
-    "offline",
+    "click",
+
+    e => {
+
+        if (
+
+            e.target.classList.contains("modal")
+
+        ) {
+
+            closeModal(e.target);
+
+        }
+
+    }
+
+);
+//============================================================
+// ASSIGN TUTOR
+//============================================================
+
+function openAssignTutor(id) {
+
+    selectedDemo = cache.demos.find(item => item.id === id);
+
+    if (!selectedDemo) return;
+
+    $("assignStudent").value =
+        selectedDemo.studentName || "";
+
+    $("assignTutor").value = "";
+
+    $("demoDate").value = "";
+
+    $("demoTime").value = "";
+
+    $("assignNotes").value =
+        selectedDemo.notes || "";
+
+    openModal(assignTutorModal);
+
+}
+
+$("confirmAssign")?.addEventListener(
+
+    "click",
+
+    assignTutorToDemo
+
+);
+
+async function assignTutorToDemo() {
+
+    if (!selectedDemo) return;
+
+    const tutorId = $("assignTutor").value;
+
+    if (!tutorId) {
+
+        showToast(
+            "Please select a tutor",
+            "warning"
+        );
+
+        return;
+
+    }
+
+    const teacher = cache.teachers.find(
+
+        t => t.id === tutorId
+
+    );
+
+    showLoader();
+
+    try {
+
+        await updateDoc(
+
+            doc(db, "demoBookings", selectedDemo.id),
+
+            {
+
+                teacherId: teacher.id,
+
+                teacherName: teacher.name,
+
+                teacherPhone: teacher.phone || "",
+
+                demoDate: $("demoDate").value,
+
+                demoTime: $("demoTime").value,
+
+                notes: $("assignNotes").value.trim(),
+
+                status: "Assigned",
+
+                assignedAt: serverTimestamp()
+
+            }
+
+        );
+
+        closeModal(assignTutorModal);
+
+        showToast("Tutor Assigned Successfully");
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        showToast(
+            "Assignment Failed",
+            "error"
+        );
+
+    }
+
+    finally {
+
+        hideLoader();
+
+    }
+
+}
+
+
+
+//============================================================
+// STUDENT DETAILS
+//============================================================
+
+function openStudentDetails(id) {
+
+    const student = cache.demos.find(
+
+        item => item.id === id
+
+    );
+
+    if (!student) return;
+
+    $("studentNameView").textContent =
+        student.studentName || "--";
+
+    $("studentClassView").textContent =
+        student.class || "--";
+
+    $("studentStatusView").textContent =
+        student.status || "Pending";
+
+    $("studentStatusView").className =
+        "status " +
+        String(student.status)
+        .toLowerCase();
+
+    $("studentPhoneView").textContent =
+        student.phone || "--";
+
+    $("parentNameView").textContent =
+        student.parentName || "--";
+
+    $("parentPhoneView").textContent =
+        student.parentPhone || "--";
+
+    $("studentSubjectView").textContent =
+        student.subject || "--";
+
+    $("studentAreaView").textContent =
+        student.area || "--";
+
+    $("studentCityView").textContent =
+        student.city || "--";
+
+    openModal(studentModal);
+
+}
+
+
+
+//============================================================
+// CONVERT TO PERMANENT STUDENT
+//============================================================
+
+function openConvertModal(id) {
+
+    selectedDemo = cache.demos.find(
+
+        demo => demo.id === id
+
+    );
+
+    if (!selectedDemo) return;
+
+    $("monthlyFees").value = "";
+
+    $("admissionDate").value = today();
+
+    $("courseDuration").selectedIndex = 0;
+
+    $("commissionPercent").value = 10;
+
+    openModal(convertStudentModal);
+
+}
+
+$("convertStudentBtn")?.addEventListener(
+
+    "click",
+
+    convertDemoToStudent
+
+);
+
+async function convertDemoToStudent() {
+
+    if (!selectedDemo) return;
+
+    const teacher = cache.teachers.find(
+
+        item => item.id === selectedDemo.teacherId
+
+    );
+
+    showLoader();
+
+    try {
+
+        await addDoc(
+
+            studentRef,
+
+            {
+
+                demoId: selectedDemo.id,
+
+                name: selectedDemo.studentName,
+
+                parentName: selectedDemo.parentName,
+
+                phone: selectedDemo.phone,
+
+                parentPhone: selectedDemo.parentPhone,
+
+                class: selectedDemo.class,
+
+                subject: selectedDemo.subject,
+
+                area: selectedDemo.area,
+
+                city: selectedDemo.city,
+
+                teacherId: teacher?.id || "",
+
+                teacherName: teacher?.name || "",
+
+                monthlyFees: Number(
+                    $("monthlyFees").value
+                ),
+
+                commissionPercent: Number(
+                    $("commissionPercent").value
+                ),
+
+                admissionDate:
+                    $("admissionDate").value,
+
+                duration:
+                    $("courseDuration").value,
+
+                active: true,
+
+                createdAt:
+                    serverTimestamp()
+
+            }
+
+        );
+
+        await updateDoc(
+
+            doc(
+                db,
+                "demoBookings",
+                selectedDemo.id
+            ),
+
+            {
+
+                status: "Completed",
+
+                converted: true,
+
+                convertedAt:
+                    serverTimestamp()
+
+            }
+
+        );
+
+        closeModal(convertStudentModal);
+
+        showToast(
+            "Student Converted Successfully"
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        showToast(
+            "Conversion Failed",
+            "error"
+        );
+
+    }
+
+    finally {
+
+        hideLoader();
+
+    }
+
+}
+//============================================================
+// ATTENDANCE SAVE ENGINE
+//============================================================
+
+async function saveAttendance() {
+
+    const date = $("attendanceDate").value;
+
+    if (!date) {
+
+        showToast(
+            "Please select attendance date",
+            "warning"
+        );
+
+        return;
+
+    }
+
+    const selects = document.querySelectorAll(
+        ".attendanceSelect"
+    );
+
+    if (!selects.length) {
+
+        showToast(
+            "No attendance records found",
+            "warning"
+        );
+
+        return;
+
+    }
+
+    showLoader();
+
+    try {
+
+        const batch = writeBatch(db);
+
+        selects.forEach(select => {
+
+            const studentId = select.dataset.id;
+
+            const student = cache.students.find(
+                x => x.id === studentId
+            );
+
+            if (!student) return;
+
+            const attendanceDoc = doc(
+                attendanceRef
+            );
+
+            batch.set(attendanceDoc, {
+
+                studentId,
+
+                studentName: student.name,
+
+                teacherId: student.teacherId,
+
+                teacherName: student.teacherName,
+
+                class: student.class,
+
+                subject: student.subject,
+
+                status: select.value,
+
+                date,
+
+                createdAt: serverTimestamp()
+
+            });
+
+        });
+
+        await batch.commit();
+
+        showToast(
+            "Attendance Saved Successfully"
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        showToast(
+            "Unable to save attendance",
+            "error"
+        );
+
+    }
+
+    finally {
+
+        hideLoader();
+
+    }
+
+}
+
+
+
+//============================================================
+// MONTHLY FEES
+//============================================================
+
+async function collectMonthlyFees() {
+
+    const month = $("feesMonth").value;
+
+    if (!month) {
+
+        showToast(
+            "Select month first",
+            "warning"
+        );
+
+        return;
+
+    }
+
+    if (!cache.students.length) {
+
+        showToast(
+            "No students found",
+            "warning"
+        );
+
+        return;
+
+    }
+
+    showLoader();
+
+    try {
+
+        const batch = writeBatch(db);
+
+        cache.students.forEach(student => {
+
+            const alreadyPaid = cache.fees.find(
+
+                fee =>
+
+                fee.studentId === student.id &&
+
+                fee.month === month
+
+            );
+
+            if (alreadyPaid) return;
+
+            const feeDoc = doc(feesRef);
+
+            batch.set(feeDoc, {
+
+                studentId: student.id,
+
+                studentName: student.name,
+
+                teacherId: student.teacherId,
+
+                teacherName: student.teacherName,
+
+                amount: Number(
+                    student.monthlyFees || 0
+                ),
+
+                month,
+
+                status: "Pending",
+
+                createdAt: serverTimestamp()
+
+            });
+
+        });
+
+        await batch.commit();
+
+        showToast(
+            "Monthly Fees Generated"
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        showToast(
+            "Fee generation failed",
+            "error"
+        );
+
+    }
+
+    finally {
+
+        hideLoader();
+
+    }
+
+}
+
+
+
+//============================================================
+// SINGLE FEE COLLECTION
+//============================================================
+
+async function collectSingleFee(studentId) {
+
+    const student = cache.students.find(
+
+        item => item.id === studentId
+
+    );
+
+    if (!student) return;
+
+    const month = $("feesMonth").value;
+
+    const fee = cache.fees.find(
+
+        item =>
+
+        item.studentId === studentId &&
+
+        item.month === month
+
+    );
+
+    if (!fee) {
+
+        showToast(
+            "Fee record not found",
+            "warning"
+        );
+
+        return;
+
+    }
+
+    showLoader();
+
+    try {
+
+        await updateDoc(
+
+            doc(db, "fees", fee.id),
+
+            {
+
+                status: "Paid",
+
+                paidAt: serverTimestamp(),
+
+                amount: Number(
+                    student.monthlyFees
+                )
+
+            }
+
+        );
+
+        showToast(
+            "Fee Collected Successfully"
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        showToast(
+            "Unable to collect fee",
+            "error"
+        );
+
+    }
+
+    finally {
+
+        hideLoader();
+
+    }
+
+}
+
+
+
+//============================================================
+// DELETE SYSTEM
+//============================================================
+
+function askDelete(type, id) {
+
+    deleteTarget = {
+
+        type,
+
+        id
+
+    };
+
+    openModal(deleteModal);
+
+}
+
+$("confirmDeleteBtn")?.addEventListener(
+
+    "click",
+
+    confirmDelete
+
+);
+
+async function confirmDelete() {
+
+    if (!deleteTarget) return;
+
+    showLoader();
+
+    try {
+
+        switch (deleteTarget.type) {
+
+            case "demo":
+
+                await deleteDoc(
+
+                    doc(
+                        db,
+                        "demoBookings",
+                        deleteTarget.id
+                    )
+
+                );
+
+                break;
+
+            case "student":
+
+                await deleteDoc(
+
+                    doc(
+                        db,
+                        "students",
+                        deleteTarget.id
+                    )
+
+                );
+
+                break;
+
+            case "teacher":
+
+                await deleteDoc(
+
+                    doc(
+                        db,
+                        "teachers",
+                        deleteTarget.id
+                    )
+
+                );
+
+                break;
+
+        }
+
+        closeModal(deleteModal);
+
+        deleteTarget = null;
+
+        showToast(
+            "Record Deleted Successfully"
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        showToast(
+            "Delete Failed",
+            "error"
+        );
+
+    }
+
+    finally {
+
+        hideLoader();
+
+    }
+
+}
+
+document.querySelector(
+    "#deleteModal .cancelBtn"
+)?.addEventListener(
+
+    "click",
 
     () => {
 
+        deleteTarget = null;
+
+        closeModal(deleteModal);
+
+    }
+
+);
+//============================================================
+// TEACHER PROFILE
+//============================================================
+
+function openTeacherProfile(id) {
+
+    const teacher = cache.teachers.find(
+
+        item => item.id === id
+
+    );
+
+    if (!teacher) return;
+
+    const totalStudents = cache.students.filter(
+
+        student => student.teacherId === teacher.id
+
+    );
+
+    const totalFees = cache.fees
+        .filter(
+
+            fee =>
+
+            fee.teacherId === teacher.id &&
+
+            fee.status === "Paid"
+
+        )
+        .reduce(
+
+            (sum, fee) =>
+
+                sum + Number(fee.amount || 0),
+
+            0
+
+        );
+
+    alert(
+
+`Teacher : ${teacher.name}
+
+Phone : ${teacher.phone || "--"}
+
+Subject : ${teacher.subject || "--"}
+
+City : ${teacher.city || "--"}
+
+Students : ${totalStudents.length}
+
+Revenue : ${formatMoney(totalFees)}
+
+Commission : ${teacher.commission || 10}%`
+
+    );
+
+}
+
+
+
+//============================================================
+// EDIT TEACHER
+//============================================================
+
+async function editTeacher(id) {
+
+    const teacher = cache.teachers.find(
+
+        item => item.id === id
+
+    );
+
+    if (!teacher) return;
+
+    const name = prompt(
+
+        "Teacher Name",
+
+        teacher.name
+
+    );
+
+    if (name === null) return;
+
+    const phone = prompt(
+
+        "Phone",
+
+        teacher.phone
+
+    );
+
+    if (phone === null) return;
+
+    const subject = prompt(
+
+        "Subject",
+
+        teacher.subject
+
+    );
+
+    if (subject === null) return;
+
+    const city = prompt(
+
+        "City",
+
+        teacher.city
+
+    );
+
+    if (city === null) return;
+
+    const commission = prompt(
+
+        "Commission %",
+
+        teacher.commission || 10
+
+    );
+
+    showLoader();
+
+    try {
+
+        await updateDoc(
+
+            doc(db, "teachers", id),
+
+            {
+
+                name: name.trim(),
+
+                phone: phone.trim(),
+
+                subject: subject.trim(),
+
+                city: city.trim(),
+
+                commission: Number(
+
+                    commission
+
+                ),
+
+                updatedAt:
+
+                    serverTimestamp()
+
+            }
+
+        );
+
         showToast(
 
-            "Internet Disconnected",
+            "Teacher Updated"
+
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        showToast(
+
+            "Update Failed",
 
             "error"
 
@@ -1974,98 +2873,197 @@ window.addEventListener(
 
     }
 
-);
+    finally {
 
-/* =====================================================
-                END OF CHUNK
-===================================================== */
-/* =====================================================
-                TEACHER SEARCH
-===================================================== */
-
-function renderTeachers() {
-
-    if (!teachersTable) return;
-
-    const keyword =
-        teacherSearch.value
-        .trim()
-        .toLowerCase();
-
-    const teachers =
-
-        state.teachers.filter(t =>
-
-            (t.name || "")
-            .toLowerCase()
-            .includes(keyword)
-
-            ||
-
-            (t.phone || "")
-            .includes(keyword)
-
-            ||
-
-            (t.subjects || [])
-            .join(",")
-            .toLowerCase()
-            .includes(keyword)
-
-            ||
-
-            (t.areas || [])
-            .join(",")
-            .toLowerCase()
-            .includes(keyword)
-
-        );
-
-    if (!teachers.length) {
-
-        teachersTable.innerHTML = `
-
-<table>
-
-<tr>
-
-<td style="padding:40px;text-align:center;">
-
-No Teachers Found
-
-</td>
-
-</tr>
-
-</table>
-
-`;
-
-        return;
+        hideLoader();
 
     }
 
-    let html = `
+}
 
-<table class="adminTable">
+
+
+//============================================================
+// PERMANENT STUDENT PROFILE
+//============================================================
+
+function openPermanentStudent(id) {
+
+    const student = cache.students.find(
+
+        item => item.id === id
+
+    );
+
+    if (!student) return;
+
+    $("studentNameView").textContent =
+        student.name;
+
+    $("studentClassView").textContent =
+        student.class;
+
+    $("studentStatusView").textContent =
+        "Active";
+
+    $("studentStatusView").className =
+        "status active";
+
+    $("studentPhoneView").textContent =
+        student.phone || "--";
+
+    $("parentNameView").textContent =
+        student.parentName || "--";
+
+    $("parentPhoneView").textContent =
+        student.parentPhone || "--";
+
+    $("studentSubjectView").textContent =
+        student.subject || "--";
+
+    $("studentAreaView").textContent =
+        student.area || "--";
+
+    $("studentCityView").textContent =
+        student.city || "--";
+
+    openModal(studentModal);
+
+}
+
+
+
+//============================================================
+// ATTENDANCE HISTORY
+//============================================================
+
+function openAttendanceHistory(studentId) {
+
+    const student = cache.students.find(
+
+        item => item.id === studentId
+
+    );
+
+    if (!student) return;
+
+    $("attendanceStudentName").textContent =
+        student.name;
+
+    $("attendanceStudentClass").textContent =
+        student.class;
+
+    $("attendanceStudentTeacher").textContent =
+        student.teacherName;
+
+    $("attendanceMonth").value =
+        monthValue();
+
+    renderAttendanceHistory(studentId);
+
+    openModal(
+
+        $("attendanceHistoryModal")
+
+    );
+
+}
+
+function renderAttendanceHistory(studentId) {
+
+    const month = $("attendanceMonth").value;
+
+    const records = cache.attendance.filter(
+
+        item =>
+
+            item.studentId === studentId &&
+
+            item.date.startsWith(month)
+
+    );
+
+    const present = records.filter(
+
+        x => x.status === "Present"
+
+    ).length;
+
+    const absent = records.filter(
+
+        x => x.status === "Absent"
+
+    ).length;
+
+    const leave = records.filter(
+
+        x => x.status === "Leave"
+
+    ).length;
+
+    const total = records.length || 1;
+
+    const percent = Math.round(
+
+        (present / total) * 100
+
+    );
+
+    $("presentCount").textContent =
+        present;
+
+    $("absentCount").textContent =
+        absent;
+
+    $("leaveCount").textContent =
+        leave;
+
+    $("attendancePercent").textContent =
+        percent + "%";
+
+    $("attendanceBar").style.width =
+        percent + "%";
+
+    let calendar = "";
+
+    records.forEach(record => {
+
+        calendar += `
+
+<div class="attendanceDay ${record.status.toLowerCase()}">
+
+<strong>
+
+${record.date.split("-")[2]}
+
+</strong>
+
+<span>
+
+${record.status}
+
+</span>
+
+</div>
+
+`;
+
+    });
+
+    $("attendanceCalendar").innerHTML =
+        calendar || emptyTable("No Attendance");
+
+    let table = `
+
+<table>
 
 <thead>
 
 <tr>
 
-<th>Name</th>
-
-<th>Phone</th>
-
-<th>Subjects</th>
-
-<th>Areas</th>
-
-<th>Students</th>
+<th>Date</th>
 
 <th>Status</th>
-
-<th>Action</th>
 
 </tr>
 
@@ -2075,89 +3073,292 @@ No Teachers Found
 
 `;
 
-    teachers.forEach(teacher => {
+    records.forEach(record => {
 
-        const totalStudents =
-
-            state.students.filter(
-
-                x =>
-
-                x.teacherId === teacher.id
-
-            ).length;
-
-        html += `
+        table += `
 
 <tr>
 
-<td>
-
-${teacher.name}
-
-</td>
+<td>${formatDate(record.date)}</td>
 
 <td>
 
-${teacher.phone}
+<span class="status ${record.status.toLowerCase()}">
 
-</td>
-
-<td>
-
-${(teacher.subjects || [])
-
-.join(", ")}
-
-</td>
-
-<td>
-
-${(teacher.areas || [])
-
-.join(", ")}
-
-</td>
-
-<td>
-
-${totalStudents}
-
-</td>
-
-<td>
-
-<span class="badge ${teacher.available===false?"pending":"admitted"}">
-
-${teacher.available===false?"Busy":"Available"}
+${record.status}
 
 </span>
 
 </td>
 
-<td>
+</tr>
 
-<button
+`;
 
-class="tableBtn blue"
+    });
 
-onclick="toggleTeacherAvailability('${teacher.id}')">
+    table += `
 
-<i class="fa-solid fa-repeat"></i>
+</tbody>
 
-</button>
+</table>
 
-<button
+`;
 
-class="tableBtn red"
+    $("attendanceHistoryTable").innerHTML =
+        records.length
+            ? table
+            : emptyTable("No Attendance");
 
-onclick="openDeleteModal('teachers','${teacher.id}')">
+}
 
-<i class="fa-solid fa-trash"></i>
+$("attendanceMonth")?.addEventListener(
 
-</button>
+    "change",
 
-</td>
+    () => {
+
+        const student = cache.students.find(
+
+            item =>
+
+                item.name ===
+                $("attendanceStudentName").textContent
+
+        );
+
+        if (student)
+
+            renderAttendanceHistory(
+
+                student.id
+
+            );
+
+    }
+
+);
+//============================================================
+// EXPORT EXCEL
+//============================================================
+
+$("exportExcel")?.addEventListener(
+
+    "click",
+
+    exportDashboardExcel
+
+);
+
+async function exportDashboardExcel() {
+
+    try {
+
+        const workbook = [];
+
+        workbook.push([
+            "Student",
+            "Teacher",
+            "Class",
+            "Monthly Fees",
+            "Status"
+        ]);
+
+        cache.students.forEach(student => {
+
+            workbook.push([
+
+                student.name,
+
+                student.teacherName,
+
+                student.class,
+
+                student.monthlyFees,
+
+                student.active
+                    ? "Active"
+                    : "Inactive"
+
+            ]);
+
+        });
+
+        const csv = workbook
+
+            .map(row =>
+
+                row.map(value => `"${value}"`).join(",")
+
+            )
+
+            .join("\n");
+
+        const blob = new Blob(
+
+            [csv],
+
+            {
+
+                type: "text/csv"
+
+            }
+
+        );
+
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+
+        a.href = url;
+
+        a.download =
+
+            "TutorNest_Students.csv";
+
+        a.click();
+
+        URL.revokeObjectURL(url);
+
+        showToast("Excel Exported");
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        showToast(
+
+            "Export Failed",
+
+            "error"
+
+        );
+
+    }
+
+}
+
+
+
+//============================================================
+// EXPORT PDF
+//============================================================
+
+$("exportPDF")?.addEventListener(
+
+    "click",
+
+    exportDashboardPDF
+
+);
+
+function exportDashboardPDF() {
+
+    const win = window.open("", "_blank");
+
+    let html = `
+
+<html>
+
+<head>
+
+<title>
+
+TutorNest Report
+
+</title>
+
+<style>
+
+body{
+
+font-family:Arial;
+
+padding:30px;
+
+}
+
+table{
+
+width:100%;
+
+border-collapse:collapse;
+
+}
+
+th,td{
+
+border:1px solid #ddd;
+
+padding:10px;
+
+text-align:left;
+
+}
+
+th{
+
+background:#2563eb;
+
+color:#fff;
+
+}
+
+h1{
+
+margin-bottom:25px;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>
+
+TutorNest Student Report
+
+</h1>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Name</th>
+
+<th>Teacher</th>
+
+<th>Class</th>
+
+<th>Fees</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+`;
+
+    cache.students.forEach(student => {
+
+        html += `
+
+<tr>
+
+<td>${student.name}</td>
+
+<td>${student.teacherName}</td>
+
+<td>${student.class}</td>
+
+<td>${formatMoney(student.monthlyFees)}</td>
 
 </tr>
 
@@ -2171,367 +3372,430 @@ onclick="openDeleteModal('teachers','${teacher.id}')">
 
 </table>
 
+</body>
+
+</html>
+
 `;
 
-    teachersTable.innerHTML = html;
+    win.document.write(html);
 
-}
+    win.document.close();
 
-/* =====================================================
-            TOGGLE AVAILABILITY
-===================================================== */
+    win.focus();
 
-window.toggleTeacherAvailability = async function(id){
+    win.print();
 
-    const teacher =
+    showToast(
 
-        state.teachers.find(
-
-            x=>x.id===id
-
-        );
-
-    if(!teacher) return;
-
-    try{
-
-        await updateDoc(
-
-            doc(db,"teachers",id),
-
-            {
-
-                available:
-
-                !teacher.available
-
-            }
-
-        );
-
-        await loadTeachers();
-
-        renderTeachers();
-
-        showToast(
-
-            "Teacher Updated"
-
-        );
-
-    }
-
-    catch(err){
-
-        console.error(err);
-
-        showToast(
-
-            "Unable To Update",
-
-            "error"
-
-        );
-
-    }
-
-};
-
-/* =====================================================
-                ADD TEACHER
-===================================================== */
-
-$("newTeacherBtn").onclick=async()=>{
-
-    const name=
-
-    prompt("Teacher Name");
-
-    if(!name) return;
-
-    const phone=
-
-    prompt("Phone");
-
-    if(!phone) return;
-
-    const subjects=
-
-    prompt("Subjects (Comma Separated)");
-
-    const areas=
-
-    prompt("Areas (Comma Separated)");
-
-    try{
-
-        await addDoc(
-
-            collection(db,"teachers"),
-
-            {
-
-                name,
-
-                phone,
-
-                subjects:
-
-                subjects
-
-                ?subjects
-
-                .split(",")
-
-                .map(x=>x.trim())
-
-                :[],
-
-                areas:
-
-                areas
-
-                ?areas
-
-                .split(",")
-
-                .map(x=>x.trim())
-
-                :[],
-
-                available:true,
-
-                createdAt:
-
-                serverTimestamp()
-
-            }
-
-        );
-
-        await loadTeachers();
-
-        renderTeachers();
-
-        updateDashboard();
-
-        showToast(
-
-            "Teacher Added"
-
-        );
-
-    }
-
-    catch(err){
-
-        console.error(err);
-
-        showToast(
-
-            "Unable To Add",
-
-            "error"
-
-        );
-
-    }
-
-};
-
-/* =====================================================
-                ADD STUDENT
-===================================================== */
-
-$("addPermanentStudent").onclick=()=>{
-
-    alert(
-
-"Students are created automatically after demo conversion."
+        "PDF Ready"
 
     );
 
-};
+}
 
-/* =====================================================
-                QUICK ACTIONS
-===================================================== */
 
-$("addTeacherBtn").onclick=()=>{
 
-    $("newTeacherBtn").click();
+//============================================================
+// NOTIFICATION
+//============================================================
 
-};
+notificationBtn?.addEventListener(
 
-$("assignDemoBtn").onclick=()=>{
+    "click",
 
-    document
+    () => {
 
-    .getElementById("demoBookings")
+        const pending = cache.demos.filter(
 
-    .scrollIntoView({
+            item =>
 
-        behavior:"smooth"
+                item.status === "Pending"
 
-    });
+        ).length;
 
-};
+        const unpaid = cache.fees.filter(
 
-$("addStudentBtn").onclick=()=>{
+            fee =>
 
-    document
+                fee.status !== "Paid"
 
-    .getElementById("students")
+        ).length;
 
-    .scrollIntoView({
+        alert(
 
-        behavior:"smooth"
+`TutorNest Notifications
 
-    });
+Pending Demo :
 
-};
+${pending}
 
-$("feesBtn").onclick=()=>{
+Pending Fees :
 
-    document
+${unpaid}
 
-    .getElementById("fees")
+Teachers :
 
-    .scrollIntoView({
+${cache.teachers.length}
 
-        behavior:"smooth"
+Students :
 
-    });
-
-};
-
-$("attendanceBtn").onclick=()=>{
-
-    document
-
-    .getElementById("attendance")
-
-    .scrollIntoView({
-
-        behavior:"smooth"
-
-    });
-
-};
-
-$("reportBtn").onclick=()=>{
-
-    document
-
-    .getElementById("reports")
-
-    .scrollIntoView({
-
-        behavior:"smooth"
-
-    });
-
-};
-/* =====================================================
-                SIDEBAR ACTIVE MENU
-===================================================== */
-
-const sections = document.querySelectorAll("section[id]");
-
-const navLinks = document.querySelectorAll(".menu a");
-
-window.addEventListener("scroll", () => {
-
-    let current = "";
-
-    sections.forEach(section => {
-
-        const top = section.offsetTop - 150;
-        const height = section.offsetHeight;
-
-        if (scrollY >= top && scrollY < top + height) {
-            current = section.getAttribute("id");
-        }
-
-    });
-
-    navLinks.forEach(link => {
-
-        link.classList.remove("active");
-
-        if (link.getAttribute("href") === "#" + current) {
-
-            link.classList.add("active");
-
-        }
-
-    });
-
-});
-
-/* =====================================================
-                SMOOTH NAVIGATION
-===================================================== */
-
-navLinks.forEach(link => {
-
-    link.addEventListener("click", e => {
-
-        e.preventDefault();
-
-        const target = document.querySelector(
-
-            link.getAttribute("href")
+${cache.students.length}`
 
         );
 
-        if (!target) return;
+    }
 
-        target.scrollIntoView({
+);
 
-            behavior: "smooth"
+
+
+//============================================================
+// REPORTS
+//============================================================
+
+function generateDashboardReport() {
+
+    return {
+
+        demos: cache.demos.length,
+
+        pendingDemo:
+
+            cache.demos.filter(
+
+                x =>
+
+                    x.status === "Pending"
+
+            ).length,
+
+        teachers:
+
+            cache.teachers.length,
+
+        students:
+
+            cache.students.length,
+
+        revenue:
+
+            cache.fees
+
+            .filter(
+
+                fee =>
+
+                    fee.status === "Paid"
+
+            )
+
+            .reduce(
+
+                (sum, fee) =>
+
+                    sum +
+
+                    Number(
+
+                        fee.amount || 0
+
+                    ),
+
+                0
+
+            ),
+
+        attendance:
+
+            cache.attendance.length
+
+    };
+
+}
+
+
+
+//============================================================
+// QUICK ACTION BUTTONS
+//============================================================
+
+$("assignDemoBtn")?.addEventListener(
+
+    "click",
+
+    () => {
+
+        location.href = "#demoBookings";
+
+    }
+
+);
+
+$("attendanceBtn")?.addEventListener(
+
+    "click",
+
+    () => {
+
+        location.href = "#attendance";
+
+    }
+
+);
+
+$("feesBtn")?.addEventListener(
+
+    "click",
+
+    () => {
+
+        location.href = "#fees";
+
+    }
+
+);
+
+$("reportBtn")?.addEventListener(
+
+    "click",
+
+    () => {
+
+        location.href = "#reports";
+
+    }
+
+);
+
+$("newTeacherBtn")?.addEventListener(
+
+    "click",
+
+    () => {
+
+        showToast(
+
+            "Teacher Registration Module Coming Next"
+
+        );
+
+    }
+
+);
+
+$("addTeacherBtn")?.addEventListener(
+
+    "click",
+
+    () => {
+
+        $("newTeacherBtn")?.click();
+
+    }
+
+);
+
+$("addStudentBtn")?.addEventListener(
+
+    "click",
+
+    () => {
+
+        showToast(
+
+            "Student Registration Module Coming Next"
+
+        );
+
+    }
+
+);
+
+$("addPermanentStudent")?.addEventListener(
+
+    "click",
+
+    () => {
+
+        $("addStudentBtn")?.click();
+
+    }
+
+);
+
+
+
+//============================================================
+// CLEANUP
+//============================================================
+
+window.addEventListener(
+
+    "beforeunload",
+
+    () => {
+
+        Object.values(
+
+            unsubscribe
+
+        ).forEach(listener => {
+
+            if (
+
+                typeof listener ===
+
+                "function"
+
+            ) {
+
+                listener();
+
+            }
 
         });
 
-    });
+    }
 
-});
+);
 
-/* =====================================================
-                SAVE COMPANY SETTINGS
-===================================================== */
 
-async function saveCompanySettings() {
+
+//============================================================
+// END OF PART
+// NEXT:
+// • Teacher Registration
+// • Student Registration
+// • Firebase Storage Image Upload
+// • Analytics Charts
+// • Authentication Roles
+// • Advanced Reports
+// • Audit Logs
+//============================================================
+//============================================================
+// TEACHER REGISTRATION MODULE
+//============================================================
+
+$("newTeacherBtn")?.addEventListener(
+
+    "click",
+
+    createTeacher
+
+);
+
+$("addTeacherBtn")?.addEventListener(
+
+    "click",
+
+    createTeacher
+
+);
+
+async function createTeacher() {
+
+    const name = prompt("Teacher Name");
+
+    if (!name) return;
+
+    const phone = prompt("Phone Number");
+
+    if (!phone) return;
+
+    const email = prompt("Email");
+
+    if (!email) return;
+
+    const subject = prompt("Subject");
+
+    if (!subject) return;
+
+    const qualification = prompt("Qualification");
+
+    if (!qualification) return;
+
+    const experience = prompt("Experience");
+
+    if (!experience) return;
+
+    const city = prompt("City");
+
+    if (!city) return;
+
+    const area = prompt("Area");
+
+    if (!area) return;
+
+    const commission = Number(
+
+        prompt("Commission %", "10")
+
+    );
+
+    showLoader();
 
     try {
 
-        await updateDoc(
+        await addDoc(
 
-            doc(db, "settings", "company"),
+            teacherRef,
 
             {
 
-                companyName: $("companyName").value.trim(),
+                teacherCode:
 
-                founder: $("founderName").value.trim(),
+                    "TN-T-" +
 
-                phone: $("companyPhone").value.trim(),
+                    Date.now(),
 
-                whatsapp: $("companyWhatsapp").value.trim(),
+                name: name.trim(),
 
-                email: $("companyEmail").value.trim(),
+                phone: phone.trim(),
 
-                location: $("companyLocation").value.trim(),
+                email: email.trim(),
 
-                tagline: $("companyTagline").value.trim(),
+                subject: subject.trim(),
 
-                updatedAt: serverTimestamp()
+                qualification:
+
+                    qualification.trim(),
+
+                experience:
+
+                    experience.trim(),
+
+                city: city.trim(),
+
+                area: area.trim(),
+
+                commission,
+
+                active: true,
+
+                verified: true,
+
+                rating: 5,
+
+                totalStudents: 0,
+
+                joinedAt:
+
+                    serverTimestamp(),
+
+                createdAt:
+
+                    serverTimestamp()
 
             }
 
         );
 
-        showToast("Settings Updated");
+        showToast(
+
+            "Teacher Added Successfully"
+
+        );
 
     }
 
@@ -2541,187 +3805,11 @@ async function saveCompanySettings() {
 
         showToast(
 
-            "Unable To Save",
+            "Teacher Creation Failed",
 
             "error"
 
         );
-
-    }
-
-}
-
-$("saveSettings").onclick = saveCompanySettings;
-
-/* =====================================================
-                ATTENDANCE DATE
-===================================================== */
-
-if ($("attendanceDate")) {
-
-    $("attendanceDate").value =
-
-        new Date()
-
-        .toISOString()
-
-        .split("T")[0];
-
-}
-
-/* =====================================================
-                FEES MONTH
-===================================================== */
-
-if ($("feesMonth")) {
-
-    $("feesMonth").value =
-
-        new Date()
-
-        .toISOString()
-
-        .slice(0, 7);
-
-}
-
-/* =====================================================
-                COMMISSION MONTH
-===================================================== */
-
-if ($("commissionMonth")) {
-
-    $("commissionMonth").value =
-
-        new Date()
-
-        .toISOString()
-
-        .slice(0, 7);
-
-}
-
-/* =====================================================
-                EXPORT REPORT
-===================================================== */
-
-$("reportBtn").onclick = () => {
-
-    $("reports").scrollIntoView({
-
-        behavior: "smooth"
-
-    });
-
-};
-
-$("exportPDF").onclick = () => {
-
-    window.print();
-
-};
-
-/* =====================================================
-                SEARCH SHORTCUT
-===================================================== */
-
-document.addEventListener(
-
-    "keydown",
-
-    e => {
-
-        if (
-
-            e.ctrlKey &&
-
-            e.key.toLowerCase() === "f"
-
-        ) {
-
-            e.preventDefault();
-
-            demoSearch.focus();
-
-        }
-
-    }
-
-);
-
-/* =====================================================
-                NETWORK STATUS
-===================================================== */
-
-window.addEventListener(
-
-    "online",
-
-    () => {
-
-        showToast("Internet Connected");
-
-    }
-
-);
-
-window.addEventListener(
-
-    "offline",
-
-    () => {
-
-        showToast(
-
-            "Internet Disconnected",
-
-            "error"
-
-        );
-
-    }
-
-);
-
-/* =====================================================
-                DASHBOARD REFRESH
-===================================================== */
-
-async function refreshDashboard() {
-
-    showLoader();
-
-    try {
-
-        await Promise.all([
-
-            loadDemoBookings(),
-
-            loadStudents(),
-
-            loadTeachers(),
-
-            loadFees(),
-
-            loadAttendance()
-
-        ]);
-
-        updateDashboard();
-
-        renderReports();
-
-        renderAttendance();
-
-        renderFees();
-
-        renderCommission();
-
-    }
-
-    catch (err) {
-
-        console.error(err);
 
     }
 
@@ -2733,2694 +3821,375 @@ async function refreshDashboard() {
 
 }
 
-/* =====================================================
-                AUTO REFRESH
-===================================================== */
 
-setInterval(
 
-    refreshDashboard,
+//============================================================
+// STUDENT REGISTRATION
+//============================================================
 
-    60000
+$("addStudentBtn")?.addEventListener(
+
+    "click",
+
+    createStudent
 
 );
 
-/* =====================================================
-                WINDOW FUNCTIONS
-===================================================== */
+$("addPermanentStudent")?.addEventListener(
 
-window.refreshDashboard = refreshDashboard;
+    "click",
 
-window.renderReports = renderReports;
+    createStudent
 
-window.renderFees = renderFees;
-
-window.renderTeachers = renderTeachers;
-
-window.renderStudents = renderStudents;
-
-window.renderAttendance = renderAttendance;
-
-window.renderCommission = renderCommission;
-
-/* =====================================================
-                APP READY
-===================================================== */
-
-console.clear();
-
-console.log("==========================================");
-console.log(" TutorNest Admin Dashboard V2 Loaded");
-console.log("==========================================");
-console.log("✓ Firebase Connected");
-console.log("✓ Authentication Ready");
-console.log("✓ Demo Booking Module Ready");
-console.log("✓ Students Module Ready");
-console.log("✓ Teachers Module Ready");
-console.log("✓ Attendance Module Ready");
-console.log("✓ Fees Module Ready");
-console.log("✓ Commission Module Ready");
-console.log("✓ Reports Module Ready");
-console.log("✓ Settings Module Ready");
-console.log("✓ Notifications Ready");
-console.log("✓ Dashboard Ready");
-console.log("==========================================");
-/* ==========================================================
-ATTENDANCE HISTORY MODULE
-Paste at END of admin.js
-========================================================== */
-
-let attendanceHistoryStudent = null;
-let attendanceHistory = [];
-
-const attendanceHistoryModal =
-document.getElementById(
-"attendanceHistoryModal"
 );
 
-window.viewAttendanceHistory =
-async function(studentId){
+async function createStudent() {
 
-attendanceHistoryStudent =
-state.students.find(
-x=>x.id===studentId
-);
+    const name = prompt("Student Name");
 
-if(!attendanceHistoryStudent)return;
+    if (!name) return;
 
-document.getElementById(
-"attendanceStudentName"
-).textContent=
-attendanceHistoryStudent.studentName;
+    const parent = prompt("Parent Name");
 
-document.getElementById(
-"attendanceStudentClass"
-).textContent=
-attendanceHistoryStudent.class;
+    if (!parent) return;
 
-document.getElementById(
-"attendanceStudentTeacher"
-).textContent=
-attendanceHistoryStudent.teacherName;
+    const phone = prompt("Student Phone");
 
-attendanceHistoryModal
-.classList.add("show");
+    if (!phone) return;
 
-await loadAttendanceHistory();
+    const parentPhone = prompt("Parent Phone");
 
-};
+    if (!parentPhone) return;
 
-async function loadAttendanceHistory(){
+    const studentClass = prompt("Class");
 
-showLoader();
+    if (!studentClass) return;
 
-attendanceHistory=[];
+    const subject = prompt("Subject");
 
-const monthInput=
-document.getElementById(
-"attendanceMonth"
-);
+    if (!subject) return;
 
-if(monthInput.value===""){
+    const city = prompt("City");
 
-monthInput.value=
-new Date()
-.toISOString()
-.slice(0,7);
+    if (!city) return;
+
+    const area = prompt("Area");
+
+    if (!area) return;
+
+    const monthlyFees = Number(
+
+        prompt("Monthly Fees")
+
+    );
+
+    const teacherId = $("assignTutor").value;
+
+    const teacher = cache.teachers.find(
+
+        t => t.id === teacherId
+
+    );
+
+    showLoader();
+
+    try {
+
+        await addDoc(
+
+            studentRef,
+
+            {
+
+                studentCode:
+
+                    "TN-S-" +
+
+                    Date.now(),
+
+                name,
+
+                parentName: parent,
+
+                phone,
+
+                parentPhone,
+
+                class: studentClass,
+
+                subject,
+
+                city,
+
+                area,
+
+                teacherId:
+
+                    teacher?.id || "",
+
+                teacherName:
+
+                    teacher?.name || "",
+
+                monthlyFees,
+
+                admissionDate:
+
+                    today(),
+
+                active: true,
+
+                createdAt:
+
+                    serverTimestamp()
+
+            }
+
+        );
+
+        showToast(
+
+            "Student Added Successfully"
+
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        showToast(
+
+            "Student Creation Failed",
+
+            "error"
+
+        );
+
+    }
+
+    finally {
+
+        hideLoader();
+
+    }
 
 }
 
-const month=
-monthInput.value;
 
-const snap=
-await getDocs(
 
-query(
+//============================================================
+// STORAGE IMAGE UPLOAD
+//============================================================
 
-collection(db,"attendance"),
+async function uploadProfileImage(
 
-where(
+    file,
 
-"studentId",
+    folder
 
-"==",
+) {
 
-attendanceHistoryStudent.id
+    if (!file) return "";
 
-),
+    const imageRef = ref(
 
-orderBy("date","desc")
+        storage,
 
-)
+        `${folder}/${Date.now()}_${file.name}`
 
-);
+    );
 
-snap.forEach(docSnap=>{
+    await uploadBytes(
 
-attendanceHistory.push({
+        imageRef,
 
-id:docSnap.id,
+        file
 
-...docSnap.data()
+    );
 
-});
+    return await getDownloadURL(
 
-});
+        imageRef
 
-const filtered=
-
-attendanceHistory.filter(a=>
-
-a.date.startsWith(month)
-
-);
-
-renderAttendanceHistory(filtered);
-
-hideLoader();
+    );
 
 }
 
-document
-.getElementById(
-"attendanceMonth"
-)
-.addEventListener(
+async function deleteProfileImage(url) {
 
-"change",
+    if (!url) return;
 
-()=>{
+    try {
 
-loadAttendanceHistory();
+        const imageRef = ref(
 
-}
+            storage,
 
-);
+            url
 
-function renderAttendanceHistory(data){
+        );
 
-let present=0;
-let absent=0;
-let leave=0;
+        await deleteObject(
 
-data.forEach(item=>{
+            imageRef
 
-if(item.status==="Present")
-present++;
+        );
 
-if(item.status==="Absent")
-absent++;
+    }
 
-if(item.status==="Leave")
-leave++;
+    catch (e) {
 
-});
+        console.error(e);
 
-const total=
-
-present+
-absent+
-leave;
-
-const percent=
-
-total===0
-?0
-:Math.round(
-present*100/total
-);
-
-document.getElementById(
-"presentCount"
-).textContent=present;
-
-document.getElementById(
-"absentCount"
-).textContent=absent;
-
-document.getElementById(
-"leaveCount"
-).textContent=leave;
-
-document.getElementById(
-"attendancePercent"
-).textContent=
-
-percent+"%";
-
-document.getElementById(
-"attendanceBar"
-).style.width=
-
-percent+"%";
-
-renderAttendanceCalendar(data);
-
-renderAttendanceTable(data);
+    }
 
 }
 
-function renderAttendanceCalendar(data){
 
-const calendar=
 
-document.getElementById(
-"attendanceCalendar"
-);
+//============================================================
+// ANALYTICS
+//============================================================
 
-calendar.innerHTML="";
+function renderAnalytics() {
 
-if(data.length===0){
+    const charts = $("analyticsCharts");
 
-calendar.innerHTML=
+    if (!charts) return;
 
-"<p>No Attendance Found</p>";
+    const paid = cache.fees.filter(
 
-return;
+        fee => fee.status === "Paid"
 
-}
+    ).length;
 
-data.reverse().forEach(item=>{
+    const pending = cache.fees.filter(
 
-const div=
-document.createElement("div");
+        fee => fee.status !== "Paid"
 
-div.className=
+    ).length;
 
-"attendanceDay "+
+    const activeTeachers = cache.teachers.filter(
 
-item.status.toLowerCase();
+        teacher => teacher.active
 
-const today=
+    ).length;
 
-new Date()
+    const activeStudents = cache.students.filter(
 
-.toISOString()
+        student => student.active
 
-.split("T")[0];
+    ).length;
 
-if(item.date===today){
+    charts.innerHTML = `
 
-div.classList.add("today");
+<div class="chartCard">
 
-}
+<h3>Overview</h3>
 
-div.innerHTML=`
-
-<strong>
-
-${item.date.split("-")[2]}
-
-</strong>
-
-<br>
-
-<small>
-
-${item.status}
-
-</small>
-
-`;
-
-calendar.appendChild(div);
-
-});
-
-}
-
-function renderAttendanceTable(data){
-
-const table=
-
-document.getElementById(
-"attendanceHistoryTable"
-);
-
-if(data.length===0){
-
-table.innerHTML=`
-
-<table>
-
-<tr>
-
-<td
-style="padding:40px;
-text-align:center;">
-
-No Attendance
-
-</td>
-
-</tr>
-
-</table>
-
-`;
-
-return;
-
-}
-
-let html=`
-
-<table>
-
-<thead>
-
-<tr>
-
-<th>Date</th>
-
-<th>Status</th>
-
-<th>Teacher</th>
-
-<th>Remark</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-`;
-
-data.forEach(item=>{
-
-let cls="";
-
-if(item.status==="Present")
-cls="statusPresent";
-
-if(item.status==="Absent")
-cls="statusAbsent";
-
-if(item.status==="Leave")
-cls="statusLeave";
-
-html+=`
-
-<tr>
-
-<td>
-
-${item.date}
-
-</td>
-
-<td>
-
-<span
-class="${cls}">
-
-${item.status}
-
-</span>
-
-</td>
-
-<td>
-
-${item.teacherName||"-"}
-
-</td>
-
-<td>
-
-${item.remark||"-"}
-
-</td>
-
-</tr>
-
-`;
-
-});
-
-html+=`
-
-</tbody>
-
-</table>
-
-`;
-
-table.innerHTML=html;
-
-}
-
-/* ==========================================================
-OPEN BUTTON FROM STUDENTS TABLE
-========================================================== */
-
-const oldRenderStudents=
-renderStudents;
-
-renderStudents=function(){
-
-oldRenderStudents();
-
-document
-
-.querySelectorAll(
-
-".attendanceBtn"
-
-)
-
-.forEach(btn=>{
-
-btn.onclick=()=>{
-
-viewAttendanceHistory(
-
-btn.dataset.id
-
-);
-
-};
-
-});
-
-};
-
-/* ==========================================================
-EXPORT EXCEL
-========================================================== */
-
-document
-
-.getElementById(
-
-"exportAttendanceExcel"
-
-)
-
-.onclick=()=>{
-
-let csv=
-
-"Date,Status,Teacher,Remark\n";
-
-attendanceHistory.forEach(a=>{
-
-csv+=
-
-`${a.date},
-
-${a.status},
-
-${a.teacherName},
-
-${a.remark||""}
-
-\n`;
-
-});
-
-const blob=
-
-new Blob(
-
-[csv],
-
-{
-
-type:
-
-"text/csv"
-
-}
-
-);
-
-const url=
-
-URL.createObjectURL(blob);
-
-const a=
-
-document.createElement("a");
-
-a.href=url;
-
-a.download=
-
-attendanceHistoryStudent.studentName+
-
-"-attendance.csv";
-
-a.click();
-
-};
-
-/* ==========================================================
-EXPORT PDF
-========================================================== */
-
-document
-
-.getElementById(
-
-"exportAttendancePDF"
-
-)
-
-.onclick=()=>{
-
-window.print();
-
-};
-/* ==========================================================
-
-
-/* ==========================================================
-ATTENDANCE ANALYTICS
-========================================================== */
-
-async function calculateAttendanceAnalytics(){
-
-let totalPresent=0;
-let totalAbsent=0;
-let totalLeave=0;
-
-state.attendance.forEach(a=>{
-
-switch(a.status){
-
-case "Present":
-totalPresent++;
-break;
-
-case "Absent":
-totalAbsent++;
-break;
-
-case "Leave":
-totalLeave++;
-break;
-
-}
-
-});
-
-const total=
-
-totalPresent+
-totalAbsent+
-totalLeave;
-
-const percentage=
-
-total===0
-?0
-:Math.round(
-(totalPresent*100)/total
-);
-
-const dashboard=document.getElementById(
-"analyticsCharts"
-);
-
-dashboard.innerHTML+=`
-
-<div class="reportGrid">
-
-<div class="reportCard">
-
-<h2>
-
-${totalPresent}
-
-</h2>
-
-<p>
-
-Present
-
-</p>
-
-</div>
-
-<div class="reportCard">
-
-<h2>
-
-${totalAbsent}
-
-</h2>
-
-<p>
-
-Absent
-
-</p>
-
-</div>
-
-<div class="reportCard">
-
-<h2>
-
-${totalLeave}
-
-</h2>
-
-<p>
-
-Leave
-
-</p>
-
-</div>
-
-<div class="reportCard">
-
-<h2>
-
-${percentage}%
-
-</h2>
-
-<p>
-
-Attendance %
-
-</p>
-
-</div>
-
-</div>
-
-`;
-
-}
-
-/* ==========================================================
-MONTHLY ATTENDANCE REPORT
-========================================================== */
-
-window.monthlyAttendanceReport=
-
-async function(month){
-
-showLoader();
-
-const snap=
-
-await getDocs(
-
-query(
-
-collection(db,"attendance"),
-
-orderBy("date","desc")
-
-)
-
-);
-
-let data=[];
-
-snap.forEach(doc=>{
-
-const d=doc.data();
-
-if(d.date.startsWith(month)){
-
-data.push(d);
-
-}
-
-});
-
-let grouped={};
-
-data.forEach(item=>{
-
-if(!grouped[item.studentId]){
-
-grouped[item.studentId]={
-
-name:item.studentName,
-
-present:0,
-
-absent:0,
-
-leave:0
-
-};
-
-}
-
-switch(item.status){
-
-case "Present":
-
-grouped[item.studentId]
-
-.present++;
-
-break;
-
-case "Absent":
-
-grouped[item.studentId]
-
-.absent++;
-
-break;
-
-case "Leave":
-
-grouped[item.studentId]
-
-.leave++;
-
-break;
-
-}
-
-});
-
-let html=`
-
-<table class="adminTable">
-
-<thead>
-
-<tr>
-
-<th>
-
-Student
-
-</th>
-
-<th>
-
-Present
-
-</th>
-
-<th>
-
-Absent
-
-</th>
-
-<th>
-
-Leave
-
-</th>
-
-<th>
-
-Percentage
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-`;
-
-Object.values(grouped)
-
-.forEach(student=>{
-
-const total=
-
-student.present+
-
-student.absent+
-
-student.leave;
-
-const per=
-
-total===0
-?0
-:Math.round(
-student.present*100/total
-);
-
-html+=`
-
-<tr>
-
-<td>
-
-${student.name}
-
-</td>
-
-<td>
-
-${student.present}
-
-</td>
-
-<td>
-
-${student.absent}
-
-</td>
-
-<td>
-
-${student.leave}
-
-</td>
-
-<td>
-
-${per}%
-
-</td>
-
-</tr>
-
-`;
-
-});
-
-html+=`
-
-</tbody>
-
-</table>
-
-`;
-
-document.getElementById(
-
-"analyticsCharts"
-
-).innerHTML=
-
-html;
-
-hideLoader();
-
-};
-
-/* ==========================================================
-TODAY SUMMARY
-========================================================== */
-
-async function todayAttendance(){
-
-const today=
-
-new Date()
-
-.toISOString()
-
-.split("T")[0];
-
-const present=
-
-state.attendance.filter(
-
-a=>
-
-a.date===today &&
-
-a.status==="Present"
-
-).length;
-
-const absent=
-
-state.attendance.filter(
-
-a=>
-
-a.date===today &&
-
-a.status==="Absent"
-
-).length;
-
-const leave=
-
-state.attendance.filter(
-
-a=>
-
-a.date===today &&
-
-a.status==="Leave"
-
-).length;
-
-console.log({
-
-present,
-
-absent,
-
-leave
-
-});
-
-}
-
-/* ==========================================================
-INITIALIZE
-========================================================== */
-
-document
-
-.addEventListener(
-
-"DOMContentLoaded",
-
-()=>{
-
-calculateAttendanceAnalytics();
-
-todayAttendance();
-
-}
-
-);
-/* ==========================================================
-TEACHER ATTENDANCE DASHBOARD
-PASTE AT END OF admin.js
-========================================================== */
-
-window.viewTeacherAttendance =
-async function(teacherId){
-
-showLoader();
-
-const teacher=
-
-state.teachers.find(
-
-t=>t.id===teacherId
-
-);
-
-if(!teacher){
-
-hideLoader();
-
-return;
-
-}
-
-const students=
-
-state.students.filter(
-
-s=>s.teacherId===teacherId
-
-);
-
-let html=`
-
-<h2 style="margin-bottom:25px;">
-
-${teacher.name}
-
-Attendance Dashboard
-
-</h2>
-
-<table class="adminTable">
-
-<thead>
-
-<tr>
-
-<th>
-
-Student
-
-</th>
-
-<th>
-
-Present
-
-</th>
-
-<th>
-
-Absent
-
-</th>
-
-<th>
-
-Leave
-
-</th>
-
-<th>
-
-Percentage
-
-</th>
-
-<th>
-
-Action
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-`;
-
-for(const student of students){
-
-const attendance=
-
-state.attendance.filter(
-
-a=>
-
-a.studentId===student.id
-
-);
-
-const present=
-
-attendance.filter(
-
-a=>a.status==="Present"
-
-).length;
-
-const absent=
-
-attendance.filter(
-
-a=>a.status==="Absent"
-
-).length;
-
-const leave=
-
-attendance.filter(
-
-a=>a.status==="Leave"
-
-).length;
-
-const total=
-
-present+
-
-absent+
-
-leave;
-
-const percent=
-
-total===0
-
-?0
-
-:Math.round(
-
-present*100/total
-
-);
-
-html+=`
-
-<tr>
-
-<td>
-
-${student.studentName}
-
-</td>
-
-<td>
-
-${present}
-
-</td>
-
-<td>
-
-${absent}
-
-</td>
-
-<td>
-
-${leave}
-
-</td>
-
-<td>
-
-${percent}%
-
-</td>
-
-<td>
-
-<button
-
-class="tableBtn blue"
-
-onclick="viewAttendanceHistory('${student.id}')">
-
-History
-
-</button>
-
-</td>
-
-</tr>
-
-`;
-
-}
-
-html+=`
-
-</tbody>
-
-</table>
-
-`;
-
-document.getElementById(
-
-"analyticsCharts"
-
-).innerHTML=
-
-html;
-
-hideLoader();
-
-};
-
-/* ==========================================================
-MONTHLY RANKING
-========================================================== */
-
-window.studentAttendanceRanking=
-
-function(){
-
-let ranking=[];
-
-state.students.forEach(student=>{
-
-const attendance=
-
-state.attendance.filter(
-
-a=>
-
-a.studentId===student.id
-
-);
-
-const present=
-
-attendance.filter(
-
-a=>a.status==="Present"
-
-).length;
-
-const absent=
-
-attendance.filter(
-
-a=>a.status==="Absent"
-
-).length;
-
-const leave=
-
-attendance.filter(
-
-a=>a.status==="Leave"
-
-).length;
-
-const total=
-
-present+
-
-absent+
-
-leave;
-
-const percentage=
-
-total===0
-
-?0
-
-:Math.round(
-
-present*100/total
-
-);
-
-ranking.push({
-
-name:student.studentName,
-
-percentage
-
-});
-
-});
-
-ranking.sort(
-
-(a,b)=>
-
-b.percentage-
-
-a.percentage
-
-);
-
-let html=`
-
-<table class="adminTable">
-
-<thead>
-
-<tr>
-
-<th>
-
-Rank
-
-</th>
-
-<th>
-
-Student
-
-</th>
-
-<th>
-
-Attendance
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-`;
-
-ranking.forEach(
-
-(student,index)=>{
-
-html+=`
-
-<tr>
-
-<td>
-
-#${index+1}
-
-</td>
-
-<td>
-
-${student.name}
-
-</td>
-
-<td>
-
-${student.percentage}%
-
-</td>
-
-</tr>
-
-`;
-
-});
-
-html+=`
-
-</tbody>
-
-</table>
-
-`;
-
-document.getElementById(
-
-"analyticsCharts"
-
-).innerHTML=
-
-html;
-
-};
-
-/* ==========================================================
-LOW ATTENDANCE ALERT
-========================================================== */
-
-window.lowAttendanceStudents=
-
-function(){
-
-const low=[];
-
-state.students.forEach(student=>{
-
-const attendance=
-
-state.attendance.filter(
-
-a=>
-
-a.studentId===student.id
-
-);
-
-const present=
-
-attendance.filter(
-
-a=>a.status==="Present"
-
-).length;
-
-const absent=
-
-attendance.filter(
-
-a=>a.status==="Absent"
-
-).length;
-
-const leave=
-
-attendance.filter(
-
-a=>a.status==="Leave"
-
-).length;
-
-const total=
-
-present+
-
-absent+
-
-leave;
-
-const per=
-
-total===0
-
-?0
-
-:Math.round(
-
-present*100/total
-
-);
-
-if(per<75){
-
-low.push({
-
-student,
-
-per
-
-});
-
-}
-
-});
-
-if(low.length===0){
-
-showToast(
-
-"All Students Above 75%"
-
-);
-
-return;
-
-}
-
-let message="";
-
-low.forEach(x=>{
-
-message+=
-
-`${x.student.studentName}
-
- (${x.per}%)
-
-\n`;
-
-});
-
-alert(
-
-"Low Attendance Students\n\n"+
-
-message
-
-);
-
-};
-
-/* ==========================================================
-AUTO DAILY CHECK
-========================================================== */
-
-setTimeout(()=>{
-
-lowAttendanceStudents();
-
-},3000);
-/* ==========================================================
-PARENT ATTENDANCE REPORT
-PASTE AT END OF admin.js
-========================================================== */
-
-window.generateParentAttendanceReport =
-function(studentId){
-
-const student =
-state.students.find(
-x=>x.id===studentId
-);
-
-if(!student) return;
-
-const attendance =
-state.attendance.filter(
-a=>a.studentId===studentId
-);
-
-const present =
-attendance.filter(
-a=>a.status==="Present"
-).length;
-
-const absent =
-attendance.filter(
-a=>a.status==="Absent"
-).length;
-
-const leave =
-attendance.filter(
-a=>a.status==="Leave"
-).length;
-
-const total =
-present+absent+leave;
-
-const percentage =
-total===0
-?0
-:Math.round(
-(present*100)/total
-);
-
-let html=`
-
-<div class="parentAttendanceCard">
-
-<h2>
-
-Attendance Report
-
-</h2>
-
-<hr>
-
-<p>
-
-<b>Student :</b>
-
-${student.studentName}
-
-</p>
-
-<p>
-
-<b>Teacher :</b>
-
-${student.teacherName}
-
-</p>
-
-<p>
-
-<b>Class :</b>
-
-${student.class}
-
-</p>
-
-<p>
-
-<b>Present :</b>
-
-${present}
-
-</p>
-
-<p>
-
-<b>Absent :</b>
-
-${absent}
-
-</p>
-
-<p>
-
-<b>Leave :</b>
-
-${leave}
-
-</p>
-
-<p>
-
-<b>Attendance :</b>
-
-${percentage}%
-
-</p>
-
-</div>
-
-`;
-
-document
-.getElementById(
-"analyticsCharts"
-)
-.innerHTML=html;
-
-};
-
-/* ==========================================================
-STUDENT PROFILE SUMMARY
-========================================================== */
-
-window.studentSummary =
-function(studentId){
-
-const student=
-state.students.find(
-s=>s.id===studentId
-);
-
-if(!student)return;
-
-const fees=
-state.fees.filter(
-f=>f.studentId===studentId
-);
-
-const attendance=
-state.attendance.filter(
-a=>a.studentId===studentId
-);
-
-const paid=
-fees.reduce(
-(sum,x)=>
-sum+Number(x.amount||0),
-0
-);
-
-const present=
-attendance.filter(
-x=>x.status==="Present"
-).length;
-
-const absent=
-attendance.filter(
-x=>x.status==="Absent"
-).length;
-
-const leave=
-attendance.filter(
-x=>x.status==="Leave"
-).length;
-
-const total=
-present+absent+leave;
-
-const attendancePercent=
-total===0
-?0
-:Math.round(
-present*100/total
-);
-
-document.getElementById(
-"analyticsCharts"
-).innerHTML=`
-
-<div class="reportGrid">
-
-<div class="reportCard">
-
-<h2>
-
-${student.studentName}
-
-</h2>
-
-<p>
-
-Student
-
-</p>
-
-</div>
-
-<div class="reportCard">
-
-<h2>
-
-₹${paid}
-
-</h2>
-
-<p>
-
-Total Fees Paid
-
-</p>
-
-</div>
-
-<div class="reportCard">
-
-<h2>
-
-${attendancePercent}%
-
-</h2>
-
-<p>
-
-Attendance
-
-</p>
-
-</div>
-
-<div class="reportCard">
-
-<h2>
-
-${student.teacherName}
-
-</h2>
-
-<p>
-
-Assigned Teacher
-
-</p>
-
-</div>
-
-</div>
-
-`;
-
-};
-
-/* ==========================================================
-BULK ATTENDANCE
-========================================================== */
-
-window.bulkAttendance =
-async function(status){
-
-const date=
-document.getElementById(
-"attendanceDate"
-).value;
-
-if(!date){
-
-showToast(
-"Select Date",
-"error"
-);
-
-return;
-
-}
-
-showLoader();
-
-for(const student of state.students){
-
-await addDoc(
-
-collection(db,"attendance"),
-
-{
-
-studentId:student.id,
-
-studentName:student.studentName,
-
-teacherId:student.teacherId,
-
-teacherName:student.teacherName,
-
-status,
-
-date,
-
-createdAt:serverTimestamp()
-
-}
-
-);
-
-}
-
-hideLoader();
-
-await loadAttendance();
-
-renderAttendance();
-
-showToast(
-
-"Bulk Attendance Saved"
-
-);
-
-};
-
-/* ==========================================================
-TODAY PRESENT %
-========================================================== */
-
-window.todayAttendancePercentage=
-function(){
-
-const today=
-
-new Date()
-
-.toISOString()
-
-.split("T")[0];
-
-const todayAttendance=
-
-state.attendance.filter(
-
-a=>a.date===today
-
-);
-
-if(todayAttendance.length===0){
-
-return 0;
-
-}
-
-const present=
-
-todayAttendance.filter(
-
-a=>a.status==="Present"
-
-).length;
-
-return Math.round(
-
-(present*100)/
-
-todayAttendance.length
-
-);
-
-};
-
-/* ==========================================================
-DASHBOARD ATTENDANCE CARD
-========================================================== */
-
-function updateAttendanceDashboard(){
-
-const percentage=
-
-todayAttendancePercentage();
-
-const card=document.createElement("div");
-
-card.className="statCard blue";
-
-card.innerHTML=`
+<div class="detailsGrid">
 
 <div>
 
-<h5>
+<label>Students</label>
 
-Today's Attendance
-
-</h5>
-
-<h2>
-
-${percentage}%
-
-</h2>
-
-<p>
-
-Overall Present
-
-</p>
+<p>${activeStudents}</p>
 
 </div>
 
-<i class="fa-solid fa-calendar-check"></i>
+<div>
 
-`;
+<label>Teachers</label>
 
-const stats=
+<p>${activeTeachers}</p>
 
-document.querySelector(
+</div>
 
-".statsGrid"
+<div>
 
-);
+<label>Paid Fees</label>
 
-if(stats){
+<p>${paid}</p>
 
-stats.appendChild(card);
+</div>
 
-}
+<div>
 
-}
+<label>Pending Fees</label>
 
-document.addEventListener(
+<p>${pending}</p>
 
-"DOMContentLoaded",
+</div>
 
-()=>{
+</div>
 
-setTimeout(
+</div>
 
-updateAttendanceDashboard,
+<div class="chartCard">
 
-1500
+<h3>Revenue</h3>
 
-);
+<div class="detailsGrid">
 
-});
-/* ==========================================================
-ATTENDANCE EDIT / DELETE / REMARKS
-PASTE AT END OF admin.js
-========================================================== */
+<div>
 
-window.editAttendance = async function(id){
+<label>Total Revenue</label>
 
-const record =
-attendanceHistory.find(
-x=>x.id===id
-);
+<p>
 
-if(!record) return;
+${formatMoney(
 
-const status = prompt(
-"Status (Present/Absent/Leave)",
-record.status
-);
+cache.fees
 
-if(status===null) return;
+.filter(f=>f.status==="Paid")
 
-const remark = prompt(
-"Remark",
-record.remark || ""
-);
+.reduce(
 
-try{
+(a,b)=>a+Number(b.amount||0),
 
-await updateDoc(
-
-doc(
-db,
-"attendance",
-id
-),
-
-{
-
-status,
-
-remark,
-
-updatedAt:serverTimestamp()
-
-}
-
-);
-
-showToast(
-
-"Attendance Updated"
-
-);
-
-await loadAttendance();
-
-await loadAttendanceHistory();
-
-renderAttendance();
-
-}catch(err){
-
-console.error(err);
-
-showToast(
-
-"Update Failed",
-
-"error"
-
-);
-
-}
-
-};
-
-window.deleteAttendance =
-async function(id){
-
-if(!confirm(
-"Delete Attendance?"
-)) return;
-
-try{
-
-await deleteDoc(
-
-doc(
-db,
-"attendance",
-id
-)
-
-);
-
-attendanceHistory=
-attendanceHistory.filter(
-x=>x.id!==id
-);
-
-renderAttendanceHistory(
-attendanceHistory
-);
-
-showToast(
-"Attendance Deleted"
-);
-
-}catch(err){
-
-console.error(err);
-
-showToast(
-"Delete Failed",
-"error"
-);
-
-}
-
-};
-
-/* ==========================================================
-REPLACE renderAttendanceTable()
-ACTION COLUMN ONLY
-========================================================== */
-
-/*
-
-<th>Action</th>
-
-<td>
-
-<button
-class="tableBtn green"
-onclick="editAttendance('${item.id}')">
-
-<i class="fa-solid fa-pen"></i>
-
-</button>
-
-<button
-class="tableBtn red"
-onclick="deleteAttendance('${item.id}')">
-
-<i class="fa-solid fa-trash"></i>
-
-</button>
-
-</td>
-
-*/
-
-/* ==========================================================
-ATTENDANCE STREAK
-========================================================== */
-
-window.studentAttendanceStreak=
-function(studentId){
-
-const records=
-
-state.attendance
-
-.filter(
-
-a=>a.studentId===studentId
+0
 
 )
-
-.sort(
-
-(a,b)=>
-
-a.date.localeCompare(b.date)
-
-);
-
-let streak=0;
-
-for(let i=records.length-1;i>=0;i--){
-
-if(records[i].status==="Present"){
-
-streak++;
-
-}else{
-
-break;
-
-}
-
-}
-
-return streak;
-
-};
-
-/* ==========================================================
-TOP 10 ATTENDANCE
-========================================================== */
-
-window.topAttendanceStudents=
-function(){
-
-const result=[];
-
-state.students.forEach(student=>{
-
-const attendance=
-
-state.attendance.filter(
-
-a=>a.studentId===student.id
-
-);
-
-const present=
-
-attendance.filter(
-
-a=>a.status==="Present"
-
-).length;
-
-const total=
-
-attendance.length;
-
-const percent=
-
-total===0
-?0
-:Math.round(
-
-present*100/total
-
-);
-
-result.push({
-
-student,
-
-percent
-
-});
-
-});
-
-result.sort(
-
-(a,b)=>
-
-b.percent-a.percent
-
-);
-
-return result.slice(0,10);
-
-};
-
-/* ==========================================================
-DASHBOARD WIDGET
-========================================================== */
-
-window.renderAttendanceWidget=
-function(){
-
-const top=
-
-topAttendanceStudents();
-
-let html=`
-
-<div class="sectionCard">
-
-<h2>
-
-Top Attendance
-
-</h2>
-
-<table class="adminTable">
-
-<thead>
-
-<tr>
-
-<th>
-
-Rank
-
-</th>
-
-<th>
-
-Student
-
-</th>
-
-<th>
-
-Attendance
-
-</th>
-
-<th>
-
-Streak
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-`;
-
-top.forEach(
-
-(item,index)=>{
-
-html+=`
-
-<tr>
-
-<td>
-
-#${index+1}
-
-</td>
-
-<td>
-
-${item.student.studentName}
-
-</td>
-
-<td>
-
-${item.percent}%
-
-</td>
-
-<td>
-
-${studentAttendanceStreak(
-
-item.student.id
 
 )}
 
- Days
-
-</td>
-
-</tr>
-
-`;
-
-});
-
-html+=`
-
-</tbody>
-
-</table>
-
-</div>
-
-`;
-
-document.getElementById(
-
-"analyticsCharts"
-
-).innerHTML+=html;
-
-};
-
-/* ==========================================================
-AUTO LOAD
-========================================================== */
-
-setTimeout(()=>{
-
-renderAttendanceWidget();
-
-},2500);
-/* ==========================================================
-STUDENT PROFILE TIMELINE
-PASTE AT END OF admin.js
-========================================================== */
-
-window.openStudentTimeline =
-async function(studentId){
-
-showLoader();
-
-const student =
-state.students.find(
-x=>x.id===studentId
-);
-
-if(!student){
-
-hideLoader();
-
-return;
-
-}
-
-const attendance =
-
-state.attendance.filter(
-a=>a.studentId===studentId
-);
-
-const fees =
-
-state.fees.filter(
-f=>f.studentId===studentId
-);
-
-attendance.sort(
-(a,b)=>b.date.localeCompare(a.date)
-);
-
-fees.sort(
-(a,b)=>{
-
-if(!a.createdAt||!b.createdAt)
-return 0;
-
-return(
-
-b.createdAt.seconds-
-
-a.createdAt.seconds
-
-);
-
-});
-
-let html=`
-
-<div class="timelineWrapper">
-
-<h2>
-
-${student.studentName}
-
-</h2>
-
-<div class="timeline">
-
-`;
-
-attendance.forEach(item=>{
-
-html+=`
-
-<div class="timelineItem">
-
-<div class="timelineIcon">
-
-<i class="fa-solid fa-calendar-check"></i>
-
-</div>
-
-<div class="timelineContent">
-
-<h4>
-
-Attendance
-
-</h4>
-
-<p>
-
-${item.status}
-
 </p>
 
-<small>
-
-${item.date}
-
-</small>
-
 </div>
 
-</div>
+<div>
 
-`;
-
-});
-
-fees.forEach(item=>{
-
-html+=`
-
-<div class="timelineItem">
-
-<div class="timelineIcon">
-
-<i class="fa-solid fa-indian-rupee-sign"></i>
-
-</div>
-
-<div class="timelineContent">
-
-<h4>
-
-Fee Paid
-
-</h4>
+<label>Demo Bookings</label>
 
 <p>
 
-₹${item.amount}
-
-</p>
-
-<small>
-
-${item.month}
-
-</small>
-
-</div>
-
-</div>
-
-`;
-
-});
-
-html+=`
-
-</div>
-
-</div>
-
-`;
-
-document.getElementById(
-
-"analyticsCharts"
-
-).innerHTML=
-
-html;
-
-hideLoader();
-
-};
-
-/* ==========================================================
-STUDENT PERFORMANCE
-========================================================== */
-
-window.studentPerformance =
-function(studentId){
-
-const attendance=
-
-state.attendance.filter(
-
-a=>a.studentId===studentId
-
-);
-
-const fees=
-
-state.fees.filter(
-
-f=>f.studentId===studentId
-
-);
-
-const present=
-
-attendance.filter(
-
-a=>a.status==="Present"
-
-).length;
-
-const absent=
-
-attendance.filter(
-
-a=>a.status==="Absent"
-
-).length;
-
-const leave=
-
-attendance.filter(
-
-a=>a.status==="Leave"
-
-).length;
-
-const total=
-
-attendance.length;
-
-const percent=
-
-total===0
-
-?0
-
-:Math.round(
-
-present*100/total
-
-);
-
-const feePaid=
-
-fees.reduce(
-
-(sum,x)=>
-
-sum+
-
-Number(x.amount||0),
-
-0
-
-);
-
-return{
-
-attendance:percent,
-
-present,
-
-absent,
-
-leave,
-
-feePaid
-
-};
-
-};
-
-/* ==========================================================
-DASHBOARD STUDENT CARD
-========================================================== */
-
-window.studentOverview =
-function(studentId){
-
-const student=
-
-state.students.find(
-
-x=>x.id===studentId
-
-);
-
-if(!student)return;
-
-const report=
-
-studentPerformance(
-
-studentId
-
-);
-
-document.getElementById(
-
-"analyticsCharts"
-
-).innerHTML=`
-
-<div class="reportGrid">
-
-<div class="reportCard">
-
-<h2>
-
-${student.studentName}
-
-</h2>
-
-<p>
-
-Student
+${cache.demos.length}
 
 </p>
 
 </div>
 
-<div class="reportCard">
+<div>
 
-<h2>
-
-${report.attendance}%
-
-</h2>
+<label>Attendance</label>
 
 <p>
 
-Attendance
+${cache.attendance.length}
 
 </p>
 
 </div>
 
-<div class="reportCard">
+<div>
 
-<h2>
-
-₹${report.feePaid}
-
-</h2>
+<label>Commission Records</label>
 
 <p>
 
-Fees Paid
-
-</p>
-
-</div>
-
-<div class="reportCard">
-
-<h2>
-
-${student.teacherName}
-
-</h2>
-
-<p>
-
-Teacher
+${cache.commissions.length}
 
 </p>
 
@@ -5428,3638 +4197,4788 @@ Teacher
 
 </div>
 
-`;
-
-};
-
-/* ==========================================================
-AUTO MONTHLY RESET CHECK
-========================================================== */
-
-window.monthlyAttendanceCleanup =
-async function(){
-
-const month=
-
-new Date()
-
-.toISOString()
-
-.slice(0,7);
-
-const old=
-
-state.attendance.filter(
-
-a=>
-
-!a.date.startsWith(month)
-
-);
-
-console.log(
-
-"Old Records :",
-
-old.length
-
-);
-
-};
-
-/* ==========================================================
-INITIALIZE
-========================================================== */
-
-document.addEventListener(
-
-"DOMContentLoaded",
-
-()=>{
-
-setTimeout(()=>{
-
-monthlyAttendanceCleanup();
-
-},4000);
-
-});
-/* ==========================================================
-ATTENDANCE HEATMAP + CONSECUTIVE ABSENCE ALERT
-PASTE AT END OF admin.js
-========================================================== */
-
-window.renderAttendanceHeatmap =
-function(studentId){
-
-const container =
-document.getElementById(
-"attendanceCalendar"
-);
-
-if(!container) return;
-
-container.innerHTML="";
-
-const year =
-new Date().getFullYear();
-
-const month =
-new Date().getMonth();
-
-const totalDays =
-new Date(
-year,
-month+1,
-0
-).getDate();
-
-const map={};
-
-attendanceHistory.forEach(record=>{
-
-map[record.date]=record.status;
-
-});
-
-for(let day=1;day<=totalDays;day++){
-
-const date=
-
-`${year}-${
-String(month+1)
-.padStart(2,"0")
-}-${
-String(day)
-.padStart(2,"0")
-}`;
-
-const box=
-document.createElement("div");
-
-box.className=
-"attendanceDay";
-
-box.innerHTML=day;
-
-if(map[date]==="Present"){
-
-box.classList.add(
-"present"
-);
-
-}
-
-else if(map[date]==="Absent"){
-
-box.classList.add(
-"absent"
-);
-
-}
-
-else if(map[date]==="Leave"){
-
-box.classList.add(
-"leave"
-);
-
-}
-
-box.title=
-
-map[date]||
-
-"No Record";
-
-container.appendChild(box);
-
-}
-
-};
-
-/* ==========================================================
-CONSECUTIVE ABSENCE CHECK
-========================================================== */
-
-window.consecutiveAbsence =
-function(studentId){
-
-const records=
-
-state.attendance
-
-.filter(
-
-a=>a.studentId===studentId
-
-)
-
-.sort(
-
-(a,b)=>
-
-b.date.localeCompare(a.date)
-
-);
-
-let count=0;
-
-for(const item of records){
-
-if(item.status==="Absent"){
-
-count++;
-
-}else{
-
-break;
-
-}
-
-}
-
-return count;
-
-};
-
-/* ==========================================================
-LOW ATTENDANCE WARNING
-========================================================== */
-
-window.studentAttendanceWarning =
-function(studentId){
-
-const absent=
-
-consecutiveAbsence(
-studentId
-);
-
-if(absent>=3){
-
-showToast(
-
-"⚠ Student absent for "+
-absent+
-" consecutive days",
-
-"error"
-
-);
-
-}
-
-};
-
-/* ==========================================================
-MONTHLY ATTENDANCE GRAPH DATA
-========================================================== */
-
-window.getAttendanceGraphData =
-function(studentId){
-
-const data=[];
-
-for(let i=1;i<=31;i++){
-
-const date=
-new Date()
-
-.toISOString()
-
-.slice(0,7)+
-
-"-"+
-
-String(i)
-
-.padStart(2,"0");
-
-const attendance=
-
-attendanceHistory.find(
-
-a=>a.date===date
-
-);
-
-data.push({
-
-day:i,
-
-status:
-
-attendance
-
-?attendance.status
-
-:"None"
-
-});
-
-}
-
-return data;
-
-};
-
-/* ==========================================================
-ATTENDANCE FILTER
-========================================================== */
-
-window.filterAttendance =
-function(status){
-
-const filtered=
-
-attendanceHistory.filter(
-
-a=>a.status===status
-
-);
-
-renderAttendanceTable(
-
-filtered
-
-);
-
-};
-
-/* ==========================================================
-BUTTON EVENTS
-========================================================== */
-
-document
-
-.getElementById(
-
-"presentCount"
-
-)
-
-.onclick=()=>{
-
-filterAttendance(
-
-"Present"
-
-);
-
-};
-
-document
-
-.getElementById(
-
-"absentCount"
-
-)
-
-.onclick=()=>{
-
-filterAttendance(
-
-"Absent"
-
-);
-
-};
-
-document
-
-.getElementById(
-
-"leaveCount"
-
-)
-
-.onclick=()=>{
-
-filterAttendance(
-
-"Leave"
-
-);
-
-};
-
-/* ==========================================================
-RESTORE TABLE
-========================================================== */
-
-document
-
-.getElementById(
-
-"attendancePercent"
-
-)
-
-.onclick=()=>{
-
-renderAttendanceTable(
-
-attendanceHistory
-
-);
-
-};
-
-/* ==========================================================
-LOAD EXTRA FEATURES
-========================================================== */
-
-const oldHistory=
-loadAttendanceHistory;
-
-loadAttendanceHistory=
-async function(){
-
-await oldHistory();
-
-renderAttendanceHeatmap(
-
-attendanceHistoryStudent.id
-
-);
-
-studentAttendanceWarning(
-
-attendanceHistoryStudent.id
-
-);
-
-};
-/* ==========================================================
-ATTENDANCE DASHBOARD WIDGETS
-PASTE AT END OF admin.js
-========================================================== */
-
-window.renderAttendanceDashboardWidgets =
-function(){
-
-const dashboard =
-document.getElementById(
-"analyticsCharts"
-);
-
-if(!dashboard) return;
-
-const totalStudents =
-state.students.length;
-
-const totalAttendance =
-state.attendance.length;
-
-const present =
-state.attendance.filter(
-a=>a.status==="Present"
-).length;
-
-const absent =
-state.attendance.filter(
-a=>a.status==="Absent"
-).length;
-
-const leave =
-state.attendance.filter(
-a=>a.status==="Leave"
-).length;
-
-const percentage =
-totalAttendance===0
-?0
-:Math.round(
-present*100/totalAttendance
-);
-
-const today =
-new Date()
-.toISOString()
-.split("T")[0];
-
-const todayAttendance =
-state.attendance.filter(
-a=>a.date===today
-).length;
-
-dashboard.innerHTML=`
-
-<div class="reportGrid">
-
-<div class="reportCard">
-
-<h2>${totalStudents}</h2>
-
-<p>Total Students</p>
-
-</div>
-
-<div class="reportCard">
-
-<h2>${todayAttendance}</h2>
-
-<p>Today's Entries</p>
-
-</div>
-
-<div class="reportCard">
-
-<h2>${present}</h2>
-
-<p>Total Present</p>
-
-</div>
-
-<div class="reportCard">
-
-<h2>${absent}</h2>
-
-<p>Total Absent</p>
-
-</div>
-
-<div class="reportCard">
-
-<h2>${leave}</h2>
-
-<p>Total Leave</p>
-
-</div>
-
-<div class="reportCard">
-
-<h2>${percentage}%</h2>
-
-<p>Overall Attendance</p>
-
-</div>
-
 </div>
 
 `;
 
-};
+}
 
-/* ==========================================================
-ATTENDANCE SEARCH
-========================================================== */
 
-window.searchAttendanceStudent =
-function(keyword){
 
-keyword=keyword.toLowerCase();
+//============================================================
+// AUTO REFRESH ANALYTICS
+//============================================================
 
-const data=
+setInterval(() => {
 
-attendanceHistory.filter(
+    renderAnalytics();
 
-a=>
+}, 5000);
+//============================================================
+// ROLE & PERMISSION ENGINE
+//============================================================
 
-(a.studentName||"")
+const USER_ROLES = {
 
-.toLowerCase()
+    SUPER_ADMIN: "super_admin",
 
-.includes(keyword)
+    ADMIN: "admin",
 
-||
+    MANAGER: "manager",
 
-(a.teacherName||"")
+    ACCOUNTANT: "accountant",
 
-.toLowerCase()
-
-.includes(keyword)
-
-);
-
-renderAttendanceTable(data);
+    TEACHER: "teacher"
 
 };
 
-/* ==========================================================
-LAST 30 DAYS
-========================================================== */
+let currentUser = null;
 
-window.lastThirtyDaysAttendance =
-function(studentId){
+let currentRole = USER_ROLES.ADMIN;
 
-const today=new Date();
+async function loadCurrentUser(uid) {
 
-const filtered=
+    try {
 
-state.attendance.filter(a=>{
+        const snap = await getDoc(
 
-if(a.studentId!==studentId)
-return false;
+            doc(db, "admins", uid)
 
-const d=new Date(a.date);
+        );
 
-const diff=
+        if (!snap.exists()) return;
 
-(today-d)/(1000*60*60*24);
+        currentUser = {
 
-return diff<=30;
+            id: uid,
 
-});
+            ...snap.data()
 
-renderAttendanceTable(filtered);
+        };
 
-};
+        currentRole =
 
-/* ==========================================================
-MARK LEAVE
-========================================================== */
+            currentUser.role ||
 
-window.markLeave =
-async function(studentId){
+            USER_ROLES.ADMIN;
 
-const student=
+        applyPermissions();
 
-state.students.find(
+    }
 
-x=>x.id===studentId
+    catch (e) {
 
-);
+        console.error(e);
 
-if(!student)return;
-
-await addDoc(
-
-collection(db,"attendance"),
-
-{
-
-studentId:student.id,
-
-studentName:student.studentName,
-
-teacherId:student.teacherId,
-
-teacherName:student.teacherName,
-
-status:"Leave",
-
-date:new Date()
-
-.toISOString()
-
-.split("T")[0],
-
-remark:"Approved Leave",
-
-createdAt:serverTimestamp()
+    }
 
 }
 
-);
+function can(permission) {
 
-await loadAttendance();
+    const permissions = {
 
-renderAttendance();
+        super_admin: [
 
-showToast(
+            "*"
 
-"Leave Marked"
+        ],
 
-);
+        admin: [
 
-};
+            "students",
 
-/* ==========================================================
-BULK ABSENT
-========================================================== */
+            "teachers",
 
-window.bulkAbsent =
-function(){
+            "fees",
 
-bulkAttendance(
+            "attendance",
 
-"Absent"
+            "reports"
 
-);
+        ],
 
-};
+        manager: [
 
-/* ==========================================================
-BULK PRESENT
-========================================================== */
+            "students",
 
-window.bulkPresent =
-function(){
+            "teachers",
 
-bulkAttendance(
+            "attendance"
 
-"Present"
+        ],
 
-);
+        accountant: [
 
-};
+            "fees",
 
-/* ==========================================================
-BULK LEAVE
-========================================================== */
+            "reports"
 
-window.bulkLeave =
-function(){
+        ],
 
-bulkAttendance(
+        teacher: [
 
-"Leave"
+            "attendance"
 
-);
+        ]
 
-};
+    };
 
-/* ==========================================================
-ATTENDANCE REFRESH
-========================================================== */
+    const rolePermissions =
 
-window.refreshAttendanceModule =
-async function(){
+        permissions[currentRole] || [];
 
-showLoader();
+    return (
 
-await loadAttendance();
+        rolePermissions.includes("*")
 
-renderAttendance();
+        ||
 
-renderAttendanceDashboardWidgets();
+        rolePermissions.includes(permission)
 
-hideLoader();
-
-};
-
-/* ==========================================================
-INITIAL LOAD
-========================================================== */
-
-document.addEventListener(
-
-"DOMContentLoaded",
-
-()=>{
-
-setTimeout(
-
-refreshAttendanceModule,
-
-2000
-
-);
-
-});
-/* ==========================================================
-MONTHLY ATTENDANCE SUMMARY + FIRESTORE STATS
-PASTE AT END OF admin.js
-========================================================== */
-
-window.generateAttendanceSummary =
-async function(month){
-
-showLoader();
-
-const snapshot = await getDocs(
-
-query(
-
-collection(db,"attendance"),
-
-orderBy("date","asc")
-
-)
-
-);
-
-const summary={};
-
-snapshot.forEach(doc=>{
-
-const data=doc.data();
-
-if(!data.date.startsWith(month))
-return;
-
-if(!summary[data.studentId]){
-
-summary[data.studentId]={
-
-name:data.studentName,
-
-teacher:data.teacherName,
-
-present:0,
-
-absent:0,
-
-leave:0,
-
-total:0
-
-};
+    );
 
 }
 
-summary[data.studentId].total++;
+function applyPermissions() {
 
-switch(data.status){
+    if (
 
-case "Present":
+        !can("teachers")
 
-summary[data.studentId].present++;
+    ) {
 
-break;
+        $("newTeacherBtn")?.remove();
 
-case "Absent":
+    }
 
-summary[data.studentId].absent++;
+    if (
 
-break;
+        !can("fees")
 
-case "Leave":
+    ) {
 
-summary[data.studentId].leave++;
+        $("feesBtn")?.remove();
 
-break;
+    }
+
+    if (
+
+        !can("reports")
+
+    ) {
+
+        $("reportBtn")?.remove();
+
+    }
 
 }
 
-});
 
-let html=`
 
-<table class="adminTable">
+//============================================================
+// AUDIT LOG
+//============================================================
 
-<thead>
+async function addAuditLog(
 
-<tr>
+    action,
 
-<th>Student</th>
+    module,
 
-<th>Teacher</th>
+    details = {}
 
-<th>Present</th>
+) {
 
-<th>Absent</th>
+    try {
 
-<th>Leave</th>
+        await addDoc(
 
-<th>%</th>
+            collection(db, "auditLogs"),
 
-</tr>
+            {
 
-</thead>
+                userId:
 
-<tbody>
+                    currentUser?.id || "",
+
+                userName:
+
+                    currentUser?.name || "",
+
+                role:
+
+                    currentRole,
+
+                action,
+
+                module,
+
+                details,
+
+                createdAt:
+
+                    serverTimestamp()
+
+            }
+
+        );
+
+    }
+
+    catch (e) {
+
+        console.error(e);
+
+    }
+
+}
+
+
+
+//============================================================
+// DASHBOARD SEARCH
+//============================================================
+
+function globalSearch(keyword) {
+
+    keyword = keyword
+
+        .trim()
+
+        .toLowerCase();
+
+    return {
+
+        students:
+
+            cache.students.filter(
+
+                student =>
+
+                    JSON.stringify(student)
+
+                    .toLowerCase()
+
+                    .includes(keyword)
+
+            ),
+
+        teachers:
+
+            cache.teachers.filter(
+
+                teacher =>
+
+                    JSON.stringify(teacher)
+
+                    .toLowerCase()
+
+                    .includes(keyword)
+
+            ),
+
+        demos:
+
+            cache.demos.filter(
+
+                demo =>
+
+                    JSON.stringify(demo)
+
+                    .toLowerCase()
+
+                    .includes(keyword)
+
+            )
+
+    };
+
+}
+
+
+
+//============================================================
+// FIRESTORE PAGINATION
+//============================================================
+
+let lastDemoDocument = null;
+
+let demoLoading = false;
+
+async function loadMoreDemos() {
+
+    if (demoLoading) return;
+
+    demoLoading = true;
+
+    try {
+
+        let q;
+
+        if (lastDemoDocument) {
+
+            q = query(
+
+                demoRef,
+
+                orderBy(
+
+                    "createdAt",
+
+                    "desc"
+
+                ),
+
+                startAfter(
+
+                    lastDemoDocument
+
+                ),
+
+                limit(20)
+
+            );
+
+        }
+
+        else {
+
+            q = query(
+
+                demoRef,
+
+                orderBy(
+
+                    "createdAt",
+
+                    "desc"
+
+                ),
+
+                limit(20)
+
+            );
+
+        }
+
+        const snap =
+
+            await getDocs(q);
+
+        if (
+
+            snap.empty
+
+        ) {
+
+            demoLoading = false;
+
+            return;
+
+        }
+
+        lastDemoDocument =
+
+            snap.docs[
+
+                snap.docs.length - 1
+
+            ];
+
+        snap.docs.forEach(docSnap => {
+
+            cache.demos.push({
+
+                id: docSnap.id,
+
+                ...docSnap.data()
+
+            });
+
+        });
+
+        renderDemoTable();
+
+    }
+
+    catch (e) {
+
+        console.error(e);
+
+    }
+
+    finally {
+
+        demoLoading = false;
+
+    }
+
+}
+
+
+
+//============================================================
+// NOTIFICATION ENGINE
+//============================================================
+
+async function pushNotification(
+
+    title,
+
+    message,
+
+    type = "info"
+
+) {
+
+    try {
+
+        await addDoc(
+
+            collection(
+
+                db,
+
+                "notifications"
+
+            ),
+
+            {
+
+                title,
+
+                message,
+
+                type,
+
+                read: false,
+
+                createdAt:
+
+                    serverTimestamp()
+
+            }
+
+        );
+
+    }
+
+    catch (e) {
+
+        console.error(e);
+
+    }
+
+}
+
+function listenNotifications() {
+
+    onSnapshot(
+
+        query(
+
+            collection(
+
+                db,
+
+                "notifications"
+
+            ),
+
+            where(
+
+                "read",
+
+                "==",
+
+                false
+
+            )
+
+        ),
+
+        snapshot => {
+
+            notificationBtn.innerHTML =
+
+                `
+
+<i class="fa-solid fa-bell"></i>
+
+${snapshot.size>0?
+
+`<span class="notificationBadge">
+
+${snapshot.size}
+
+</span>`
+
+:""}
 
 `;
 
-Object.values(summary).forEach(student=>{
+        }
 
-const percent=
+    );
 
-student.total===0
+}
 
-?0
 
-:Math.round(
 
-(student.present*100)/
+//============================================================
+// AUTO SAVE LOCAL CACHE
+//============================================================
 
-student.total
+function saveLocalCache() {
+
+    localStorage.setItem(
+
+        "tn_dashboard_cache",
+
+        JSON.stringify({
+
+            students:
+
+                cache.students,
+
+            teachers:
+
+                cache.teachers,
+
+            demos:
+
+                cache.demos,
+
+            fees:
+
+                cache.fees
+
+        })
+
+    );
+
+}
+
+function loadLocalCache() {
+
+    const data =
+
+        localStorage.getItem(
+
+            "tn_dashboard_cache"
+
+        );
+
+    if (!data) return;
+
+    try {
+
+        const parsed =
+
+            JSON.parse(data);
+
+        cache.students =
+
+            parsed.students || [];
+
+        cache.teachers =
+
+            parsed.teachers || [];
+
+        cache.demos =
+
+            parsed.demos || [];
+
+        cache.fees =
+
+            parsed.fees || [];
+
+    }
+
+    catch (e) {
+
+        console.error(e);
+
+    }
+
+}
+
+setInterval(
+
+    saveLocalCache,
+
+    30000
+
+);
+//============================================================
+// BACKUP & RESTORE ENGINE
+//============================================================
+
+$("backupBtn")?.addEventListener(
+
+    "click",
+
+    backupDatabase
 
 );
 
-html+=`
+async function backupDatabase() {
 
-<tr>
+    showLoader();
 
-<td>${student.name}</td>
+    try {
 
-<td>${student.teacher}</td>
+        const backup = {
 
-<td>${student.present}</td>
+            exportedAt: new Date().toISOString(),
 
-<td>${student.absent}</td>
+            students: cache.students,
 
-<td>${student.leave}</td>
+            teachers: cache.teachers,
 
-<td>${percent}%</td>
+            demos: cache.demos,
 
-</tr>
+            attendance: cache.attendance,
 
-`;
+            fees: cache.fees,
 
-});
+            commissions: cache.commissions,
 
-html+=`
+            settings: cache.settings
 
-</tbody>
+        };
 
-</table>
+        const blob = new Blob(
 
-`;
+            [
 
-document.getElementById(
+                JSON.stringify(
 
-"analyticsCharts"
+                    backup,
 
-).innerHTML=
+                    null,
 
-html;
+                    2
 
-hideLoader();
+                )
 
-};
+            ],
 
-/* ==========================================================
-TEACHER PERFORMANCE
-========================================================== */
+            {
 
-window.teacherAttendancePerformance=
-function(){
+                type: "application/json"
 
-const teacherMap={};
+            }
 
-state.attendance.forEach(item=>{
+        );
 
-if(!teacherMap[item.teacherId]){
+        const url = URL.createObjectURL(blob);
 
-teacherMap[item.teacherId]={
+        const a = document.createElement("a");
 
-teacher:item.teacherName,
+        a.href = url;
 
-present:0,
+        a.download =
 
-absent:0,
+            `TutorNest_Backup_${Date.now()}.json`;
 
-leave:0
+        a.click();
 
-};
+        URL.revokeObjectURL(url);
 
-}
+        showToast(
 
-switch(item.status){
+            "Backup Downloaded"
 
-case "Present":
+        );
 
-teacherMap[item.teacherId]
+    }
 
-.present++;
+    catch (error) {
 
-break;
+        console.error(error);
 
-case "Absent":
+        showToast(
 
-teacherMap[item.teacherId]
+            "Backup Failed",
 
-.absent++;
+            "error"
 
-break;
+        );
 
-case "Leave":
+    }
 
-teacherMap[item.teacherId]
+    finally {
 
-.leave++;
+        hideLoader();
 
-break;
+    }
 
 }
 
-});
 
-let html=`
 
-<table class="adminTable">
+//============================================================
+// DASHBOARD SUMMARY
+//============================================================
 
-<thead>
+function dashboardSummary() {
 
-<tr>
+    const activeStudents = cache.students.filter(
 
-<th>Teacher</th>
+        student => student.active
 
-<th>Present</th>
+    ).length;
 
-<th>Absent</th>
+    const activeTeachers = cache.teachers.filter(
 
-<th>Leave</th>
+        teacher => teacher.active
 
-</tr>
+    ).length;
 
-</thead>
+    const pendingDemo = cache.demos.filter(
 
-<tbody>
+        demo =>
 
-`;
+            demo.status === "Pending"
 
-Object.values(teacherMap).forEach(t=>{
+    ).length;
 
-html+=`
+    const assignedDemo = cache.demos.filter(
 
-<tr>
+        demo =>
 
-<td>${t.teacher}</td>
+            demo.status === "Assigned"
 
-<td>${t.present}</td>
+    ).length;
 
-<td>${t.absent}</td>
+    const completedDemo = cache.demos.filter(
 
-<td>${t.leave}</td>
+        demo =>
 
-</tr>
+            demo.status === "Completed"
 
-`;
+    ).length;
 
-});
+    const revenue = cache.fees
 
-html+=`
+        .filter(
 
-</tbody>
+            fee =>
 
-</table>
+                fee.status === "Paid"
 
-`;
+        )
 
-document.getElementById(
+        .reduce(
 
-"analyticsCharts"
+            (a, b) =>
 
-).innerHTML=
+                a + Number(b.amount || 0),
 
-html;
+            0
 
-};
+        );
 
-/* ==========================================================
-STUDENT ATTENDANCE JSON EXPORT
-========================================================== */
+    return {
 
-window.exportAttendanceJSON=
-function(){
+        activeStudents,
 
-const blob=
+        activeTeachers,
 
-new Blob(
+        pendingDemo,
 
-[JSON.stringify(
+        assignedDemo,
 
-attendanceHistory,
+        completedDemo,
 
-null,
+        revenue
 
-2
-
-)],
-
-{
-
-type:"application/json"
+    };
 
 }
+
+
+
+//============================================================
+// FIREBASE HEALTH CHECK
+//============================================================
+
+async function firebaseHealthCheck() {
+
+    try {
+
+        await getDocs(
+
+            query(
+
+                teacherRef,
+
+                limit(1)
+
+            )
+
+        );
+
+        console.log(
+
+            "Firebase Connected"
+
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+
+            "Firebase Offline",
+
+            error
+
+        );
+
+        showToast(
+
+            "Firebase Connection Error",
+
+            "error"
+
+        );
+
+    }
+
+}
+
+
+
+//============================================================
+// AUTO REFRESH
+//============================================================
+
+let refreshTimer = null;
+
+function startAutoRefresh() {
+
+    stopAutoRefresh();
+
+    refreshTimer = setInterval(
+
+        () => {
+
+            renderAnalytics();
+
+            updateDashboardStats();
+
+        },
+
+        60000
+
+    );
+
+}
+
+function stopAutoRefresh() {
+
+    if (!refreshTimer) return;
+
+    clearInterval(refreshTimer);
+
+    refreshTimer = null;
+
+}
+
+
+
+//============================================================
+// WINDOW ONLINE/OFFLINE
+//============================================================
+
+window.addEventListener(
+
+    "offline",
+
+    () => {
+
+        showToast(
+
+            "Internet Disconnected",
+
+            "warning"
+
+        );
+
+    }
 
 );
 
-const url=
+window.addEventListener(
 
-URL.createObjectURL(blob);
+    "online",
 
-const a=
+    () => {
 
-document.createElement("a");
+        showToast(
 
-a.href=url;
+            "Internet Connected"
 
-a.download=
+        );
 
-"attendance-history.json";
+        firebaseHealthCheck();
 
-a.click();
+    }
+
+);
+
+
+
+//============================================================
+// SCROLL ACTIVE MENU
+//============================================================
+
+const sections = document.querySelectorAll(
+
+    "section[id]"
+
+);
+
+const menuLinks = document.querySelectorAll(
+
+    ".menu a"
+
+);
+
+window.addEventListener(
+
+    "scroll",
+
+    () => {
+
+        let current = "";
+
+        sections.forEach(section => {
+
+            const top =
+
+                section.offsetTop - 120;
+
+            if (
+
+                scrollY >= top
+
+            ) {
+
+                current =
+
+                    section.id;
+
+            }
+
+        });
+
+        menuLinks.forEach(link => {
+
+            link.classList.remove(
+
+                "active"
+
+            );
+
+            if (
+
+                link.getAttribute("href") ===
+
+                "#" + current
+
+            ) {
+
+                link.classList.add(
+
+                    "active"
+
+                );
+
+            }
+
+        });
+
+    }
+
+);
+
+
+
+//============================================================
+// ESC CLOSE MODALS
+//============================================================
+
+window.addEventListener(
+
+    "keydown",
+
+    e => {
+
+        if (
+
+            e.key !== "Escape"
+
+        ) return;
+
+        document
+
+            .querySelectorAll(
+
+                ".modal.show"
+
+            )
+
+            .forEach(modal =>
+
+                closeModal(modal)
+
+            );
+
+    }
+
+);
+
+
+
+//============================================================
+// FINAL INITIALIZATION
+//============================================================
+
+async function bootDashboard() {
+
+    showLoader();
+
+    loadLocalCache();
+
+    loadTheme();
+
+    firebaseHealthCheck();
+
+    startRealtimeListeners();
+
+    listenNotifications();
+
+    renderAnalytics();
+
+    updateDashboardStats();
+
+    startAutoRefresh();
+
+    hideLoader();
+
+}
+
+bootDashboard();
+
+
+
+//============================================================
+// END OF FILE
+//============================================================
+//============================================================
+// PERFORMANCE ENGINE
+//============================================================
+
+const Performance = {
+
+    debounceTimers: new Map(),
+
+    debounce(key, callback, delay = 300) {
+
+        clearTimeout(
+
+            this.debounceTimers.get(key)
+
+        );
+
+        this.debounceTimers.set(
+
+            key,
+
+            setTimeout(callback, delay)
+
+        );
+
+    },
+
+    throttleLock: false,
+
+    throttle(callback, delay = 500) {
+
+        if (this.throttleLock) return;
+
+        this.throttleLock = true;
+
+        callback();
+
+        setTimeout(() => {
+
+            this.throttleLock = false;
+
+        }, delay);
+
+    }
 
 };
 
-/* ==========================================================
-MONTH SELECT SHORTCUT
-========================================================== */
 
-window.currentAttendanceMonth=
-function(){
 
-document.getElementById(
+//============================================================
+// SMART SEARCH
+//============================================================
 
-"attendanceMonth"
+demoSearch?.addEventListener(
 
-).value=
+    "input",
 
-new Date()
+    () =>
 
-.toISOString()
+        Performance.debounce(
 
-.slice(0,7);
+            "demo",
 
-loadAttendanceHistory();
+            renderDemoTable,
+
+            250
+
+        )
+
+);
+
+studentSearch?.addEventListener(
+
+    "input",
+
+    () =>
+
+        Performance.debounce(
+
+            "student",
+
+            renderStudentsTable,
+
+            250
+
+        )
+
+);
+
+teacherSearch?.addEventListener(
+
+    "input",
+
+    () =>
+
+        Performance.debounce(
+
+            "teacher",
+
+            renderTeachersTable,
+
+            250
+
+        )
+
+);
+
+
+
+//============================================================
+// FIRESTORE COUNTERS
+//============================================================
+
+async function updateTeacherStudentCount(
+
+    teacherId
+
+) {
+
+    const total = cache.students.filter(
+
+        student =>
+
+            student.teacherId === teacherId
+
+    ).length;
+
+    try {
+
+        await updateDoc(
+
+            doc(
+
+                db,
+
+                "teachers",
+
+                teacherId
+
+            ),
+
+            {
+
+                totalStudents: total,
+
+                updatedAt:
+
+                    serverTimestamp()
+
+            }
+
+        );
+
+    }
+
+    catch (e) {
+
+        console.error(e);
+
+    }
+
+}
+
+async function syncTeacherCounters() {
+
+    for (
+
+        const teacher of cache.teachers
+
+    ) {
+
+        await updateTeacherStudentCount(
+
+            teacher.id
+
+        );
+
+    }
+
+}
+
+
+
+//============================================================
+// MONTHLY REVENUE
+//============================================================
+
+function calculateMonthlyRevenue(
+
+    month
+
+) {
+
+    return cache.fees
+
+        .filter(
+
+            fee =>
+
+                fee.month === month &&
+
+                fee.status === "Paid"
+
+        )
+
+        .reduce(
+
+            (sum, fee) =>
+
+                sum +
+
+                Number(
+
+                    fee.amount || 0
+
+                ),
+
+            0
+
+        );
+
+}
+
+function calculatePendingRevenue(
+
+    month
+
+) {
+
+    return cache.fees
+
+        .filter(
+
+            fee =>
+
+                fee.month === month &&
+
+                fee.status !== "Paid"
+
+        )
+
+        .reduce(
+
+            (sum, fee) =>
+
+                sum +
+
+                Number(
+
+                    fee.amount || 0
+
+                ),
+
+            0
+
+        );
+
+}
+
+
+
+//============================================================
+// TEACHER COMMISSION
+//============================================================
+
+function calculateTeacherCommission(
+
+    teacherId,
+
+    month
+
+) {
+
+    const teacher = cache.teachers.find(
+
+        item =>
+
+            item.id === teacherId
+
+    );
+
+    if (!teacher)
+
+        return {
+
+            total: 0,
+
+            commission: 0
+
+        };
+
+    const total = cache.fees
+
+        .filter(
+
+            fee =>
+
+                fee.teacherId === teacherId &&
+
+                fee.month === month &&
+
+                fee.status === "Paid"
+
+        )
+
+        .reduce(
+
+            (sum, fee) =>
+
+                sum +
+
+                Number(
+
+                    fee.amount || 0
+
+                ),
+
+            0
+
+        );
+
+    return {
+
+        total,
+
+        commission:
+
+            total *
+
+            Number(
+
+                teacher.commission || 10
+
+            ) /
+
+            100
+
+    };
+
+}
+
+
+
+//============================================================
+// ATTENDANCE SUMMARY
+//============================================================
+
+function attendanceSummary(
+
+    studentId
+
+) {
+
+    const records =
+
+        cache.attendance.filter(
+
+            record =>
+
+                record.studentId ===
+
+                studentId
+
+        );
+
+    const present =
+
+        records.filter(
+
+            r =>
+
+                r.status ===
+
+                "Present"
+
+        ).length;
+
+    const absent =
+
+        records.filter(
+
+            r =>
+
+                r.status ===
+
+                "Absent"
+
+        ).length;
+
+    const leave =
+
+        records.filter(
+
+            r =>
+
+                r.status ===
+
+                "Leave"
+
+        ).length;
+
+    return {
+
+        total:
+
+            records.length,
+
+        present,
+
+        absent,
+
+        leave,
+
+        percentage:
+
+            records.length
+
+                ? Math.round(
+
+                    present *
+
+                    100 /
+
+                    records.length
+
+                )
+
+                : 0
+
+    };
+
+}
+
+
+
+//============================================================
+// DATA VALIDATION
+//============================================================
+
+function validatePhone(
+
+    phone
+
+) {
+
+    return /^[6-9]\d{9}$/
+
+        .test(
+
+            String(phone)
+
+            .replace(
+
+                /\D/g,
+
+                ""
+
+            )
+
+        );
+
+}
+
+function validateEmail(
+
+    email
+
+) {
+
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+        .test(email);
+
+}
+
+function validateAmount(
+
+    amount
+
+) {
+
+    return (
+
+        !isNaN(amount) &&
+
+        Number(amount) > 0
+
+    );
+
+}
+
+function required(
+
+    value
+
+) {
+
+    return String(
+
+        value || ""
+
+    )
+
+    .trim()
+
+    .length > 0;
+
+}
+
+
+
+//============================================================
+// UUID
+//============================================================
+
+function generateCode(
+
+    prefix
+
+) {
+
+    return (
+
+        prefix +
+
+        "-" +
+
+        Date.now()
+
+        .toString()
+
+        .slice(-8) +
+
+        "-" +
+
+        Math.random()
+
+        .toString(36)
+
+        .substring(2, 6)
+
+        .toUpperCase()
+
+    );
+
+}
+//============================================================
+// REPORTS ENGINE
+//============================================================
+
+const reportEngine = {
+
+    daily(date = today()) {
+
+        const attendance = cache.attendance.filter(
+
+            record => record.date === date
+
+        );
+
+        const paidFees = cache.fees.filter(
+
+            fee =>
+
+                fee.status === "Paid" &&
+
+                fee.paidAt &&
+
+                fee.paidAt.toDate
+
+                    ? fee.paidAt.toDate().toISOString().slice(0, 10) === date
+                    : false
+
+        );
+
+        return {
+
+            date,
+
+            present: attendance.filter(
+
+                x => x.status === "Present"
+
+            ).length,
+
+            absent: attendance.filter(
+
+                x => x.status === "Absent"
+
+            ).length,
+
+            leave: attendance.filter(
+
+                x => x.status === "Leave"
+
+            ).length,
+
+            feeCollection:
+
+                paidFees.reduce(
+
+                    (sum, fee) =>
+
+                        sum +
+
+                        Number(
+
+                            fee.amount || 0
+
+                        ),
+
+                    0
+
+                )
+
+        };
+
+    },
+
+
+
+    monthly(month) {
+
+        return {
+
+            students:
+
+                cache.students.length,
+
+            teachers:
+
+                cache.teachers.length,
+
+            demos:
+
+                cache.demos.filter(
+
+                    demo =>
+
+                        demo.createdAt?.toDate?.()
+
+                        ?.toISOString()
+
+                        .startsWith(month)
+
+                ).length,
+
+            fees:
+
+                calculateMonthlyRevenue(
+
+                    month
+
+                ),
+
+            pending:
+
+                calculatePendingRevenue(
+
+                    month
+
+                )
+
+        };
+
+    }
 
 };
 
-/* ==========================================================
-ATTENDANCE LIVE COUNTER
-========================================================== */
 
-window.liveAttendanceCounter=
-function(){
 
-const total=
+//============================================================
+// ADVANCED FILTER ENGINE
+//============================================================
 
-attendanceHistory.length;
+function filterStudents(filters = {}) {
 
-const present=
+    return cache.students.filter(student => {
 
-attendanceHistory.filter(
+        if (
 
-x=>x.status==="Present"
+            filters.teacher &&
 
-).length;
+            student.teacherId !== filters.teacher
 
-const absent=
+        )
 
-attendanceHistory.filter(
+            return false;
 
-x=>x.status==="Absent"
+        if (
 
-).length;
+            filters.class &&
 
-const leave=
+            student.class !== filters.class
 
-attendanceHistory.filter(
+        )
 
-x=>x.status==="Leave"
+            return false;
 
-).length;
+        if (
 
-console.table({
+            filters.subject &&
 
-Total:total,
+            student.subject !== filters.subject
 
-Present:present,
+        )
 
-Absent:absent,
+            return false;
 
-Leave:leave
+        if (
+
+            filters.city &&
+
+            student.city !== filters.city
+
+        )
+
+            return false;
+
+        if (
+
+            filters.active !== undefined &&
+
+            student.active !== filters.active
+
+        )
+
+            return false;
+
+        return true;
+
+    });
+
+}
+
+function filterTeachers(filters = {}) {
+
+    return cache.teachers.filter(teacher => {
+
+        if (
+
+            filters.subject &&
+
+            teacher.subject !== filters.subject
+
+        )
+
+            return false;
+
+        if (
+
+            filters.city &&
+
+            teacher.city !== filters.city
+
+        )
+
+            return false;
+
+        if (
+
+            filters.active !== undefined &&
+
+            teacher.active !== filters.active
+
+        )
+
+            return false;
+
+        return true;
+
+    });
+
+}
+
+
+
+//============================================================
+// FIRESTORE HELPERS
+//============================================================
+
+async function createDocument(
+
+    collectionRef,
+
+    data
+
+) {
+
+    const ref = await addDoc(
+
+        collectionRef,
+
+        {
+
+            ...data,
+
+            createdAt:
+
+                serverTimestamp(),
+
+            updatedAt:
+
+                serverTimestamp()
+
+        }
+
+    );
+
+    return ref.id;
+
+}
+
+async function updateDocument(
+
+    collectionName,
+
+    id,
+
+    data
+
+) {
+
+    await updateDoc(
+
+        doc(
+
+            db,
+
+            collectionName,
+
+            id
+
+        ),
+
+        {
+
+            ...data,
+
+            updatedAt:
+
+                serverTimestamp()
+
+        }
+
+    );
+
+}
+
+async function removeDocument(
+
+    collectionName,
+
+    id
+
+) {
+
+    await deleteDoc(
+
+        doc(
+
+            db,
+
+            collectionName,
+
+            id
+
+        )
+
+    );
+
+}
+
+
+
+//============================================================
+// DASHBOARD KPIs
+//============================================================
+
+function calculateKPIs() {
+
+    const activeStudents =
+
+        cache.students.filter(
+
+            s => s.active
+
+        ).length;
+
+    const activeTeachers =
+
+        cache.teachers.filter(
+
+            t => t.active
+
+        ).length;
+
+    const demoConversion =
+
+        cache.demos.length
+
+            ?
+
+            Math.round(
+
+                cache.students.length *
+
+                100 /
+
+                cache.demos.length
+
+            )
+
+            : 0;
+
+    const attendanceRate = (() => {
+
+        const present =
+
+            cache.attendance.filter(
+
+                x =>
+
+                    x.status === "Present"
+
+            ).length;
+
+        return cache.attendance.length
+
+            ?
+
+            Math.round(
+
+                present *
+
+                100 /
+
+                cache.attendance.length
+
+            )
+
+            : 0;
+
+    })();
+
+    return {
+
+        activeStudents,
+
+        activeTeachers,
+
+        demoConversion,
+
+        attendanceRate,
+
+        monthlyRevenue:
+
+            calculateMonthlyRevenue(
+
+                monthValue()
+
+            )
+
+    };
+
+}
+
+
+
+//============================================================
+// REALTIME CLOCK
+//============================================================
+
+function startDashboardClock() {
+
+    const target =
+
+        document.querySelector(
+
+            ".topLeft p"
+
+        );
+
+    if (!target) return;
+
+    setInterval(() => {
+
+        const now = new Date();
+
+        target.innerHTML =
+
+            `Welcome back 👋 | ${now.toLocaleDateString("en-IN")} ${now.toLocaleTimeString("en-IN")}`;
+
+    }, 1000);
+
+}
+
+
+
+//============================================================
+// SESSION KEEP ALIVE
+//============================================================
+
+let lastActivity = Date.now();
+
+["mousemove","keydown","click","touchstart"]
+
+.forEach(event => {
+
+    window.addEventListener(
+
+        event,
+
+        () => {
+
+            lastActivity = Date.now();
+
+        }
+
+    );
 
 });
 
+setInterval(() => {
+
+    const idleMinutes =
+
+        (Date.now() - lastActivity)
+
+        / 60000;
+
+    if (idleMinutes >= 30) {
+
+        showToast(
+
+            "Session inactive for 30 minutes",
+
+            "warning"
+
+        );
+
+    }
+
+}, 60000);
+
+
+
+//============================================================
+// AUTO START
+//============================================================
+
+startDashboardClock();
+//============================================================
+// IMAGE MANAGER
+//============================================================
+
+const ImageManager = {
+
+    async upload(file, folder = "uploads") {
+
+        if (!file) return "";
+
+        const extension =
+
+            file.name.split(".").pop();
+
+        const fileName =
+
+            `${folder}/${Date.now()}_${Math.random()
+                .toString(36)
+                .substring(2,8)}.${extension}`;
+
+        const storageRef = ref(
+
+            storage,
+
+            fileName
+
+        );
+
+        await uploadBytes(
+
+            storageRef,
+
+            file
+
+        );
+
+        return await getDownloadURL(
+
+            storageRef
+
+        );
+
+    },
+
+
+
+    async remove(downloadURL) {
+
+        if (!downloadURL) return;
+
+        try {
+
+            const storageRef = ref(
+
+                storage,
+
+                downloadURL
+
+            );
+
+            await deleteObject(
+
+                storageRef
+
+            );
+
+        }
+
+        catch(error){
+
+            console.error(error);
+
+        }
+
+    }
+
 };
 
-/* ==========================================================
-AUTO UPDATE EVERY 30 SECONDS
-========================================================== */
+
+
+//============================================================
+// DASHBOARD CACHE
+//============================================================
+
+const DashboardCache = {
+
+    save() {
+
+        localStorage.setItem(
+
+            "TutorNestDashboard",
+
+            JSON.stringify({
+
+                students:
+
+                    cache.students,
+
+                teachers:
+
+                    cache.teachers,
+
+                demos:
+
+                    cache.demos,
+
+                attendance:
+
+                    cache.attendance,
+
+                fees:
+
+                    cache.fees,
+
+                commissions:
+
+                    cache.commissions
+
+            })
+
+        );
+
+    },
+
+
+
+    load() {
+
+        const data =
+
+            localStorage.getItem(
+
+                "TutorNestDashboard"
+
+            );
+
+        if(!data) return;
+
+        try{
+
+            const parsed=
+
+                JSON.parse(data);
+
+            cache.students=
+
+                parsed.students||[];
+
+            cache.teachers=
+
+                parsed.teachers||[];
+
+            cache.demos=
+
+                parsed.demos||[];
+
+            cache.attendance=
+
+                parsed.attendance||[];
+
+            cache.fees=
+
+                parsed.fees||[];
+
+            cache.commissions=
+
+                parsed.commissions||[];
+
+        }
+
+        catch(e){
+
+            console.error(e);
+
+        }
+
+    },
+
+
+
+    clear(){
+
+        localStorage.removeItem(
+
+            "TutorNestDashboard"
+
+        );
+
+    }
+
+};
+
+
+
+//============================================================
+// TEACHER STATISTICS
+//============================================================
+
+function teacherStatistics(id){
+
+    const teacher=
+
+        cache.teachers.find(
+
+            t=>t.id===id
+
+        );
+
+    if(!teacher) return null;
+
+    const students=
+
+        cache.students.filter(
+
+            s=>s.teacherId===id
+
+        );
+
+    const paidFees=
+
+        cache.fees.filter(
+
+            fee=>
+
+            fee.teacherId===id &&
+
+            fee.status==="Paid"
+
+        );
+
+    const totalRevenue=
+
+        paidFees.reduce(
+
+            (sum,item)=>
+
+            sum+
+
+            Number(item.amount||0),
+
+            0
+
+        );
+
+    const attendance=
+
+        cache.attendance.filter(
+
+            a=>a.teacherId===id
+
+        );
+
+    const present=
+
+        attendance.filter(
+
+            a=>a.status==="Present"
+
+        ).length;
+
+    return{
+
+        teacher,
+
+        totalStudents:
+
+            students.length,
+
+        totalRevenue,
+
+        commission:
+
+            totalRevenue*
+
+            Number(
+
+                teacher.commission||10
+
+            )/100,
+
+        attendance,
+
+        attendanceRate:
+
+            attendance.length
+
+            ?
+
+            Math.round(
+
+                present*
+
+                100/
+
+                attendance.length
+
+            )
+
+            :0
+
+    };
+
+}
+
+
+
+//============================================================
+// STUDENT STATISTICS
+//============================================================
+
+function studentStatistics(id){
+
+    const student=
+
+        cache.students.find(
+
+            s=>s.id===id
+
+        );
+
+    if(!student) return null;
+
+    const attendance=
+
+        attendanceSummary(id);
+
+    const paid=
+
+        cache.fees.filter(
+
+            fee=>
+
+            fee.studentId===id &&
+
+            fee.status==="Paid"
+
+        );
+
+    const pending=
+
+        cache.fees.filter(
+
+            fee=>
+
+            fee.studentId===id &&
+
+            fee.status!=="Paid"
+
+        );
+
+    return{
+
+        student,
+
+        attendance,
+
+        totalPaid:
+
+            paid.reduce(
+
+                (sum,item)=>
+
+                sum+
+
+                Number(item.amount||0),
+
+                0
+
+            ),
+
+        pendingFees:
+
+            pending.reduce(
+
+                (sum,item)=>
+
+                sum+
+
+                Number(item.amount||0),
+
+                0
+
+            )
+
+    };
+
+}
+
+
+
+//============================================================
+// FIREBASE BATCH DELETE
+//============================================================
+
+async function batchDeleteStudents(ids){
+
+    if(!ids.length) return;
+
+    const batch=
+
+        writeBatch(db);
+
+    ids.forEach(id=>{
+
+        batch.delete(
+
+            doc(
+
+                db,
+
+                "students",
+
+                id
+
+            )
+
+        );
+
+    });
+
+    await batch.commit();
+
+}
+
+async function batchDeleteTeachers(ids){
+
+    if(!ids.length) return;
+
+    const batch=
+
+        writeBatch(db);
+
+    ids.forEach(id=>{
+
+        batch.delete(
+
+            doc(
+
+                db,
+
+                "teachers",
+
+                id
+
+            )
+
+        );
+
+    });
+
+    await batch.commit();
+
+}
+
+
+
+//============================================================
+// MONTHLY SNAPSHOT
+//============================================================
+
+async function saveMonthlySnapshot(){
+
+    const month=
+
+        monthValue();
+
+    const report={
+
+        month,
+
+        kpi:
+
+            calculateKPIs(),
+
+        revenue:
+
+            calculateMonthlyRevenue(
+
+                month
+
+            ),
+
+        pendingRevenue:
+
+            calculatePendingRevenue(
+
+                month
+
+            ),
+
+        students:
+
+            cache.students.length,
+
+        teachers:
+
+            cache.teachers.length,
+
+        demos:
+
+            cache.demos.length,
+
+        attendance:
+
+            cache.attendance.length,
+
+        generatedAt:
+
+            serverTimestamp()
+
+    };
+
+    await setDoc(
+
+        doc(
+
+            db,
+
+            "monthlyReports",
+
+            month
+
+        ),
+
+        report
+
+    );
+
+}
+
+
+
+//============================================================
+// AUTO CACHE SAVE
+//============================================================
+
+setInterval(
+
+    ()=>{
+
+        DashboardCache.save();
+
+    },
+
+    15000
+
+);
+
+DashboardCache.load();
+//============================================================
+// DASHBOARD INSIGHTS ENGINE
+//============================================================
+
+const DashboardInsights = {
+
+    topTeachers(limit = 5) {
+
+        return [...cache.teachers]
+
+            .map(teacher => {
+
+                const students = cache.students.filter(
+
+                    student =>
+
+                        student.teacherId === teacher.id
+
+                );
+
+                const revenue = cache.fees
+
+                    .filter(
+
+                        fee =>
+
+                            fee.teacherId === teacher.id &&
+
+                            fee.status === "Paid"
+
+                    )
+
+                    .reduce(
+
+                        (sum, fee) =>
+
+                            sum + Number(fee.amount || 0),
+
+                        0
+
+                    );
+
+                return {
+
+                    ...teacher,
+
+                    totalStudents: students.length,
+
+                    revenue
+
+                };
+
+            })
+
+            .sort(
+
+                (a, b) =>
+
+                    b.revenue - a.revenue
+
+            )
+
+            .slice(0, limit);
+
+    },
+
+
+
+    topStudents(limit = 10) {
+
+        return [...cache.students]
+
+            .map(student => {
+
+                const attendance =
+
+                    attendanceSummary(student.id);
+
+                return {
+
+                    ...student,
+
+                    attendance:
+
+                        attendance.percentage
+
+                };
+
+            })
+
+            .sort(
+
+                (a, b) =>
+
+                    b.attendance - a.attendance
+
+            )
+
+            .slice(0, limit);
+
+    },
+
+
+
+    unpaidStudents() {
+
+        return cache.students.filter(student => {
+
+            return cache.fees.some(
+
+                fee =>
+
+                    fee.studentId === student.id &&
+
+                    fee.status !== "Paid"
+
+            );
+
+        });
+
+    }
+
+};
+
+
+
+//============================================================
+// REPORT EXPORT OBJECT
+//============================================================
+
+function buildReportObject() {
+
+    return {
+
+        generatedAt:
+
+            new Date()
+
+            .toLocaleString("en-IN"),
+
+        dashboard:
+
+            calculateKPIs(),
+
+        teachers:
+
+            DashboardInsights
+
+            .topTeachers(),
+
+        students:
+
+            DashboardInsights
+
+            .topStudents(),
+
+        unpaid:
+
+            DashboardInsights
+
+            .unpaidStudents()
+
+    };
+
+}
+
+
+
+//============================================================
+// FIREBASE SYNC STATUS
+//============================================================
+
+const SyncEngine = {
+
+    online: navigator.onLine,
+
+    syncing: false,
+
+    queue: [],
+
+    async execute(task) {
+
+        if (this.syncing) {
+
+            this.queue.push(task);
+
+            return;
+
+        }
+
+        this.syncing = true;
+
+        try {
+
+            await task();
+
+        }
+
+        catch (error) {
+
+            console.error(error);
+
+        }
+
+        finally {
+
+            this.syncing = false;
+
+            if (this.queue.length) {
+
+                const next =
+
+                    this.queue.shift();
+
+                this.execute(next);
+
+            }
+
+        }
+
+    }
+
+};
+
+
+
+//============================================================
+// AUTO BACKUP
+//============================================================
+
+async function automaticBackup() {
+
+    try {
+
+        await setDoc(
+
+            doc(
+
+                db,
+
+                "system",
+
+                "lastBackup"
+
+            ),
+
+            {
+
+                generatedAt:
+
+                    serverTimestamp(),
+
+                students:
+
+                    cache.students.length,
+
+                teachers:
+
+                    cache.teachers.length,
+
+                demos:
+
+                    cache.demos.length,
+
+                attendance:
+
+                    cache.attendance.length,
+
+                fees:
+
+                    cache.fees.length,
+
+                commissions:
+
+                    cache.commissions.length
+
+            }
+
+        );
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+    }
+
+}
+
+setInterval(
+
+    automaticBackup,
+
+    1000 * 60 * 30
+
+);
+
+
+
+//============================================================
+// SYSTEM MONITOR
+//============================================================
+
+const SystemMonitor = {
+
+    start() {
+
+        setInterval(() => {
+
+            console.table({
+
+                Students:
+
+                    cache.students.length,
+
+                Teachers:
+
+                    cache.teachers.length,
+
+                Demos:
+
+                    cache.demos.length,
+
+                Attendance:
+
+                    cache.attendance.length,
+
+                Fees:
+
+                    cache.fees.length,
+
+                Revenue:
+
+                    calculateMonthlyRevenue(
+
+                        monthValue()
+
+                    )
+
+            });
+
+        }, 120000);
+
+    }
+
+};
+
+
+
+//============================================================
+// GLOBAL SHORTCUTS
+//============================================================
+
+window.addEventListener(
+
+    "keydown",
+
+    e => {
+
+        if (
+
+            e.ctrlKey &&
+
+            e.key === "/"
+
+        ) {
+
+            e.preventDefault();
+
+            demoSearch?.focus();
+
+        }
+
+        if (
+
+            e.ctrlKey &&
+
+            e.key.toLowerCase() === "r"
+
+        ) {
+
+            e.preventDefault();
+
+            renderAnalytics();
+
+            updateDashboardStats();
+
+            renderDemoTable();
+
+            renderStudentsTable();
+
+            renderTeachersTable();
+
+        }
+
+        if (
+
+            e.ctrlKey &&
+
+            e.key.toLowerCase() === "b"
+
+        ) {
+
+            e.preventDefault();
+
+            backupDatabase();
+
+        }
+
+    }
+
+);
+
+
+
+//============================================================
+// MEMORY CLEANUP
+//============================================================
+
+function clearRuntimeMemory() {
+
+    cache.attendance =
+
+        [...cache.attendance];
+
+    cache.students =
+
+        [...cache.students];
+
+    cache.teachers =
+
+        [...cache.teachers];
+
+    cache.demos =
+
+        [...cache.demos];
+
+    cache.fees =
+
+        [...cache.fees];
+
+    cache.commissions =
+
+        [...cache.commissions];
+
+}
+
+setInterval(
+
+    clearRuntimeMemory,
+
+    1000 * 60 * 10
+
+);
+
+
+
+//============================================================
+// FINAL BOOT EXTENSIONS
+//============================================================
+
+window.addEventListener(
+
+    "load",
+
+    () => {
+
+        SystemMonitor.start();
+
+        renderAnalytics();
+
+        updateDashboardStats();
+
+    }
+
+);
+//============================================================
+// CHART ENGINE (Chart.js Ready)
+//============================================================
+
+let revenueChart = null;
+let studentChart = null;
+
+function destroyCharts() {
+
+    if (revenueChart) {
+
+        revenueChart.destroy();
+        revenueChart = null;
+
+    }
+
+    if (studentChart) {
+
+        studentChart.destroy();
+        studentChart = null;
+
+    }
+
+}
+
+function getMonthlyRevenueData() {
+
+    const months = [];
+
+    const values = [];
+
+    for (let i = 11; i >= 0; i--) {
+
+        const d = new Date();
+
+        d.setMonth(d.getMonth() - i);
+
+        const month = d.toISOString().slice(0, 7);
+
+        months.push(
+
+            d.toLocaleString("en-IN", {
+
+                month: "short"
+
+            })
+
+        );
+
+        values.push(
+
+            calculateMonthlyRevenue(month)
+
+        );
+
+    }
+
+    return {
+
+        labels: months,
+
+        values
+
+    };
+
+}
+
+function getMonthlyStudentsData() {
+
+    const labels = [];
+
+    const values = [];
+
+    for (let i = 11; i >= 0; i--) {
+
+        const d = new Date();
+
+        d.setMonth(d.getMonth() - i);
+
+        const month = d.toISOString().slice(0, 7);
+
+        labels.push(
+
+            d.toLocaleString(
+
+                "en-IN",
+
+                {
+
+                    month: "short"
+
+                }
+
+            )
+
+        );
+
+        values.push(
+
+            cache.students.filter(student => {
+
+                if (!student.createdAt?.toDate) return false;
+
+                return student.createdAt
+
+                    .toDate()
+
+                    .toISOString()
+
+                    .startsWith(month);
+
+            }).length
+
+        );
+
+    }
+
+    return {
+
+        labels,
+
+        values
+
+    };
+
+}
+
+function renderCharts() {
+
+    if (typeof Chart === "undefined") return;
+
+    const revenueCanvas =
+
+        document.getElementById(
+
+            "revenueChart"
+
+        );
+
+    const studentCanvas =
+
+        document.getElementById(
+
+            "studentChart"
+
+        );
+
+    if (
+
+        !revenueCanvas ||
+
+        !studentCanvas
+
+    ) return;
+
+    destroyCharts();
+
+    const revenue =
+
+        getMonthlyRevenueData();
+
+    revenueChart = new Chart(
+
+        revenueCanvas,
+
+        {
+
+            type: "line",
+
+            data: {
+
+                labels:
+
+                    revenue.labels,
+
+                datasets: [
+
+                    {
+
+                        label:
+
+                            "Revenue",
+
+                        data:
+
+                            revenue.values,
+
+                        borderWidth: 3,
+
+                        tension: .35,
+
+                        fill: true
+
+                    }
+
+                ]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false
+
+            }
+
+        }
+
+    );
+
+    const students =
+
+        getMonthlyStudentsData();
+
+    studentChart = new Chart(
+
+        studentCanvas,
+
+        {
+
+            type: "bar",
+
+            data: {
+
+                labels:
+
+                    students.labels,
+
+                datasets: [
+
+                    {
+
+                        label:
+
+                            "Admissions",
+
+                        data:
+
+                            students.values
+
+                    }
+
+                ]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false
+
+            }
+
+        }
+
+    );
+
+}
+
+
+
+//============================================================
+// STUDENT ANALYTICS
+//============================================================
+
+function studentGrowthRate() {
+
+    const currentMonth = monthValue();
+
+    const previous = new Date();
+
+    previous.setMonth(
+
+        previous.getMonth() - 1
+
+    );
+
+    const previousMonth =
+
+        previous
+
+        .toISOString()
+
+        .slice(0,7);
+
+    const current =
+
+        cache.students.filter(student =>
+
+            student.createdAt?.toDate?.()
+
+            .toISOString()
+
+            .startsWith(currentMonth)
+
+        ).length;
+
+    const old =
+
+        cache.students.filter(student =>
+
+            student.createdAt?.toDate?.()
+
+            .toISOString()
+
+            .startsWith(previousMonth)
+
+        ).length;
+
+    if (!old) {
+
+        return current ? 100 : 0;
+
+    }
+
+    return Math.round(
+
+        ((current - old) / old) * 100
+
+    );
+
+}
+
+function teacherUtilization() {
+
+    return cache.teachers.map(
+
+        teacher => {
+
+            const total =
+
+                cache.students.filter(
+
+                    student =>
+
+                        student.teacherId === teacher.id
+
+                ).length;
+
+            return {
+
+                name:
+
+                    teacher.name,
+
+                students:
+
+                    total
+
+            };
+
+        }
+
+    );
+
+}
+
+function attendanceAnalytics() {
+
+    const total =
+
+        cache.attendance.length;
+
+    const present =
+
+        cache.attendance.filter(
+
+            x =>
+
+                x.status === "Present"
+
+        ).length;
+
+    const absent =
+
+        cache.attendance.filter(
+
+            x =>
+
+                x.status === "Absent"
+
+        ).length;
+
+    const leave =
+
+        cache.attendance.filter(
+
+            x =>
+
+                x.status === "Leave"
+
+        ).length;
+
+    return {
+
+        total,
+
+        present,
+
+        absent,
+
+        leave,
+
+        percentage:
+
+            total
+
+            ?
+
+            Math.round(
+
+                present *
+
+                100 /
+
+                total
+
+            )
+
+            : 0
+
+    };
+
+}
+
+
+
+//============================================================
+// LIVE KPI REFRESH
+//============================================================
+
+function refreshKPIs(){
+
+    const kpi = calculateKPIs();
+
+    demoCount.textContent =
+
+        cache.demos.filter(
+
+            x=>x.status==="Pending"
+
+        ).length;
+
+    studentCount.textContent =
+
+        kpi.activeStudents;
+
+    teacherCount.textContent =
+
+        kpi.activeTeachers;
+
+    revenueCount.textContent =
+
+        formatMoney(
+
+            kpi.monthlyRevenue
+
+        );
+
+}
 
 setInterval(()=>{
 
-if(attendanceHistoryModal
-
-&&
-
-attendanceHistoryModal
-
-.classList.contains("show")){
-
-loadAttendanceHistory();
-
-}
+    refreshKPIs();
+    renderCharts();
 
 },30000);
-/* ==========================================================
-ATTENDANCE AUDIT LOG + PARENT NOTIFICATION QUEUE
-PASTE AT END OF admin.js
-========================================================== */
+//============================================================
+// ADVANCED SEARCH ENGINE
+//============================================================
 
-const attendanceAuditCollection =
-collection(db,"attendanceAudit");
+const SearchEngine = {
 
-async function createAttendanceAudit(action,data){
+    normalize(value) {
 
-try{
+        return String(value || "")
 
-await addDoc(
+            .trim()
 
-attendanceAuditCollection,
+            .toLowerCase();
 
-{
+    },
 
-action,
 
-studentId:data.studentId||"",
 
-studentName:data.studentName||"",
+    search(collection, keyword, fields = []) {
 
-teacherId:data.teacherId||"",
+        keyword = this.normalize(keyword);
 
-teacherName:data.teacherName||"",
+        if (!keyword) return collection;
 
-status:data.status||"",
+        return collection.filter(item =>
 
-remark:data.remark||"",
+            fields.some(field =>
 
-attendanceDate:data.date||"",
+                this.normalize(item[field])
 
-createdAt:serverTimestamp(),
+                .includes(keyword)
 
-admin:
+            )
 
-state.admin?.name||
+        );
 
-"Admin"
+    },
+
+
+
+    sort(collection, field, direction = "asc") {
+
+        return [...collection].sort((a, b) => {
+
+            if (a[field] > b[field])
+
+                return direction === "asc" ? 1 : -1;
+
+            if (a[field] < b[field])
+
+                return direction === "asc" ? -1 : 1;
+
+            return 0;
+
+        });
+
+    }
+
+};
+
+
+
+//============================================================
+// DATE UTILITIES
+//============================================================
+
+const DateUtil = {
+
+    today() {
+
+        return new Date()
+
+            .toISOString()
+
+            .split("T")[0];
+
+    },
+
+
+
+    month() {
+
+        return new Date()
+
+            .toISOString()
+
+            .slice(0,7);
+
+    },
+
+
+
+    format(date) {
+
+        if(!date) return "--";
+
+        if(date.toDate)
+
+            date = date.toDate();
+
+        return new Intl.DateTimeFormat(
+
+            "en-IN",
+
+            {
+
+                day:"2-digit",
+
+                month:"short",
+
+                year:"numeric"
+
+            }
+
+        ).format(date);
+
+    },
+
+
+
+    timestamp(){
+
+        return serverTimestamp();
+
+    }
+
+};
+
+
+
+//============================================================
+// ID GENERATOR
+//============================================================
+
+const IdGenerator={
+
+    teacher(){
+
+        return "TN-T-"+
+
+            Date.now()
+
+            .toString()
+
+            .slice(-8);
+
+    },
+
+
+
+    student(){
+
+        return "TN-S-"+
+
+            Date.now()
+
+            .toString()
+
+            .slice(-8);
+
+    },
+
+
+
+    demo(){
+
+        return "TN-D-"+
+
+            Date.now()
+
+            .toString()
+
+            .slice(-8);
+
+    },
+
+
+
+    receipt(){
+
+        return "TN-R-"+
+
+            Date.now()
+
+            .toString()
+
+            .slice(-8);
+
+    }
+
+};
+
+
+
+//============================================================
+// PAGINATION ENGINE
+//============================================================
+
+class Pagination{
+
+    constructor(data=[],size=10){
+
+        this.data=data;
+
+        this.page=1;
+
+        this.size=size;
+
+    }
+
+    total(){
+
+        return Math.ceil(
+
+            this.data.length/
+
+            this.size
+
+        );
+
+    }
+
+    items(){
+
+        const start=
+
+            (this.page-1)
+
+            *this.size;
+
+        return this.data.slice(
+
+            start,
+
+            start+this.size
+
+        );
+
+    }
+
+    next(){
+
+        if(
+
+            this.page<
+
+            this.total()
+
+        ){
+
+            this.page++;
+
+        }
+
+        return this.items();
+
+    }
+
+    previous(){
+
+        if(this.page>1){
+
+            this.page--;
+
+        }
+
+        return this.items();
+
+    }
+
+    reset(){
+
+        this.page=1;
+
+    }
 
 }
 
-);
 
-}catch(err){
 
-console.error(err);
+//============================================================
+// LOADING BUTTON
+//============================================================
 
-}
+function loadingButton(
 
-}
+    button,
 
-/* ==========================================================
-QUEUE PARENT NOTIFICATION
-========================================================== */
-
-async function queueAttendanceNotification(data){
-
-try{
-
-await addDoc(
-
-collection(db,"notificationQueue"),
-
-{
-
-type:"attendance",
-
-studentId:data.studentId,
-
-studentName:data.studentName,
-
-parentPhone:data.parentPhone||"",
-
-teacherName:data.teacherName,
-
-status:data.status,
-
-date:data.date,
-
-sent:false,
-
-createdAt:serverTimestamp()
-
-}
-
-);
-
-}catch(err){
-
-console.error(err);
-
-}
-
-}
-
-/* ==========================================================
-SAVE ATTENDANCE
-========================================================== */
-
-window.saveAttendanceRecord =
-async function(record){
-
-await addDoc(
-
-collection(db,"attendance"),
-
-record
-
-);
-
-await createAttendanceAudit(
-
-"CREATE",
-
-record
-
-);
-
-await queueAttendanceNotification(
-
-record
-
-);
-
-};
-
-/* ==========================================================
-ATTENDANCE BY DATE
-========================================================== */
-
-window.getAttendanceByDate =
-function(date){
-
-return state.attendance.filter(
-
-x=>x.date===date
-
-);
-
-};
-
-/* ==========================================================
-ATTENDANCE BY TEACHER
-========================================================== */
-
-window.getTeacherAttendance =
-function(id){
-
-return state.attendance.filter(
-
-x=>x.teacherId===id
-
-);
-
-};
-
-/* ==========================================================
-ATTENDANCE BY STUDENT
-========================================================== */
-
-window.getStudentAttendance =
-function(id){
-
-return state.attendance.filter(
-
-x=>x.studentId===id
-
-);
-
-};
-
-/* ==========================================================
-TOTAL WORKING DAYS
-========================================================== */
-
-window.getWorkingDays =
-function(month){
-
-const attendance=
-
-state.attendance.filter(
-
-a=>a.date.startsWith(month)
-
-);
-
-const dates=
-
-new Set();
-
-attendance.forEach(x=>{
-
-dates.add(x.date);
-
-});
-
-return dates.size;
-
-};
-
-/* ==========================================================
-MONTHLY ATTENDANCE %
-========================================================== */
-
-window.getAttendancePercentage =
-function(studentId,month){
-
-const records=
-
-state.attendance.filter(
-
-a=>
-
-a.studentId===studentId
-
-&&
-
-a.date.startsWith(month)
-
-);
-
-const working=
-
-getWorkingDays(month);
-
-const present=
-
-records.filter(
-
-x=>x.status==="Present"
-
-).length;
-
-if(working===0)return 0;
-
-return Math.round(
-
-present*100/working
-
-);
-
-};
-
-/* ==========================================================
-MONTHLY DEFAULTERS
-========================================================== */
-
-window.getAttendanceDefaulters =
-function(month){
-
-return state.students.filter(student=>{
-
-return getAttendancePercentage(
-
-student.id,
-
-month
-
-)<75;
-
-});
-
-};
-
-/* ==========================================================
-ATTENDANCE SUMMARY OBJECT
-========================================================== */
-
-window.getAttendanceSummary =
-function(studentId){
-
-const records=
-
-getStudentAttendance(
-
-studentId
-
-);
-
-return{
-
-present:
-
-records.filter(
-
-x=>x.status==="Present"
-
-).length,
-
-absent:
-
-records.filter(
-
-x=>x.status==="Absent"
-
-).length,
-
-leave:
-
-records.filter(
-
-x=>x.status==="Leave"
-
-).length,
-
-total:
-
-records.length
-
-};
-
-};
-
-/* ==========================================================
-ATTENDANCE GRAPH DATASET
-========================================================== */
-
-window.getAttendanceDataset =
-function(studentId){
-
-const records=
-
-getStudentAttendance(
-
-studentId
-
-);
-
-return records.map(item=>({
-
-x:item.date,
-
-y:
-
-item.status==="Present"
-
-?1
-
-:item.status==="Leave"
-
-?0.5
-
-:0
-
-}));
-
-};
-
-/* ==========================================================
-END ATTENDANCE MODULE
-========================================================== */
-/* ==========================================================
-ATTENDANCE HOLIDAYS + LEAVE APPROVAL SYSTEM
-PASTE AT END OF admin.js
-========================================================== */
-
-state.holidays = [];
-state.leaveRequests = [];
-
-/* ==========================================================
-LOAD HOLIDAYS
-========================================================== */
-
-async function loadHolidays(){
-
-const snap = await getDocs(
-
-query(
-
-collection(db,"holidays"),
-
-orderBy("date","asc")
-
-)
-
-);
-
-state.holidays=[];
-
-snap.forEach(doc=>{
-
-state.holidays.push({
-
-id:doc.id,
-
-...doc.data()
-
-});
-
-});
-
-}
-
-/* ==========================================================
-LOAD LEAVE REQUESTS
-========================================================== */
-
-async function loadLeaveRequests(){
-
-const snap=await getDocs(
-
-query(
-
-collection(db,"leaveRequests"),
-
-orderBy("createdAt","desc")
-
-)
-
-);
-
-state.leaveRequests=[];
-
-snap.forEach(doc=>{
-
-state.leaveRequests.push({
-
-id:doc.id,
-
-...doc.data()
-
-});
-
-});
-
-}
-
-/* ==========================================================
-IS HOLIDAY
-========================================================== */
-
-window.isHoliday=function(date){
-
-return state.holidays.some(
-
-x=>x.date===date
-
-);
-
-};
-
-/* ==========================================================
-ADD HOLIDAY
-========================================================== */
-
-window.addHoliday=
-async function(){
-
-const date=
-
-prompt("Holiday Date (YYYY-MM-DD)");
-
-if(!date)return;
-
-const title=
-
-prompt("Holiday Name");
-
-if(!title)return;
-
-await addDoc(
-
-collection(db,"holidays"),
-
-{
-
-date,
-
-title,
-
-createdAt:serverTimestamp()
-
-}
-
-);
-
-await loadHolidays();
-
-showToast(
-
-"Holiday Added"
-
-);
-
-};
-
-/* ==========================================================
-REQUEST LEAVE
-========================================================== */
-
-window.requestLeave=
-async function(student){
-
-const date=
-
-prompt("Leave Date");
-
-if(!date)return;
-
-const reason=
-
-prompt("Reason");
-
-if(!reason)return;
-
-await addDoc(
-
-collection(db,"leaveRequests"),
-
-{
-
-studentId:student.id,
-
-studentName:student.studentName,
-
-teacherId:student.teacherId,
-
-teacherName:student.teacherName,
-
-parentPhone:student.parentPhone,
-
-date,
-
-reason,
-
-status:"Pending",
-
-createdAt:serverTimestamp()
-
-}
-
-);
-
-showToast(
-
-"Leave Request Sent"
-
-);
-
-};
-
-/* ==========================================================
-APPROVE LEAVE
-========================================================== */
-
-window.approveLeave=
-async function(id){
-
-const leave=
-
-state.leaveRequests.find(
-
-x=>x.id===id
-
-);
-
-if(!leave)return;
-
-await updateDoc(
-
-doc(
-
-db,
-
-"leaveRequests",
-
-id
-
-),
-
-{
-
-status:"Approved",
-
-approvedAt:serverTimestamp()
-
-}
-
-);
-
-await addDoc(
-
-collection(db,"attendance"),
-
-{
-
-studentId:leave.studentId,
-
-studentName:leave.studentName,
-
-teacherId:leave.teacherId,
-
-teacherName:leave.teacherName,
-
-status:"Leave",
-
-date:leave.date,
-
-remark:leave.reason,
-
-createdAt:serverTimestamp()
-
-}
-
-);
-
-await loadAttendance();
-
-await loadLeaveRequests();
-
-showToast(
-
-"Leave Approved"
-
-);
-
-};
-
-/* ==========================================================
-REJECT LEAVE
-========================================================== */
-
-window.rejectLeave=
-async function(id){
-
-await updateDoc(
-
-doc(
-
-db,
-
-"leaveRequests",
-
-id
-
-),
-
-{
-
-status:"Rejected",
-
-updatedAt:serverTimestamp()
-
-}
-
-);
-
-await loadLeaveRequests();
-
-showToast(
-
-"Leave Rejected"
-
-);
-
-};
-
-/* ==========================================================
-TODAY HOLIDAY CHECK
-========================================================== */
-
-window.todayHolidayCheck=
-function(){
-
-const today=
-
-new Date()
-
-.toISOString()
-
-.split("T")[0];
-
-if(isHoliday(today)){
-
-showToast(
-
-"Today is Holiday"
-
-);
-
-return true;
-
-}
-
-return false;
-
-};
-
-/* ==========================================================
-AUTO BLOCK ATTENDANCE ON HOLIDAY
-========================================================== */
-
-const oldMarkAttendance=
-
-window.markAttendance;
-
-window.markAttendance=
-
-async function(id){
-
-if(todayHolidayCheck())return;
-
-await oldMarkAttendance(id);
-
-};
-
-const oldMarkAbsent=
-
-window.markAbsent;
-
-window.markAbsent=
-
-async function(id){
-
-if(todayHolidayCheck())return;
-
-await oldMarkAbsent(id);
-
-};
-
-/* ==========================================================
-HOLIDAY SUMMARY
-========================================================== */
-
-window.renderHolidayList=
-function(){
-
-let html=`
-
-<table class="adminTable">
-
-<thead>
-
-<tr>
-
-<th>Date</th>
-
-<th>Holiday</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-`;
-
-state.holidays.forEach(item=>{
-
-html+=`
-
-<tr>
-
-<td>${item.date}</td>
-
-<td>${item.title}</td>
-
-</tr>
-
-`;
-
-});
-
-html+=`
-
-</tbody>
-
-</table>
-
-`;
-
-document.getElementById(
-
-"analyticsCharts"
-
-).innerHTML=
-
-html;
-
-};
-
-/* ==========================================================
-INITIALIZE
-========================================================== */
-
-document.addEventListener(
-
-"DOMContentLoaded",
-
-async()=>{
-
-await loadHolidays();
-
-await loadLeaveRequests();
-
-});
-/* ==========================================================
-ATTENDANCE BACKUP + RESTORE + DUPLICATE CHECK
-PASTE AT END OF admin.js
-========================================================== */
-
-window.checkAttendanceExists =
-function(studentId,date){
-
-return state.attendance.some(
-
-item=>
-
-item.studentId===studentId &&
-
-item.date===date
-
-);
-
-};
-
-/* ==========================================================
-SAFE SAVE ATTENDANCE
-========================================================== */
-
-window.safeAttendance =
-async function(record){
-
-if(
-
-checkAttendanceExists(
-
-record.studentId,
-
-record.date
-
-)
+    loading=true
 
 ){
 
-showToast(
+    if(!button) return;
 
-"Attendance Already Exists",
+    if(loading){
 
-"error"
+        button.dataset.text=
 
-);
+            button.innerHTML;
 
-return;
+        button.disabled=true;
 
-}
+        button.innerHTML=
 
-await addDoc(
+        `<i class="fa-solid fa-spinner fa-spin"></i> Loading`;
 
-collection(db,"attendance"),
+    }
 
-record
+    else{
 
-);
+        button.disabled=false;
 
-state.attendance.push(record);
+        button.innerHTML=
 
-showToast(
+            button.dataset.text;
 
-"Attendance Saved"
-
-);
-
-};
-
-/* ==========================================================
-BACKUP JSON
-========================================================== */
-
-window.backupAttendance =
-function(){
-
-const backup={
-
-generatedAt:
-
-new Date().toISOString(),
-
-total:
-
-state.attendance.length,
-
-records:
-
-state.attendance
-
-};
-
-const blob=
-
-new Blob(
-
-[
-
-JSON.stringify(
-
-backup,
-
-null,
-
-2
-
-)
-
-],
-
-{
-
-type:
-
-"application/json"
+    }
 
 }
 
-);
 
-const url=
 
-URL.createObjectURL(blob);
+//============================================================
+// FORM VALIDATOR
+//============================================================
 
-const a=
+const Validator={
 
-document.createElement("a");
+    required(value){
 
-a.href=url;
+        return String(value)
 
-a.download=
+            .trim()
 
-"attendance-backup.json";
+            .length>0;
 
-a.click();
+    },
+
+
+
+    phone(value){
+
+        return /^[6-9]\d{9}$/
+
+            .test(
+
+                value
+
+                .replace(/\D/g,"")
+
+            );
+
+    },
+
+
+
+    email(value){
+
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+            .test(value);
+
+    },
+
+
+
+    number(value){
+
+        return !isNaN(value);
+
+    }
 
 };
 
-/* ==========================================================
-RESTORE JSON
-========================================================== */
 
-window.restoreAttendance =
-async function(file){
 
-const reader=
+//============================================================
+// CACHE OBSERVER
+//============================================================
 
-new FileReader();
+function watchCache(){
 
-reader.onload=
+    Object.keys(cache)
 
-async function(e){
+    .forEach(key=>{
 
-const json=
+        Object.defineProperty(
 
-JSON.parse(
+            cache,
 
-e.target.result
+            key,
 
-);
+            {
 
-showLoader();
+                configurable:true,
 
-for(const record of json.records){
+                writable:true
 
-const exists=
+            }
 
-checkAttendanceExists(
+        );
 
-record.studentId,
-
-record.date
-
-);
-
-if(exists)
-
-continue;
-
-await addDoc(
-
-collection(db,"attendance"),
-
-{
-
-studentId:
-
-record.studentId,
-
-studentName:
-
-record.studentName,
-
-teacherId:
-
-record.teacherId,
-
-teacherName:
-
-record.teacherName,
-
-status:
-
-record.status,
-
-remark:
-
-record.remark||"",
-
-date:
-
-record.date,
-
-createdAt:
-
-serverTimestamp()
+    });
 
 }
 
-);
 
-}
 
-hideLoader();
+//============================================================
+// PERFORMANCE LOGGER
+//============================================================
 
-await loadAttendance();
+function benchmark(
 
-renderAttendance();
+    title,
 
-showToast(
-
-"Backup Restored"
-
-);
-
-};
-
-reader.readAsText(file);
-
-};
-
-/* ==========================================================
-DELETE MONTH ATTENDANCE
-========================================================== */
-
-window.deleteAttendanceMonth =
-async function(month){
-
-if(
-
-!confirm(
-
-"Delete Attendance Of "+month+" ?"
-
-)
-
-)return;
-
-showLoader();
-
-const snap=
-
-await getDocs(
-
-query(
-
-collection(db,"attendance")
-
-)
-
-);
-
-for(const document of snap.docs){
-
-const data=
-
-document.data();
-
-if(
-
-data.date.startsWith(month)
+    callback
 
 ){
 
-await deleteDoc(
+    const start=
 
-doc(
+        performance.now();
 
-db,
+    callback();
 
-"attendance",
+    console.log(
 
-document.id
+        title,
 
-)
+        (
 
-);
+            performance.now()
+
+            -start
+
+        ).toFixed(2),
+
+        "ms"
+
+    );
 
 }
 
+
+
+//============================================================
+// SAFE JSON
+//============================================================
+
+function clone(value){
+
+    return JSON.parse(
+
+        JSON.stringify(value)
+
+    );
+
 }
 
-hideLoader();
 
-await loadAttendance();
 
-renderAttendance();
+//============================================================
+// FIREBASE CONNECTION WATCHER
+//============================================================
 
-showToast(
+window.addEventListener(
 
-"Month Deleted"
+    "online",
+
+    ()=>{
+
+        SyncEngine.online=true;
+
+        showToast(
+
+            "Connected"
+
+        );
+
+    }
 
 );
+
+window.addEventListener(
+
+    "offline",
+
+    ()=>{
+
+        SyncEngine.online=false;
+
+        showToast(
+
+            "Offline Mode",
+
+            "warning"
+
+        );
+
+    }
+
+);
+
+
+
+//============================================================
+// GLOBAL APP OBJECT
+//============================================================
+
+window.TutorNest={
+
+    cache,
+
+    db,
+
+    auth,
+
+    storage,
+
+    reportEngine,
+
+    DashboardInsights,
+
+    DashboardCache,
+
+    SearchEngine,
+
+    Validator,
+
+    DateUtil,
+
+    IdGenerator,
+
+    ImageManager
+
+};
+//============================================================
+// FIREBASE TRANSACTION ENGINE
+//============================================================
+
+async function runTransactionTask(task) {
+
+    showLoader();
+
+    try {
+
+        await task();
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        showToast(
+
+            error.message ||
+
+            "Transaction Failed",
+
+            "error"
+
+        );
+
+    }
+
+    finally {
+
+        hideLoader();
+
+    }
+
+}
+
+
+
+//============================================================
+// FIRESTORE CRUD SERVICE
+//============================================================
+
+const FirestoreService = {
+
+    async create(ref, data) {
+
+        return await addDoc(
+
+            ref,
+
+            {
+
+                ...data,
+
+                createdAt:
+
+                    serverTimestamp(),
+
+                updatedAt:
+
+                    serverTimestamp()
+
+            }
+
+        );
+
+    },
+
+
+
+    async update(collectionName, id, data) {
+
+        return await updateDoc(
+
+            doc(
+
+                db,
+
+                collectionName,
+
+                id
+
+            ),
+
+            {
+
+                ...data,
+
+                updatedAt:
+
+                    serverTimestamp()
+
+            }
+
+        );
+
+    },
+
+
+
+    async remove(collectionName, id) {
+
+        return await deleteDoc(
+
+            doc(
+
+                db,
+
+                collectionName,
+
+                id
+
+            )
+
+        );
+
+    },
+
+
+
+    async get(collectionName, id) {
+
+        const snap =
+
+            await getDoc(
+
+                doc(
+
+                    db,
+
+                    collectionName,
+
+                    id
+
+                )
+
+            );
+
+        return snap.exists()
+
+            ? {
+
+                id: snap.id,
+
+                ...snap.data()
+
+            }
+
+            : null;
+
+    }
 
 };
 
-/* ==========================================================
-FIND MISSING ATTENDANCE
-========================================================== */
 
-window.findMissingAttendance =
-function(date){
 
-const missing=[];
+//============================================================
+// LOCAL STORAGE
+//============================================================
 
-state.students.forEach(student=>{
+const Storage = {
 
-const found=
+    save(key, value) {
 
-state.attendance.find(
+        localStorage.setItem(
 
-a=>
+            key,
 
-a.studentId===student.id
+            JSON.stringify(value)
 
-&&
+        );
 
-a.date===date
+    },
 
-);
 
-if(!found){
 
-missing.push(student);
+    load(key, fallback = null) {
 
-}
+        try {
 
-});
+            const value =
 
-return missing;
+                localStorage.getItem(key);
+
+            return value
+
+                ? JSON.parse(value)
+
+                : fallback;
+
+        }
+
+        catch {
+
+            return fallback;
+
+        }
+
+    },
+
+
+
+    remove(key) {
+
+        localStorage.removeItem(key);
+
+    }
 
 };
 
-/* ==========================================================
-AUTO REMINDER
-========================================================== */
 
-window.checkPendingAttendance =
-function(){
 
-const today=
+//============================================================
+// DASHBOARD PREFERENCES
+//============================================================
 
-new Date()
+const Preference = {
 
-.toISOString()
+    key:
 
-.split("T")[0];
+        "TutorNestPreference",
 
-const missing=
 
-findMissingAttendance(today);
 
-if(
+    data: {
 
-missing.length>0
+        darkMode: false,
+
+        rowsPerPage: 20,
+
+        autoRefresh: true,
+
+        chart: true
+
+    },
+
+
+
+    load() {
+
+        this.data =
+
+            Storage.load(
+
+                this.key,
+
+                this.data
+
+            );
+
+    },
+
+
+
+    save() {
+
+        Storage.save(
+
+            this.key,
+
+            this.data
+
+        );
+
+    }
+
+};
+
+Preference.load();
+
+
+
+//============================================================
+// FILTER ENGINE
+//============================================================
+
+class CollectionFilter {
+
+    constructor(data) {
+
+        this.original = data;
+
+        this.filtered = data;
+
+    }
+
+    where(field, value) {
+
+        this.filtered =
+
+            this.filtered.filter(
+
+                item =>
+
+                    item[field] === value
+
+            );
+
+        return this;
+
+    }
+
+    contains(field, value) {
+
+        value =
+
+            String(value)
+
+            .toLowerCase();
+
+        this.filtered =
+
+            this.filtered.filter(
+
+                item =>
+
+                    String(
+
+                        item[field] ||
+
+                        ""
+
+                    )
+
+                    .toLowerCase()
+
+                    .includes(value)
+
+            );
+
+        return this;
+
+    }
+
+    sort(field) {
+
+        this.filtered.sort(
+
+            (a,b)=>{
+
+                if(a[field]>b[field])
+
+                    return 1;
+
+                if(a[field]<b[field])
+
+                    return -1;
+
+                return 0;
+
+            }
+
+        );
+
+        return this;
+
+    }
+
+    result(){
+
+        return this.filtered;
+
+    }
+
+}
+
+
+
+//============================================================
+// EXPORT JSON
+//============================================================
+
+function exportJSON(
+
+    filename,
+
+    object
 
 ){
 
-showToast(
+    const blob =
 
-missing.length+
+        new Blob(
 
-" Students Attendance Pending",
+            [
 
-"error"
+                JSON.stringify(
 
-);
+                    object,
+
+                    null,
+
+                    2
+
+                )
+
+            ],
+
+            {
+
+                type:
+
+                    "application/json"
+
+            }
+
+        );
+
+    const url =
+
+        URL.createObjectURL(
+
+            blob
+
+        );
+
+    const a =
+
+        document.createElement("a");
+
+    a.href = url;
+
+    a.download = filename;
+
+    a.click();
+
+    URL.revokeObjectURL(url);
 
 }
 
-};
 
-/* ==========================================================
-RUN EVERY 5 MINUTES
-========================================================== */
+
+//============================================================
+// IMPORT JSON
+//============================================================
+
+async function importJSON(file){
+
+    return new Promise(
+
+        (resolve,reject)=>{
+
+            const reader=
+
+                new FileReader();
+
+            reader.onload=()=>{
+
+                try{
+
+                    resolve(
+
+                        JSON.parse(
+
+                            reader.result
+
+                        )
+
+                    );
+
+                }
+
+                catch(error){
+
+                    reject(error);
+
+                }
+
+            };
+
+            reader.onerror=reject;
+
+            reader.readAsText(file);
+
+        }
+
+    );
+
+}
+
+
+
+//============================================================
+// CACHE STATISTICS
+//============================================================
+
+function cacheSize(){
+
+    return {
+
+        demos:
+
+            cache.demos.length,
+
+        teachers:
+
+            cache.teachers.length,
+
+        students:
+
+            cache.students.length,
+
+        attendance:
+
+            cache.attendance.length,
+
+        fees:
+
+            cache.fees.length,
+
+        commission:
+
+            cache.commissions.length
+
+    };
+
+}
+
+function logCache(){
+
+    console.table(
+
+        cacheSize()
+
+    );
+
+}
+
+
+
+//============================================================
+// AUTO LOG
+//============================================================
 
 setInterval(
 
-checkPendingAttendance,
+    logCache,
 
-300000
-
-);
-/* ==========================================================
-ATTENDANCE INSIGHTS ENGINE
-PASTE AT END OF admin.js
-========================================================== */
-
-window.attendanceInsights =
-function(studentId){
-
-const student=
-
-state.students.find(
-
-s=>s.id===studentId
+    300000
 
 );
 
-if(!student)return;
 
-const records=
 
-state.attendance.filter(
+//============================================================
+// DEBUG HELPERS
+//============================================================
 
-a=>a.studentId===studentId
+window.debugDashboard=()=>{
 
-);
+    console.log({
 
-const monthly={};
+        cache,
 
-records.forEach(record=>{
+        currentUser,
 
-const month=
+        currentRole,
 
-record.date.substring(0,7);
+        kpi:
 
-if(!monthly[month]){
+            calculateKPIs(),
 
-monthly[month]={
+        summary:
 
-present:0,
+            dashboardSummary(),
 
-absent:0,
+        report:
 
-leave:0
+            buildReportObject()
+
+    });
 
 };
 
-}
+window.clearDashboardCache=()=>{
 
-switch(record.status){
+    DashboardCache.clear();
 
-case"Present":
-
-monthly[month].present++;
-
-break;
-
-case"Absent":
-
-monthly[month].absent++;
-
-break;
-
-case"Leave":
-
-monthly[month].leave++;
-
-break;
-
-}
-
-});
-
-let html=`
-
-<div class="sectionCard">
-
-<h2>
-
-Attendance Insights
-
-</h2>
-
-<table class="adminTable">
-
-<thead>
-
-<tr>
-
-<th>Month</th>
-
-<th>Present</th>
-
-<th>Absent</th>
-
-<th>Leave</th>
-
-<th>%</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-`;
-
-Object.keys(monthly).sort().reverse().forEach(month=>{
-
-const item=monthly[month];
-
-const total=
-
-item.present+
-
-item.absent+
-
-item.leave;
-
-const per=
-
-total===0
-
-?0
-
-:Math.round(
-
-item.present*100/total
-
-);
-
-html+=`
-
-<tr>
-
-<td>${month}</td>
-
-<td>${item.present}</td>
-
-<td>${item.absent}</td>
-
-<td>${item.leave}</td>
-
-<td>${per}%</td>
-
-</tr>
-
-`;
-
-});
-
-html+=`
-
-</tbody>
-
-</table>
-
-</div>
-
-`;
-
-document.getElementById(
-
-"analyticsCharts"
-
-).innerHTML=
-
-html;
+    location.reload();
 
 };
 
-/* ==========================================================
-PERFECT ATTENDANCE STUDENTS
-========================================================== */
+window.exportDashboardJSON=()=>{
 
-window.perfectAttendance =
-function(month){
+    exportJSON(
 
-const perfect=[];
+        "TutorNestDashboard.json",
 
-state.students.forEach(student=>{
+        buildReportObject()
 
-const records=
-
-state.attendance.filter(
-
-a=>
-
-a.studentId===student.id &&
-
-a.date.startsWith(month)
-
-);
-
-if(records.length===0)return;
-
-const absent=
-
-records.some(
-
-x=>x.status==="Absent"
-
-);
-
-if(!absent){
-
-perfect.push(student);
-
-}
-
-});
-
-return perfect;
+    );
 
 };
 
-/* ==========================================================
-ATTENDANCE LEADERBOARD
-========================================================== */
 
-window.renderAttendanceLeaderboard =
-function(month){
 
-const board=[];
+//============================================================
+// INITIALIZE EXTENSIONS
+//============================================================
 
-state.students.forEach(student=>{
+window.addEventListener(
 
-board.push({
+    "load",
 
-student,
+    ()=>{
 
-percentage:
+        Preference.load();
 
-getAttendancePercentage(
+        renderCharts();
 
-student.id,
+        refreshKPIs();
 
-month
+        logCache();
 
-)
-
-});
-
-});
-
-board.sort(
-
-(a,b)=>
-
-b.percentage-a.percentage
+    }
 
 );
-
-let html=`
-
-<table class="adminTable">
-
-<thead>
-
-<tr>
-
-<th>Rank</th>
-
-<th>Student</th>
-
-<th>Attendance</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-`;
-
-board.forEach((item,index)=>{
-
-html+=`
-
-<tr>
-
-<td>#${index+1}</td>
-
-<td>${item.student.studentName}</td>
-
-<td>${item.percentage}%</td>
-
-</tr>
-
-`;
-
-});
-
-html+=`
-
-</tbody>
-
-</table>
-
-`;
-
-document.getElementById(
-
-"analyticsCharts"
-
-).innerHTML=
-
-html;
-
-};
-
-/* ==========================================================
-MONTHLY AUTO REPORT
-========================================================== */
-
-window.autoAttendanceReport =
-function(){
-
-const month=
-
-new Date()
-
-.toISOString()
-
-.slice(0,7);
-
-generateAttendanceSummary(
-
-month
-
-);
-
-};
-
-/* ==========================================================
-ATTENDANCE HEALTH SCORE
-========================================================== */
-
-window.getAttendanceHealth =
-function(studentId){
-
-const per=
-
-getAttendancePercentage(
-
-studentId,
-
-new Date()
-
-.toISOString()
-
-.slice(0,7)
-
-);
-
-if(per>=95)
-
-return{
-
-label:"Excellent",
-
-color:"#22c55e"
-
-};
-
-if(per>=85)
-
-return{
-
-label:"Good",
-
-color:"#3b82f6"
-
-};
-
-if(per>=75)
-
-return{
-
-label:"Average",
-
-color:"#f59e0b"
-
-};
-
-return{
-
-label:"Poor",
-
-color:"#ef4444"
-
-};
-
-};
-
-/* ==========================================================
-END
-========================================================== */
-/* ==========================================================
-ATTENDANCE REMINDER & MONTH CLOSE SYSTEM
-PASTE AT END OF admin.js
-========================================================== */
-
-window.sendAttendanceReminder =
-async function(studentId){
-
-const student=
-
-state.students.find(
-
-s=>s.id===studentId
-
-);
-
-if(!student)return;
-
-await addDoc(
-
-collection(db,"notificationQueue"),
-
-{
-
-type:"attendanceReminder",
-
-studentId:student.id,
-
-studentName:student.studentName,
-
-parentPhone:student.parentPhone||"",
-
-teacherName:student.teacherName,
-
-message:
-
-`Attendance of ${student.studentName} is below required percentage.`,
-
-status:"Pending",
-
-createdAt:serverTimestamp()
-
-}
-
-);
-
-showToast(
-
-"Reminder Queued"
-
-);
-
-};
-
-/* ==========================================================
-AUTO REMINDER BELOW 75%
-========================================================== */
-
-window.checkAttendanceReminder =
-function(){
-
-const month=
-
-new Date()
-
-.toISOString()
-
-.slice(0,7);
-
-state.students.forEach(student=>{
-
-const percentage=
-
-getAttendancePercentage(
-
-student.id,
-
-month
-
-);
-
-if(
-
-percentage<75
-
-){
-
-sendAttendanceReminder(
-
-student.id
-
-);
-
-}
-
-});
-
-};
-
-/* ==========================================================
-MONTH CLOSE
-========================================================== */
-
-window.closeAttendanceMonth =
-async function(month){
-
-if(
-
-!confirm(
-
-"Close Attendance for "+month+" ?"
-
-)
-
-)return;
-
-await addDoc(
-
-collection(db,"attendanceMonthClose"),
-
-{
-
-month,
-
-closedBy:
-
-state.admin?.name||
-
-"Admin",
-
-closedAt:
-
-serverTimestamp()
-
-}
-
-);
-
-showToast(
-
-"Attendance Closed"
-
-);
-
-};
-
-/* ==========================================================
-CHECK CLOSED
-========================================================== */
-
-window.isAttendanceClosed =
-async function(month){
-
-const snap=
-
-await getDocs(
-
-query(
-
-collection(db,"attendanceMonthClose"),
-
-where(
-
-"month",
-
-"==",
-
-month
-
-)
-
-)
-
-);
-
-return !snap.empty;
-
-};
-
-/* ==========================================================
-SAFE MARK ATTENDANCE
-========================================================== */
-
-const originalSafeAttendance =
-window.safeAttendance;
-
-window.safeAttendance =
-async function(record){
-
-const month=
-
-record.date.substring(0,7);
-
-const closed=
-
-await isAttendanceClosed(
-
-month
-
-);
-
-if(closed){
-
-showToast(
-
-"Attendance Month Closed",
-
-"error"
-
-);
-
-return;
-
-}
-
-await originalSafeAttendance(
-
-record
-
-);
-
-};
-
-/* ==========================================================
-MONTHLY REPORT DOWNLOAD
-========================================================== */
-
-window.downloadAttendanceCSV =
-function(month){
-
-const rows=
-
-state.attendance.filter(
-
-a=>
-
-a.date.startsWith(month)
-
-);
-
-let csv=
-
-"Student,Teacher,Date,Status\n";
-
-rows.forEach(r=>{
-
-csv+=
-
-`${r.studentName},${r.teacherName},${r.date},${r.status}\n`;
-
-});
-
-const blob=
-
-new Blob(
-
-[csv],
-
-{
-
-type:"text/csv"
-
-}
-
-);
-
-const url=
-
-URL.createObjectURL(blob);
-
-const a=
-
-document.createElement("a");
-
-a.href=url;
-
-a.download=
-
-`${month}-attendance.csv`;
-
-a.click();
-
-};
-
-/* ==========================================================
-AUTO DAILY REMINDER
-========================================================== */
-
-setInterval(
-
-checkAttendanceReminder,
-
-86400000
-
-);
-/* ==========================================================
-ATTENDANCE STATISTICS CACHE + FAST SEARCH
-PASTE AT END OF admin.js
-========================================================== */
-
-state.attendanceCache = new Map();
-
-/* ==========================================================
-BUILD CACHE
-========================================================== */
-
-window.buildAttendanceCache = function(){
-
-state.attendanceCache.clear();
-
-state.attendance.forEach(record=>{
-
-if(!state.attendanceCache.has(record.studentId)){
-
-state.attendanceCache.set(
-
-record.studentId,
-
-[]
-
-);
-
-}
-
-state.attendanceCache
-
-.get(record.studentId)
-
-.push(record);
-
-});
-
-};
-
-/* ==========================================================
-GET CACHE
-========================================================== */
-
-window.cachedAttendance=function(studentId){
-
-return state.attendanceCache.get(studentId)||[];
-
-};
-
-/* ==========================================================
-FAST PERCENTAGE
-========================================================== */
-
-window.cachedAttendancePercentage=
-
-function(studentId){
-
-const records=
-
-cachedAttendance(studentId);
-
-if(records.length===0)return 0;
-
-const present=
-
-records.filter(
-
-x=>x.status==="Present"
-
-).length;
-
-return Math.round(
-
-present*100/
-
-records.length
-
-);
-
-};
-
-/* ==========================================================
-SEARCH STUDENT ATTENDANCE
-========================================================== */
-
-window.searchAttendance=function(){
-
-const keyword=
-
-prompt("Student Name");
-
-if(!keyword)return;
-
-const records=
-
-state.attendance.filter(
-
-a=>
-
-(a.studentName||"")
-
-.toLowerCase()
-
-.includes(
-
-keyword.toLowerCase()
-
-)
-
-);
-
-renderAttendanceTable(records);
-
-};
-
-/* ==========================================================
-TODAY ABSENT LIST
-========================================================== */
-
-window.todayAbsentStudents=
-
-function(){
-
-const today=
-
-new Date()
-
-.toISOString()
-
-.split("T")[0];
-
-return state.attendance.filter(
-
-a=>
-
-a.date===today &&
-
-a.status==="Absent"
-
-);
-
-};
-
-/* ==========================================================
-TODAY PRESENT LIST
-========================================================== */
-
-window.todayPresentStudents=
-
-function(){
-
-const today=
-
-new Date()
-
-.toISOString()
-
-.split("T")[0];
-
-return state.attendance.filter(
-
-a=>
-
-a.date===today &&
-
-a.status==="Present"
-
-);
-
-};
-
-/* ==========================================================
-TODAY LEAVE LIST
-========================================================== */
-
-window.todayLeaveStudents=
-
-function(){
-
-const today=
-
-new Date()
-
-.toISOString()
-
-.split("T")[0];
-
-return state.attendance.filter(
-
-a=>
-
-a.date===today &&
-
-a.status==="Leave"
-
-);
-
-};
-
-/* ==========================================================
-DOWNLOAD ABSENT LIST
-========================================================== */
-
-window.exportAbsentList=
-
-function(){
-
-const rows=
-
-todayAbsentStudents();
-
-let csv=
-
-"Student,Teacher,Date\n";
-
-rows.forEach(x=>{
-
-csv+=
-
-`${x.studentName},${x.teacherName},${x.date}\n`;
-
-});
-
-const blob=
-
-new Blob(
-
-[csv],
-
-{
-
-type:"text/csv"
-
-}
-
-);
-
-const url=
-
-URL.createObjectURL(blob);
-
-const a=
-
-document.createElement("a");
-
-a.href=url;
-
-a.download="AbsentList.csv";
-
-a.click();
-
-};
-
-/* ==========================================================
-ATTENDANCE REFRESH CACHE
-========================================================== */
-
-const oldAttendanceLoad=
-
-loadAttendance;
-
-loadAttendance=
-
-async function(){
-
-await oldAttendanceLoad();
-
-buildAttendanceCache();
-
-};
-
-/* ==========================================================
-ATTENDANCE SCORE
-========================================================== */
-
-window.studentAttendanceScore=
-
-function(studentId){
-
-const p=
-
-cachedAttendancePercentage(
-
-studentId
-
-);
-
-if(p>=95)return 5;
-
-if(p>=90)return 4;
-
-if(p>=80)return 3;
-
-if(p>=70)return 2;
-
-return 1;
-
-};
-
-/* ==========================================================
-END CACHE MODULE
-========================================================== */
-/* ==========================================================
-ATTENDANCE TIMETABLE INTEGRATION
-PASTE AT END OF admin.js
-========================================================== */
-
-state.timetable = [];
-
-/* ==========================================================
-LOAD TIMETABLE
-========================================================== */
-
-async function loadTimetable(){
-
-const snap = await getDocs(
-
-query(
-
-collection(db,"timetable"),
-
-orderBy("day")
-
-)
-
-);
-
-state.timetable=[];
-
-snap.forEach(doc=>{
-
-state.timetable.push({
-
-id:doc.id,
-
-...doc.data()
-
-});
-
-});
-
-}
-
-/* ==========================================================
-TODAY CLASSES
-========================================================== */
-
-window.todayClasses =
-function(){
-
-const days=[
-
-"Sunday",
-
-"Monday",
-
-"Tuesday",
-
-"Wednesday",
-
-"Thursday",
-
-"Friday",
-
-"Saturday"
-
-];
-
-const today=
-
-days[
-
-new Date().getDay()
-
-];
-
-return state.timetable.filter(
-
-x=>x.day===today
-
-);
-
-};
-
-/* ==========================================================
-ATTENDANCE DUE LIST
-========================================================== */
-
-window.pendingAttendanceClasses=
-function(){
-
-const today=
-
-new Date()
-
-.toISOString()
-
-.split("T")[0];
-
-const pending=[];
-
-todayClasses().forEach(cls=>{
-
-const found=
-
-state.attendance.find(
-
-a=>
-
-a.studentId===cls.studentId
-
-&&
-
-a.date===today
-
-);
-
-if(!found){
-
-pending.push(cls);
-
-}
-
-});
-
-return pending;
-
-};
-
-/* ==========================================================
-SHOW PENDING CLASSES
-========================================================== */
-
-window.renderPendingAttendance=
-function(){
-
-const pending=
-
-pendingAttendanceClasses();
-
-let html=`
-
-<table class="adminTable">
-
-<thead>
-
-<tr>
-
-<th>
-
-Student
-
-</th>
-
-<th>
-
-Teacher
-
-</th>
-
-<th>
-
-Time
-
-</th>
-
-<th>
-
-Action
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-`;
-
-pending.forEach(item=>{
-
-html+=`
-
-<tr>
-
-<td>
-
-${item.studentName}
-
-</td>
-
-<td>
-
-${item.teacherName}
-
-</td>
-
-<td>
-
-${item.time}
-
-</td>
-
-<td>
-
-<button
-
-class="tableBtn green"
-
-onclick="markAttendance('${item.studentId}')">
-
-Present
-
-</button>
-
-<button
-
-class="tableBtn red"
-
-onclick="markAbsent('${item.studentId}')">
-
-Absent
-
-</button>
-
-<button
-
-class="tableBtn orange"
-
-onclick="markLeave('${item.studentId}')">
-
-Leave
-
-</button>
-
-</td>
-
-</tr>
-
-`;
-
-});
-
-html+=`
-
-</tbody>
-
-</table>
-
-`;
-
-document.getElementById(
-
-"analyticsCharts"
-
-).innerHTML=
-
-html;
-
-};
-
-/* ==========================================================
-AUTO CHECK EVERY 10 MINUTES
-========================================================== */
-
-setInterval(()=>{
-
-const pending=
-
-pendingAttendanceClasses();
-
-if(pending.length>0){
-
-showToast(
-
-pending.length+
-
-" Classes Pending Attendance"
-
-);
-
-}
-
-},600000);
-
-/* ==========================================================
-LOAD MODULE
-========================================================== */
-
-document.addEventListener(
-
-"DOMContentLoaded",
-
-async()=>{
-
-await loadTimetable();
-
-});
