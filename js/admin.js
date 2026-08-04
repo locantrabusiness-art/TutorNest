@@ -1,3 +1,4 @@
+const $ = (id) => document.getElementById(id);
 /* =====================================================
                 RENDER DEMO BOOKINGS
 ===================================================== */
@@ -8,7 +9,6 @@ function renderDemoBookings() {
 
     const keyword = demoSearch.value.trim().toLowerCase();
     const status = demoFilter.value;
-    const $ = (id) => document.getElementById(id);
 
     const data = state.demoBookings.filter(item => {
 
