@@ -5,10 +5,10 @@
 //=====================================================
 
 import {
-    auth,
     db,
-    storage
-} from "../firebase.js";
+    auth,
+    storage,
+} from "./firebase.js";
 
 import {
     onAuthStateChanged,
@@ -34,7 +34,6 @@ import {
     Timestamp,
     writeBatch
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-
 import {
     ref,
     uploadBytes,
@@ -2227,7 +2226,6 @@ async function convertDemoToStudent() {
     item =>
     item.id === selectedDemo.teacherId ||
     item.id === selectedDemo.assignedTutorId
-
 );
 
     showLoader();
@@ -2292,37 +2290,38 @@ teacher?.name || selectedDemo.teacherName || "",
 
     }
 );
-if(teacher?.id){
+if (teacher?.id) {
 
     await updateDoc(
 
-    doc(db, "demoBookings", selectedDemo.id),
+        doc(
+            db,
+            "tutors",
+            teacher.id
+        ),
 
-    {
+        {
 
-        teacherId: teacher.id,
+            assignedStudents: arrayUnion({
 
-        teacherName: teacher.name,
+                studentId: studentDoc.id,
 
-        assignedTutorId: teacher.id,
+                name: selectedDemo.studentName || "",
 
-        assignedTutorName: teacher.name,
+                class: selectedDemo.class || "",
 
-        teacherPhone: teacher.phone || "",
+                subject: selectedDemo.subject || "",
 
-        demoDate: $("demoDate").value,
+                area: selectedDemo.area || "",
 
-        demoTime: $("demoTime").value,
+                phone: selectedDemo.phone || ""
 
-        notes: $("assignNotes").value.trim(),
+            })
 
-        status: "Assigned",
+        }
 
-        assignedAt: serverTimestamp()
+    );
 
-    }
-
-);
 
 }
         await updateDoc(
