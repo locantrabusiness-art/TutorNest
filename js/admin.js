@@ -2080,29 +2080,51 @@ async function assignTutorToDemo() {
 
         await updateDoc(
 
-            doc(db, "demoBookings", selectedDemo.id),
+doc(db,"demoBookings",selectedDemo.id),
 
-            {
+{
 
-                teacherId: teacher.id,
+assignedTutorId: teacher.id,
 
-                teacherName: teacher.name,
+teacherName:teacher.name,
 
-                teacherPhone: teacher.phone || "",
+teacherPhone:teacher.phone||"",
 
-                demoDate: $("demoDate").value,
+studentName:selectedDemo.studentName,
 
-                demoTime: $("demoTime").value,
+studentPhone:selectedDemo.studentPhone,
 
-                notes: $("assignNotes").value.trim(),
+parentName:selectedDemo.parentName||"",
 
-                status: "Assigned",
+parentPhone:selectedDemo.parentPhone||"",
 
-                assignedAt: serverTimestamp()
+studentClass:selectedDemo.studentClass,
 
-            }
+subject:selectedDemo.subject,
 
-        );
+mode:selectedDemo.mode,
+
+city:selectedDemo.city,
+
+area:selectedDemo.area,
+
+address:selectedDemo.address,
+
+requirement:selectedDemo.requirement,
+
+demoDate:$("demoDate").value,
+
+demoTime:$("demoTime").value,
+
+notes:$("assignNotes").value.trim(),
+
+status:"Assigned",
+
+assignedAt:serverTimestamp()
+
+}
+
+);
 
         closeModal(assignTutorModal);
 
@@ -9108,3 +9130,198 @@ window.addEventListener(
     }
 
 );
+async function assignTutor(bookingId, tutorId){
+
+try{
+
+const tutorSnap = await getDoc(doc(db,"tutors",tutorId));
+
+if(!tutorSnap.exists()){
+
+alert("Tutor not found.");
+
+return;
+
+}
+
+const tutor = tutorSnap.data();
+
+await updateDoc(
+
+doc(db,"demoBookings",bookingId),
+
+{
+
+assignedTutorId:tutorId,
+
+assignedTutorName:tutor.name || "",
+
+assignedTutorPhone:tutor.phone || "",
+
+assignedAt:serverTimestamp(),
+
+status:"Assigned",
+
+updatedAt:serverTimestamp()
+
+}
+
+);
+
+alert("Tutor Assigned Successfully.");
+
+}
+
+catch(err){
+
+console.error(err);
+
+alert(err.message);
+
+}
+
+}
+window.convertStudent=async(id)=>{
+
+try{
+
+const bookingRef=doc(db,"demoBookings",id);
+
+const bookingSnap=await getDoc(bookingRef);
+
+if(!bookingSnap.exists())return;
+
+const booking=bookingSnap.data();
+
+await addDoc(
+
+collection(db,"students"),
+
+{
+
+studentName:booking.studentName,
+
+studentPhone:booking.studentPhone,
+
+parentName:booking.parentName||"",
+
+parentPhone:booking.parentPhone||"",
+
+email:booking.studentEmail||"",
+
+gender:booking.gender||"",
+
+studentClass:booking.studentClass,
+
+subject:booking.subject,
+
+mode:booking.mode,
+
+city:booking.city,
+
+area:booking.area,
+
+address:booking.address,
+
+assignedTutorId:booking.assignedTutorId,
+
+assignedTutorName:booking.assignedTutorName,
+
+status:"Active",
+
+joiningDate:serverTimestamp(),
+
+createdAt:serverTimestamp()
+
+}
+
+);
+
+await updateDoc(
+
+bookingRef,
+
+{
+
+status:"Converted",
+
+converted:true,
+
+convertedAt:serverTimestamp()
+
+}
+
+);
+
+alert("Student Converted Successfully.");
+
+}
+
+catch(err){
+
+console.error(err);
+
+alert(err.message);
+
+}
+
+};
+window.convertStudent = async(id)=>{
+
+const snap = await getDoc(doc(db,"demoBookings",id));
+
+if(!snap.exists()) return;
+
+const demo = snap.data();
+
+await addDoc(
+
+collection(db,"students"),
+
+{
+
+studentName:demo.studentName,
+
+studentPhone:demo.studentPhone,
+
+parentName:demo.parentName,
+
+parentPhone:demo.parentPhone,
+
+studentClass:demo.studentClass,
+
+subject:demo.subject,
+
+teacherId:demo.assignedTutorId,
+
+teacherName:demo.teacherName,
+
+city:demo.city,
+
+area:demo.area,
+
+status:"Active",
+
+createdAt:serverTimestamp()
+
+}
+
+);
+
+await updateDoc(
+
+doc(db,"demoBookings",id),
+
+{
+
+status:"Converted",
+
+convertedAt:serverTimestamp()
+
+}
+
+);
+
+alert("Student Created Successfully");
+
+};

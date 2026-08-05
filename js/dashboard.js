@@ -9,14 +9,15 @@ import {
 
 doc,
 getDoc,
-
 collection,
 query,
 where,
 getDocs,
 addDoc,
 serverTimestamp,
-orderBy
+orderBy,
+onSnapshot
+
 
 }
 
@@ -941,7 +942,7 @@ table.innerHTML=`
 
 <tr>
 
-<td colspan="4">
+<td colspan="5">
 
 No Demo Classes
 
@@ -965,27 +966,49 @@ table.innerHTML+=`
 
 <td>
 
-${d.studentName}
+<b>${d.studentName||"-"}</b><br>
+
+${d.studentPhone||"-"}
 
 </td>
 
 <td>
 
-${d.date||"-"}
+${d.studentClass||"-"}<br>
+
+${d.subject||"-"}
 
 </td>
 
 <td>
 
-${d.time||"-"}
+${d.demoDate||"-"}<br>
+
+${d.demoTime||"-"}
 
 </td>
 
 <td>
 
-<button onclick="window.open('../student.html?id=${d.studentId}')">
+${d.status||"Assigned"}
 
-View
+</td>
+
+<td>
+
+<a href="tel:${d.studentPhone}">📞</a>
+
+<a href="https://wa.me/91${d.studentPhone}" target="_blank">💬</a>
+
+<button onclick="acceptDemo('${docSnap.id}')">
+
+Accept
+
+</button>
+
+<button onclick="completeDemo('${docSnap.id}')">
+
+Complete
 
 </button>
 
@@ -3125,7 +3148,174 @@ overlay.classList.remove("show");
 });
 
 });
+function loadAssignedDemos(){
 
-/* =========================================================
-END OF TUTOR DASHBOARD V3
-========================================================= */
+const tbody=document.getElementById("demoTable");
+
+const q=query(
+
+collection(db,"demoBookings"),
+
+where("assignedTutorId","==",tutorUID)
+
+);
+
+onSnapshot(q,(snapshot)=>{
+
+tbody.innerHTML="";
+
+if(snapshot.empty){
+
+tbody.innerHTML=`
+
+<tr>
+
+<td colspan="4">
+
+No Assigned Demo
+
+</td>
+
+</tr>
+
+`;
+
+return;
+
+}
+
+snapshot.forEach(docSnap=>{
+
+const demo=docSnap.data();
+
+tbody.innerHTML+=`
+
+<tr>
+
+<td>
+
+<b>${demo.studentName||"-"}</b><br>
+
+${demo.studentPhone||""}<br>
+
+${demo.area||""}
+
+</td>
+
+<td>
+
+${demo.studentClass||"-"}<br>
+
+${demo.subject||"-"}
+
+</td>
+
+<td>
+
+${demo.preferredDate||"-"}<br>
+
+${demo.preferredTime||"-"}
+
+</td>
+
+<td>
+
+<a href="tel:${demo.studentPhone}" class="callBtn">
+
+📞 Call
+
+</a>
+
+<a href="https://wa.me/91${demo.studentPhone}" target="_blank" class="whatsappBtn">
+
+💬 WhatsApp
+
+</a>
+
+<button onclick="acceptDemo('${docSnap.id}')">
+
+Accept
+
+</button>
+
+<button onclick="rejectDemo('${docSnap.id}')">
+
+Reject
+
+</button>
+
+<button onclick="completeDemo('${docSnap.id}')">
+
+Complete
+
+</button>
+</td>
+
+</tr>
+
+`;
+
+});
+
+});
+
+}
+window.acceptDemo=async(id)=>{
+
+await updateDoc(
+
+doc(db,"demoBookings",id),
+
+{
+
+status:"Accepted",
+
+acceptedAt:serverTimestamp()
+
+}
+
+);
+
+};
+
+window.rejectDemo=async(id)=>{
+
+const reason=prompt("Reason");
+
+if(reason===null)return;
+
+await updateDoc(
+
+doc(db,"demoBookings",id),
+
+{
+
+status:"Rejected",
+
+rejectReason:reason,
+
+updatedAt:serverTimestamp()
+
+}
+
+);
+
+};
+
+window.completeDemo=async(id)=>{
+
+await updateDoc(
+
+doc(db,"demoBookings",id),
+
+{
+
+status:"Completed",
+
+completedAt:serverTimestamp()
+
+}
+
+);
+
+};acceptDemo

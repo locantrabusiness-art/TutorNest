@@ -1,626 +1,262 @@
-// ======================================================
-// TUTORNEST ADMIN CRM
-// PART 1
-// Replace FROM LINE 1 until BEFORE loadBookings()
-// ======================================================
+/* ==========================================================
+FILE : js/book-demo.js
+PART 1 / 25
+START FROM LINE 1
+========================================================== */
 
-import { auth, db } from "../firebase.js";
-
-import {
-    onAuthStateChanged,
-    signOut
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { db } from "../firebase.js";
 
 import {
-    collection,
-    query,
-    orderBy,
-    getDocs,
-    getDoc,
-    addDoc,
-    updateDoc,
-    deleteDoc,
-    doc,
-    serverTimestamp
+
+collection,
+addDoc,
+serverTimestamp
+
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 
-// =========================================
-// APP STATE
-// =========================================
+/* ==========================================================
+DOM
+========================================================== */
 
-const state={
+const bookingForm=document.getElementById("bookingForm");
 
-    bookings:[],
+const submitBtn=document.getElementById("submitBtn");
 
-    teachers:[],
+const bookingStatus=document.getElementById("bookingStatus");
 
-    selectedBooking:null,
+const progressFill=document.querySelector(".progressFill");
 
-    editingBooking:null
+const progressText=document.querySelector(".progressText");
 
-};
 
+const studentName=document.getElementById("studentName");
 
-// =========================================
-// DOM HELPERS
-// =========================================
+const studentPhone=document.getElementById("studentPhone");
 
-const $=id=>document.getElementById(id);
+const parentName=document.getElementById("parentName");
 
+const parentPhone=document.getElementById("parentPhone");
 
-// =========================================
-// DASHBOARD
-// =========================================
+const studentEmail=document.getElementById("studentEmail");
 
-const totalEnquiries=$("totalEnquiries");
-const pendingCount=$("pendingCount");
-const assignedCount=$("assignedCount");
-const admissionCount=$("admissionCount");
-const teacherCount=$("teacherCount");
-const todayDemo=$("todayDemo");
-const feesCollected=$("feesCollected");
-const revenue=$("revenue");
+const gender=document.getElementById("gender");
 
+const studentClass=document.getElementById("studentClass");
 
-// =========================================
-// TABLES
-// =========================================
+const subject=document.getElementById("subject");
 
-const bookingTable=$("bookingTable");
-const teacherTable=$("teacherTable");
+const mode=document.getElementById("mode");
 
+const preferredGender=document.getElementById("preferredGender");
 
-// =========================================
-// FILTERS
-// =========================================
+const preferredTime=document.getElementById("preferredTime");
 
-const searchInput=$("searchInput");
-const statusFilter=$("statusFilter");
+const city=document.getElementById("city");
 
+const area=document.getElementById("area");
 
-// =========================================
-// ENQUIRY MODAL
-// =========================================
+const address=document.getElementById("address");
 
-const enquiryModal=$("enquiryModal");
+const requirement=document.getElementById("requirement");
 
-const addEnquiryBtn=$("addEnquiryBtn");
 
-const closeEnquiry=$("closeEnquiry");
+/* ==========================================================
+HELPERS
+========================================================== */
 
-const saveEnquiry=$("saveEnquiry");
+function showStatus(message,type){
 
-const studentName=$("studentName");
-const studentPhone=$("studentPhone");
-const parentName=$("parentName");
-const parentPhone=$("parentPhone");
-const studentClass=$("studentClass");
-const studentSubject=$("studentSubject");
-const studentArea=$("studentArea");
-const studentMode=$("studentMode");
-const studentRemarks=$("studentRemarks");
+bookingStatus.className=
 
+`bookingStatus ${type}`;
 
-// =========================================
-// TEACHER MODAL
-// =========================================
-
-const teacherModal=$("teacherModal");
-
-const addTeacherBtn=$("addTeacherBtn");
-
-const saveTeacher=$("saveTeacher");
-
-const teacherName=$("teacherName");
-const teacherPhone=$("teacherPhone");
-const teacherSubjects=$("teacherSubjects");
-const teacherAreas=$("teacherAreas");
-
-
-// =========================================
-// ASSIGN MODAL
-// =========================================
-
-const assignModal=$("assignModal");
-
-const teacherSelect=$("teacherSelect");
-
-const demoDate=$("demoDate");
-
-const demoTime=$("demoTime");
-
-const remarks=$("remarks");
-
-const saveAssign=$("saveAssign");
-
-const closeAssign=$("closeAssign");
-
-
-// =========================================
-// DETAILS MODALS
-// =========================================
-
-const studentModal=$("studentModal");
-const studentDetails=$("studentDetails");
-const closeStudentModal=$("closeStudentModal");
-
-const demoModal=$("demoModal");
-const demoDetails=$("demoDetails");
-const closeDemoModal=$("closeDemoModal");
-
-
-// =========================================
-// SIDEBAR
-// =========================================
-
-document
-.querySelectorAll("#sidebarMenu li")
-.forEach(item=>{
-
-item.onclick=()=>{
-
-document
-.querySelectorAll("#sidebarMenu li")
-.forEach(x=>x.classList.remove("active"));
-
-item.classList.add("active");
-
-};
-
-});
-
-
-
-const logoutBtn = document.querySelector(".logoutBtn");
-
-if (logoutBtn) {
-    logoutBtn.onclick = async () => {
-        await signOut(auth);
-        location.replace("admin-login.html");
-    };
-}
-// =========================================
-// AUTH
-// =========================================
-
-onAuthStateChanged(auth, async (user) => {
-
-    if (!user) {
-
-        location.replace("admin-login.html");
-        return;
-
-    }
-
-    try {
-
-        const snap = await getDoc(doc(db, "admins", user.uid));
-
-        if (!snap.exists()) {
-
-            await signOut(auth);
-            location.replace("admin-login.html");
-            return;
-
-        }
-
-        await initializeDashboard();
-
-    } catch (err) {
-
-        console.error(err);
-        location.replace("admin-login.html");
-
-    }
-
-});
-
-
-// =========================================
-// INITIALIZE
-// =========================================
-
-async function initializeDashboard(){
-
-await Promise.all([
-
-loadTeachers(),
-
-loadBookings()
-
-]);
-
-searchInput.oninput=renderBookings;
-
-statusFilter.onchange=renderBookings;
-
-setInterval(refreshDashboard,60000);
+bookingStatus.innerHTML=message;
 
 }
+/* ==========================================================
+FILE : js/book-demo.js
+PART 2 / 25
+CONTINUE BELOW HELPERS
+========================================================== */
 
 
-// =========================================
-// REFRESH
-// =========================================
+/* ==========================================================
+VALIDATION
+========================================================== */
 
-async function refreshDashboard(){
+function validateForm(){
 
-await loadTeachers();
+if(studentName.value.trim().length<3){
 
-await loadBookings();
+showStatus(
 
-}
-// ======================================================
-// TUTORNEST ADMIN CRM
-// PART 2
-// Replace COMPLETE loadBookings(), updateDashboard()
-// and renderBookings() functions
-// ======================================================
+"Please enter valid student name.",
 
-async function loadBookings(){
-
-    try{
-
-        bookingTable.innerHTML=`
-        <tr>
-            <td colspan="10">Loading enquiries...</td>
-        </tr>`;
-
-        const q=query(
-            collection(db,"demoBookings"),
-            orderBy("createdAt","desc")
-        );
-
-        const snap=await getDocs(q);
-
-        state.bookings=[];
-
-        snap.forEach(docSnap=>{
-
-            state.bookings.push({
-
-                id:docSnap.id,
-
-                ...docSnap.data()
-
-            });
-
-        });
-
-        updateDashboard();
-
-        renderBookings();
-
-    }
-
-    catch(err){
-
-        console.error(err);
-
-        bookingTable.innerHTML=`
-        <tr>
-            <td colspan="10">
-                Unable to load enquiries.
-            </td>
-        </tr>`;
-
-    }
-
-}
-
-
-
-// =========================================
-// DASHBOARD
-// =========================================
-
-function updateDashboard(){
-
-    totalEnquiries.textContent=state.bookings.length;
-
-    pendingCount.textContent=state.bookings.filter(x=>
-
-        (x.status||"Pending")==="Pending"
-
-    ).length;
-
-    assignedCount.textContent=state.bookings.filter(x=>
-
-        x.status==="Assigned"
-
-    ).length;
-
-    admissionCount.textContent=state.bookings.filter(x=>
-
-        x.status==="Admitted"
-
-    ).length;
-
-    teacherCount.textContent=state.teachers.length;
-
-    const today=new Date().toISOString().split("T")[0];
-
-    todayDemo.textContent=state.bookings.filter(x=>
-
-        x.demoDate===today
-
-    ).length;
-
-    feesCollected.textContent="₹0";
-
-    revenue.textContent="₹0";
-
-}
-
-
-
-// =========================================
-// RENDER BOOKINGS
-// =========================================
-
-function renderBookings(){
-
-    bookingTable.innerHTML="";
-
-    const keyword=searchInput.value.toLowerCase().trim();
-
-    const status=statusFilter.value;
-
-    const data=state.bookings.filter(b=>{
-
-        const search=
-
-            (b.studentName||"").toLowerCase().includes(keyword) ||
-
-            (b.phone||"").toLowerCase().includes(keyword) ||
-
-            (b.area||"").toLowerCase().includes(keyword) ||
-
-            (b.subject||"").toLowerCase().includes(keyword);
-
-        const filter=
-
-            status==="" ||
-
-            (b.status||"Pending")===status;
-
-        return search && filter;
-
-    });
-
-
-
-    if(data.length===0){
-
-        bookingTable.innerHTML=`
-        <tr>
-            <td colspan="10">
-                No enquiries found.
-            </td>
-        </tr>`;
-
-        return;
-
-    }
-
-
-
-    data.forEach(b=>{
-
-        bookingTable.innerHTML+=`
-
-<tr>
-
-<td>${b.studentName||"-"}</td>
-
-<td>${b.phone||"-"}</td>
-
-<td>${b.class||"-"}</td>
-
-<td>${b.subject||"-"}</td>
-
-<td>${b.area||"-"}</td>
-
-<td>${b.requestedTutorName||"-"}</td>
-
-<td>${b.assignedTeacher||"-"}</td>
-
-<td>
-
-<span class="${getStatusClass(b.status)}">
-
-${b.status||"Pending"}
-
-</span>
-
-</td>
-
-<td>
-
-${b.demoDate||"-"}
-
-<br>
-
-<small>${b.demoTime||""}</small>
-
-</td>
-
-<td>
-
-<button
-class="call"
-onclick="callStudent('${b.phone}')">
-
-📞
-
-</button>
-
-<button
-class="whatsapp"
-onclick="whatsappStudent('${b.phone}')">
-
-💬
-
-</button>
-
-<button
-class="assign"
-onclick="assignTeacher('${b.id}')">
-
-Assign
-
-</button>
-
-<button
-class="edit"
-onclick="editBooking('${b.id}')">
-
-Edit
-
-</button>
-
-<button
-class="delete"
-onclick="deleteBooking('${b.id}')">
-
-Delete
-
-</button>
-
-</td>
-
-</tr>
-
-`;
-
-    });
-
-}
-// ======================================================
-// TUTORNEST ADMIN CRM
-// PART 3
-// NEW ENQUIRY + EDIT BOOKING + DELETE BOOKING
-// Paste BELOW renderBookings()
-// ======================================================
-
-
-// =========================================
-// OPEN NEW ENQUIRY
-// =========================================
-
-if(addEnquiryBtn){
-
-addEnquiryBtn.onclick=()=>{
-
-state.editingBooking=null;
-
-studentName.value="";
-studentPhone.value="";
-parentName.value="";
-parentPhone.value="";
-studentClass.value="";
-studentSubject.value="";
-studentArea.value="";
-studentMode.selectedIndex=0;
-studentRemarks.value="";
-
-saveEnquiry.textContent="Save Enquiry";
-
-enquiryModal.classList.add("show");
-
-};
-
-}
-
-
-
-// =========================================
-// CLOSE MODAL
-// =========================================
-
-if(closeEnquiry){
-
-closeEnquiry.onclick=()=>{
-
-enquiryModal.classList.remove("show");
-
-};
-
-}
-
-window.addEventListener("click",e=>{
-
-if(e.target===enquiryModal){
-
-enquiryModal.classList.remove("show");
-
-}
-
-});
-
-
-
-// =========================================
-// SAVE ENQUIRY
-// =========================================
-
-if(saveEnquiry)
-    saveEnquiry.onclick = async()=>{
-
-if(studentName.value.trim()===""){
-
-alert("Student Name Required");
-
-return;
-
-}
-
-if(studentPhone.value.trim()===""){
-
-alert("Phone Number Required");
-
-return;
-
-}
-
-const booking={
-
-studentName:studentName.value.trim(),
-
-phone:studentPhone.value.trim(),
-
-parentName:parentName.value.trim(),
-
-parentPhone:parentPhone.value.trim(),
-
-class:studentClass.value.trim(),
-
-subject:studentSubject.value.trim(),
-
-area:studentArea.value.trim(),
-
-mode:studentMode.value,
-
-remarks:studentRemarks.value.trim()
-
-};
-
-try{
-
-if(state.editingBooking){
-
-await updateDoc(
-
-doc(db,"demoBookings",state.editingBooking),
-
-booking
+"error"
 
 );
 
-alert("Enquiry Updated");
+studentName.focus();
 
-}else{
+return false;
+
+}
+
+if(!/^[6-9]\d{9}$/.test(studentPhone.value.trim())){
+
+showStatus(
+
+"Please enter valid mobile number.",
+
+"error"
+
+);
+
+studentPhone.focus();
+
+return false;
+
+}
+
+if(studentClass.value===""){
+
+showStatus(
+
+"Please select class.",
+
+"error"
+
+);
+
+studentClass.focus();
+
+return false;
+
+}
+
+if(subject.value.trim()===""){
+
+showStatus(
+
+"Please enter subject.",
+
+"error"
+
+);
+
+subject.focus();
+
+return false;
+
+}
+
+if(mode.value===""){
+
+showStatus(
+
+"Please select tuition mode.",
+
+"error"
+
+);
+
+mode.focus();
+
+return false;
+
+}
+
+if(city.value.trim()===""){
+
+showStatus(
+
+"Please enter city.",
+
+"error"
+
+);
+
+city.focus();
+
+return false;
+
+}
+
+if(area.value.trim()===""){
+
+showStatus(
+
+"Please enter area.",
+
+"error"
+
+);
+
+area.focus();
+
+return false;
+
+}
+
+return true;
+
+}
+
+
+/* ==========================================================
+BOOKING ID
+========================================================== */
+
+function generateBookingID(){
+
+return "TN-"
+
++
+
+Date.now()
+
+.toString()
+
+.slice(-8);
+
+}
+/* ==========================================================
+FILE : js/book-demo.js
+PART 3 / 25
+CONTINUE BELOW BOOKING ID
+========================================================== */
+
+
+/* ==========================================================
+SUBMIT BOOKING
+========================================================== */
+
+bookingForm.addEventListener("submit",async(e)=>{
+
+e.preventDefault();
+
+bookingStatus.className="bookingStatus";
+
+bookingStatus.innerHTML="";
+
+if(!validateForm()) return;
+
+submitBtn.disabled=true;
+
+submitBtn.classList.add("btnLoading");
+
+submitBtn.innerHTML=`
+
+<i class="fa-solid fa-spinner"></i>
+
+Submitting...
+
+`;
+
+try{
+
+const bookingId=generateBookingID();
 
 await addDoc(
 
@@ -628,1376 +264,2558 @@ collection(db,"demoBookings"),
 
 {
 
-...booking,
+bookingId,
+
+studentName:
+
+studentName.value.trim(),
+
+studentPhone:
+
+studentPhone.value.trim(),
+
+parentName:
+
+parentName.value.trim(),
+
+parentPhone:
+
+parentPhone.value.trim(),
+
+studentEmail:
+
+studentEmail.value.trim(),
+
+gender:
+
+gender.value,
+
+studentClass:
+
+studentClass.value,
+
+subject:
+
+subject.value.trim(),
+
+mode:
+
+mode.value,
+
+preferredGender:
+
+preferredGender.value,
+
+preferredTime:
+
+preferredTime.value,
+
+city:
+
+city.value.trim(),
+
+area:
+
+area.value.trim(),
+
+address:
+
+address.value.trim(),
+
+requirement:
+
+requirement.value.trim(),
+/* ==========================================================
+FILE : js/book-demo.js
+PART 4 / 25
+CONTINUE BELOW FIRESTORE DATA
+========================================================== */
 
 status:"Pending",
 
-assignedTeacher:"",
+assignedTutorId:"",
 
-teacherId:"",
+assignedTutorName:"",
+
+demoStatus:"Pending",
+
+studentStatus:"Demo",
 
 demoDate:"",
 
 demoTime:"",
 
-createdAt:serverTimestamp()
+monthlyFees:0,
+
+commissionPercent:10,
+
+commissionAmount:0,
+
+paymentStatus:"Pending",
+
+attendanceStarted:false,
+
+feedback:"",
+
+complaint:"",
+
+createdAt:serverTimestamp(),
+
+updatedAt:serverTimestamp()
 
 }
 
 );
 
-alert("Enquiry Added");
+showStatus(
 
-}
+"✅ Demo booked successfully! Our team will contact you shortly.",
 
-state.editingBooking=null;
-
-enquiryModal.classList.remove("show");
-
-await loadBookings();
-
-}catch(err){
-
-console.error(err);
-
-alert("Unable to Save Enquiry");
-
-}
-
-};
-
-
-
-// =========================================
-// EDIT BOOKING
-// =========================================
-
-window.editBooking=function(id){
-
-const booking=state.bookings.find(
-
-x=>x.id===id
+"success"
 
 );
 
-if(!booking) return;
+bookingForm.reset();
 
-state.editingBooking=id;
+submitBtn.innerHTML=`
 
-studentName.value=booking.studentName||"";
-studentPhone.value=booking.phone||"";
-parentName.value=booking.parentName||"";
-parentPhone.value=booking.parentPhone||"";
-studentClass.value=booking.class||"";
-studentSubject.value=booking.subject||"";
-studentArea.value=booking.area||"";
-studentMode.value=booking.mode||"Home Tuition";
-studentRemarks.value=booking.remarks||"";
+<i class="fa-solid fa-circle-check"></i>
 
-saveEnquiry.textContent="Update Enquiry";
-
-enquiryModal.classList.add("show");
-
-};
-
-
-
-// =========================================
-// DELETE BOOKING
-// =========================================
-
-window.deleteBooking=async(id)=>{
-
-if(!confirm("Delete this enquiry?")) return;
-
-try{
-
-await deleteDoc(
-
-doc(db,"demoBookings",id)
-
-);
-
-await loadBookings();
-
-alert("Enquiry Deleted");
-
-}catch(err){
-
-console.error(err);
-
-alert("Unable to Delete");
-
-}
-
-};
-
-
-
-// =========================================
-// VIEW STUDENT
-// =========================================
-
-window.viewStudent=function(id){
-
-const booking=state.bookings.find(
-
-x=>x.id===id
-
-);
-
-if(!booking) return;
-
-studentDetails.innerHTML=`
-
-<h3>${booking.studentName}</h3>
-
-<hr>
-
-<p><b>Phone :</b> ${booking.phone||"-"}</p>
-
-<p><b>Parent :</b> ${booking.parentName||"-"}</p>
-
-<p><b>Parent Phone :</b> ${booking.parentPhone||"-"}</p>
-
-<p><b>Class :</b> ${booking.class||"-"}</p>
-
-<p><b>Subject :</b> ${booking.subject||"-"}</p>
-
-<p><b>Area :</b> ${booking.area||"-"}</p>
-
-<p><b>Mode :</b> ${booking.mode||"-"}</p>
-
-<p><b>Status :</b> ${booking.status||"-"}</p>
-
-<p><b>Remarks :</b> ${booking.remarks||"-"}</p>
+Demo Booked
 
 `;
 
-studentModal.classList.add("show");
+setTimeout(()=>{
 
-};
+window.location.href="thank-you.html";
 
+},2500);
 
+}catch(error){
 
-// =========================================
-// CLOSE STUDENT MODAL
-// =========================================
+console.error(error);
 
-if(closeStudentModal){
+showStatus(
 
-closeStudentModal.onclick=()=>{
+error.message,
 
-studentModal.classList.remove("show");
-
-};
-
-}
-// ======================================================
-// TUTORNEST ADMIN CRM
-// PART 4
-// TEACHER CRUD + ASSIGNMENT SYSTEM
-// Replace your Teacher Section
-// ======================================================
-
-
-// =========================================
-// LOAD TEACHERS
-// =========================================
-
-async function loadTeachers(){
-
-try{
-
-const snap=await getDocs(
-
-query(
-
-collection(db,"teachers"),
-
-orderBy("name")
-
-)
+"error"
 
 );
 
-state.teachers=[];
+submitBtn.disabled=false;
 
-snap.forEach(docSnap=>{
+submitBtn.classList.remove("btnLoading");
 
-state.teachers.push({
+submitBtn.innerHTML=`
 
-id:docSnap.id,
+<i class="fa-solid fa-paper-plane"></i>
 
-...docSnap.data()
+Book FREE Demo
+
+`;
+
+}
+
+});
+/* ==========================================================
+FILE : js/book-demo.js
+PART 5 / 25
+CONTINUE BELOW SUBMIT BOOKING
+========================================================== */
+
+
+/* ==========================================================
+FORM PROGRESS
+========================================================== */
+
+const formFields=[
+
+studentName,
+studentPhone,
+parentName,
+parentPhone,
+studentEmail,
+gender,
+studentClass,
+subject,
+mode,
+preferredGender,
+preferredTime,
+city,
+area,
+address,
+requirement
+
+];
+
+function updateProgress(){
+
+let filled=0;
+
+formFields.forEach(field=>{
+
+if(field.value.trim()!==""){
+
+filled++;
+
+}
+
+});
+
+const percent=Math.round(
+
+(filled/formFields.length)*100
+
+);
+
+if(progressFill){
+
+progressFill.style.width=percent+"%";
+
+}
+
+if(progressText){
+
+progressText.innerHTML=
+
+percent+"% Completed";
+
+}
+
+}
+
+formFields.forEach(field=>{
+
+field.addEventListener(
+
+"input",
+
+updateProgress
+
+);
+
+field.addEventListener(
+
+"change",
+
+updateProgress
+
+);
+
+});
+
+
+/* ==========================================================
+PHONE VALIDATION
+========================================================== */
+
+studentPhone.addEventListener("input",()=>{
+
+studentPhone.value=
+
+studentPhone.value
+
+.replace(/\D/g,"")
+
+.slice(0,10);
+
+});
+
+parentPhone.addEventListener("input",()=>{
+
+parentPhone.value=
+
+parentPhone.value
+
+.replace(/\D/g,"")
+
+.slice(0,10);
+
+});
+
+
+/* ==========================================================
+INITIALIZE
+========================================================== */
+
+updateProgress();
+/* ==========================================================
+FILE : js/book-demo.js
+PART 6 / 25
+CONTINUE BELOW INITIALIZE
+========================================================== */
+
+
+/* ==========================================================
+EMAIL VALIDATION
+========================================================== */
+
+studentEmail.addEventListener("blur",()=>{
+
+const email=studentEmail.value.trim();
+
+if(email==="") return;
+
+const regex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+if(!regex.test(email)){
+
+showStatus(
+
+"Please enter a valid email address.",
+
+"error"
+
+);
+
+studentEmail.focus();
+
+}
+
+});
+
+
+/* ==========================================================
+AUTO CAPITALIZE NAME
+========================================================== */
+
+function capitalizeWords(text){
+
+return text.replace(/\b\w/g,char=>char.toUpperCase());
+
+}
+
+studentName.addEventListener("blur",()=>{
+
+studentName.value=
+
+capitalizeWords(
+
+studentName.value.trim()
+
+);
+
+});
+
+parentName.addEventListener("blur",()=>{
+
+parentName.value=
+
+capitalizeWords(
+
+parentName.value.trim()
+
+);
+
+});
+
+
+/* ==========================================================
+AREA AUTO CAPITALIZE
+========================================================== */
+
+area.addEventListener("blur",()=>{
+
+area.value=
+
+capitalizeWords(
+
+area.value.trim()
+
+);
+
+});
+
+city.addEventListener("blur",()=>{
+
+city.value=
+
+capitalizeWords(
+
+city.value.trim()
+
+);
+
+});
+/* ==========================================================
+FILE : js/book-demo.js
+PART 7 / 25
+CONTINUE BELOW AUTO CAPITALIZE
+========================================================== */
+
+
+/* ==========================================================
+CHARACTER COUNTER
+========================================================== */
+
+const requirementCounter=document.createElement("small");
+
+requirementCounter.className="helpText";
+
+requirement.parentNode.appendChild(requirementCounter);
+
+function updateRequirementCounter(){
+
+const count=requirement.value.length;
+
+requirementCounter.innerHTML=
+
+`${count}/500 Characters`;
+
+if(count>500){
+
+requirement.value=
+
+requirement.value.substring(0,500);
+
+}
+
+}
+
+requirement.addEventListener(
+
+"input",
+
+updateRequirementCounter
+
+);
+
+updateRequirementCounter();
+
+
+/* ==========================================================
+AUTO SAVE DRAFT
+========================================================== */
+
+const draftFields=[
+
+studentName,
+studentPhone,
+parentName,
+parentPhone,
+studentEmail,
+gender,
+studentClass,
+subject,
+mode,
+preferredGender,
+preferredTime,
+city,
+area,
+address,
+requirement
+
+];
+
+function saveDraft(){
+
+const draft={
+
+studentName:studentName.value,
+studentPhone:studentPhone.value,
+parentName:parentName.value,
+parentPhone:parentPhone.value,
+studentEmail:studentEmail.value,
+gender:gender.value,
+studentClass:studentClass.value,
+subject:subject.value,
+mode:mode.value,
+preferredGender:preferredGender.value,
+preferredTime:preferredTime.value,
+city:city.value,
+area:area.value,
+address:address.value,
+requirement:requirement.value
+
+};
+
+localStorage.setItem(
+
+"bookDemoDraft",
+
+JSON.stringify(draft)
+
+);
+
+}
+
+draftFields.forEach(field=>{
+
+field.addEventListener(
+
+"input",
+
+saveDraft
+
+);
+
+});
+/* ==========================================================
+FILE : js/book-demo.js
+PART 8 / 25
+CONTINUE BELOW AUTO SAVE DRAFT
+========================================================== */
+
+
+/* ==========================================================
+LOAD DRAFT
+========================================================== */
+
+(function loadDraft(){
+
+const draft=
+
+localStorage.getItem("bookDemoDraft");
+
+if(!draft) return;
+
+try{
+
+const data=JSON.parse(draft);
+
+studentName.value=data.studentName||"";
+
+studentPhone.value=data.studentPhone||"";
+
+parentName.value=data.parentName||"";
+
+parentPhone.value=data.parentPhone||"";
+
+studentEmail.value=data.studentEmail||"";
+
+gender.value=data.gender||"";
+
+studentClass.value=data.studentClass||"";
+
+subject.value=data.subject||"";
+
+mode.value=data.mode||"";
+
+preferredGender.value=data.preferredGender||"";
+
+preferredTime.value=data.preferredTime||"";
+
+city.value=data.city||"";
+
+area.value=data.area||"";
+
+address.value=data.address||"";
+
+requirement.value=data.requirement||"";
+
+updateProgress();
+
+updateRequirementCounter();
+
+}catch(err){
+
+console.log(err);
+
+}
+
+})();
+
+
+/* ==========================================================
+CLEAR DRAFT AFTER SUCCESS
+========================================================== */
+
+function clearDraft(){
+
+localStorage.removeItem(
+
+"bookDemoDraft"
+
+);
+
+}
+
+
+/* ==========================================================
+RESET FORM
+========================================================== */
+
+bookingForm.addEventListener("reset",()=>{
+
+setTimeout(()=>{
+
+clearDraft();
+
+updateProgress();
+
+updateRequirementCounter();
+
+bookingStatus.className="bookingStatus";
+
+bookingStatus.innerHTML="";
+
+},100);
+
+});
+/* ==========================================================
+FILE : js/book-demo.js
+PART 9 / 25
+CONTINUE BELOW RESET FORM
+========================================================== */
+
+
+/* ==========================================================
+AUTO DETECT CITY
+========================================================== */
+
+if(navigator.geolocation){
+
+navigator.geolocation.getCurrentPosition(
+
+()=>{
+
+if(city.value===""){
+
+city.value="Lucknow";
+
+}
+
+},
+
+()=>{}
+
+);
+
+}
+
+
+/* ==========================================================
+PHONE FORMAT
+========================================================== */
+
+studentPhone.addEventListener("blur",()=>{
+
+if(
+
+studentPhone.value.length===10
+
+){
+
+studentPhone.classList.remove("inputError");
+
+studentPhone.classList.add("inputSuccess");
+
+}
+
+});
+
+parentPhone.addEventListener("blur",()=>{
+
+if(
+
+parentPhone.value.length===10
+
+){
+
+parentPhone.classList.remove("inputError");
+
+parentPhone.classList.add("inputSuccess");
+
+}
+
+});
+
+
+/* ==========================================================
+EMAIL SUCCESS
+========================================================== */
+
+studentEmail.addEventListener("blur",()=>{
+
+const email=studentEmail.value.trim();
+
+if(
+
+email!=="" &&
+
+/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+
+){
+
+studentEmail.classList.add("inputSuccess");
+
+}
+
+});
+
+
+/* ==========================================================
+AUTO REMOVE STATUS
+========================================================== */
+
+function clearStatus(){
+
+setTimeout(()=>{
+
+bookingStatus.className="bookingStatus";
+
+bookingStatus.innerHTML="";
+
+},5000);
+
+}
+/* ==========================================================
+FILE : js/book-demo.js
+PART 10 / 25
+CONTINUE BELOW clearStatus()
+========================================================== */
+
+
+/* ==========================================================
+REAL TIME VALIDATION
+========================================================== */
+
+[
+studentName,
+subject,
+city,
+area
+
+].forEach(field=>{
+
+field.addEventListener("input",()=>{
+
+if(field.value.trim().length>=2){
+
+field.classList.remove("inputError");
+
+field.classList.add("inputSuccess");
+
+}else{
+
+field.classList.remove("inputSuccess");
+
+}
 
 });
 
 });
 
-renderTeachers();
 
-updateDashboard();
+/* ==========================================================
+SUBMIT SUCCESS
+========================================================== */
 
-}catch(err){
+function bookingSuccess(bookingId){
 
-console.error(err);
+clearDraft();
+
+showStatus(
+
+`✅ Demo Booked Successfully!
+Booking ID : ${bookingId}`,
+
+"success"
+
+);
+
+clearStatus();
 
 }
 
+
+/* ==========================================================
+SCROLL TO STATUS
+========================================================== */
+
+function scrollStatus(){
+
+bookingStatus.scrollIntoView({
+
+behavior:"smooth",
+
+block:"center"
+
+});
+
 }
 
 
+/* ==========================================================
+AUTO SCROLL AFTER ERROR
+========================================================== */
 
-// =========================================
-// RENDER TEACHERS
-// =========================================
+const originalShowStatus=showStatus;
 
-function renderTeachers(){
+showStatus=function(message,type){
 
-teacherTable.innerHTML="";
+originalShowStatus(message,type);
 
-if(state.teachers.length===0){
+scrollStatus();
 
-teacherTable.innerHTML=`
+};
 
-<tr>
 
-<td colspan="7">
+/* ==========================================================
+DISABLE MULTIPLE SUBMIT
+========================================================== */
 
-No Teachers Found
+let bookingInProgress=false;
 
-</td>
+bookingForm.addEventListener("submit",e=>{
 
-</tr>
+if(bookingInProgress){
 
-`;
+e.preventDefault();
 
 return;
 
 }
 
-state.teachers.forEach(t=>{
+bookingInProgress=true;
 
-const totalStudents=state.bookings.filter(x=>
+setTimeout(()=>{
 
-x.teacherId===t.id &&
+bookingInProgress=false;
 
-x.status==="Admitted"
+},5000);
+
+});
+/* ==========================================================
+FILE : js/book-demo.js
+PART 11 / 25
+CONTINUE BELOW DISABLE MULTIPLE SUBMIT
+========================================================== */
+
+
+/* ==========================================================
+AUTO FORMAT PHONE
+========================================================== */
+
+function formatPhone(input){
+
+input.value=input.value
+
+.replace(/\D/g,"")
+
+.slice(0,10);
+
+}
+
+studentPhone.addEventListener(
+
+"keyup",
+
+()=>formatPhone(studentPhone)
+
+);
+
+parentPhone.addEventListener(
+
+"keyup",
+
+()=>formatPhone(parentPhone)
+
+);
+
+
+/* ==========================================================
+REQUIRED FIELD HIGHLIGHT
+========================================================== */
+
+document.querySelectorAll(
+
+"#bookingForm input,#bookingForm select,#bookingForm textarea"
+
+).forEach(field=>{
+
+field.addEventListener("blur",()=>{
+
+if(
+
+field.hasAttribute("required") &&
+
+field.value.trim()===""
+
+){
+
+field.classList.add("inputError");
+
+}else{
+
+field.classList.remove("inputError");
+
+}
+
+});
+
+});
+
+
+/* ==========================================================
+AUTO FOCUS NEXT FIELD
+========================================================== */
+
+const fields=[
+
+studentName,
+
+studentPhone,
+
+parentName,
+
+parentPhone,
+
+studentEmail,
+
+gender,
+
+studentClass,
+
+subject,
+
+mode,
+
+preferredGender,
+
+preferredTime,
+
+city,
+
+area,
+
+address,
+
+requirement
+
+];
+
+fields.forEach((field,index)=>{
+
+field.addEventListener("keydown",e=>{
+
+if(
+
+e.key==="Enter" &&
+
+field.tagName!=="TEXTAREA"
+
+){
+
+e.preventDefault();
+
+if(fields[index+1]){
+
+fields[index+1].focus();
+
+}
+
+}
+
+});
+
+});
+
+
+/* ==========================================================
+PAGE READY
+========================================================== */
+
+console.log(
+
+"Book Demo Form Ready"
+
+);
+/* ==========================================================
+FILE : js/book-demo.js
+PART 12 / 25
+CONTINUE BELOW PAGE READY
+========================================================== */
+
+
+/* ==========================================================
+SUBJECT SUGGESTIONS
+========================================================== */
+
+const subjects=[
+
+"Mathematics",
+
+"Physics",
+
+"Chemistry",
+
+"Biology",
+
+"English",
+
+"Hindi",
+
+"Science",
+
+"Social Science",
+
+"Computer",
+
+"Accounts",
+
+"Economics",
+
+"Business Studies",
+
+"NEET",
+
+"JEE",
+
+"CUET",
+
+"NDA"
+
+];
+
+const dataList=document.createElement("datalist");
+
+dataList.id="subjectList";
+
+subjects.forEach(item=>{
+
+const option=document.createElement("option");
+
+option.value=item;
+
+dataList.appendChild(option);
+
+});
+
+document.body.appendChild(dataList);
+
+subject.setAttribute(
+
+"list",
+
+"subjectList"
+
+);
+
+
+/* ==========================================================
+AUTO UPPERCASE CITY
+========================================================== */
+
+city.addEventListener("input",()=>{
+
+city.value=
+
+city.value
+
+.replace(/\b\w/g,m=>m.toUpperCase());
+
+});
+
+
+/* ==========================================================
+AUTO UPPERCASE AREA
+========================================================== */
+
+area.addEventListener("input",()=>{
+
+area.value=
+
+area.value
+
+.replace(/\b\w/g,m=>m.toUpperCase());
+
+});
+
+
+/* ==========================================================
+SUBJECT FORMAT
+========================================================== */
+
+subject.addEventListener("blur",()=>{
+
+subject.value=
+
+subject.value
+
+.trim()
+
+.replace(/\b\w/g,m=>m.toUpperCase());
+
+});
+/* ==========================================================
+FILE : js/book-demo.js
+PART 13 / 25
+CONTINUE BELOW SUBJECT FORMAT
+========================================================== */
+
+
+/* ==========================================================
+MINIMUM AGE CHECK
+========================================================== */
+
+const studentAge=document.getElementById("studentAge");
+
+if(studentAge){
+
+studentAge.addEventListener("input",()=>{
+
+if(
+
+Number(studentAge.value)>100
+
+){
+
+studentAge.value=100;
+
+}
+
+if(
+
+Number(studentAge.value)<2
+
+){
+
+studentAge.value=2;
+
+}
+
+});
+
+}
+
+
+/* ==========================================================
+ADDRESS CHARACTER LIMIT
+========================================================== */
+
+address.addEventListener("input",()=>{
+
+if(address.value.length>300){
+
+address.value=
+
+address.value.substring(0,300);
+
+}
+
+});
+
+
+/* ==========================================================
+AUTO SELECT PREFERRED GENDER
+========================================================== */
+
+preferredGender.addEventListener("change",()=>{
+
+if(
+
+preferredGender.value==="Female Tutor"
+
+){
+
+showStatus(
+
+"Female tutor preference saved.",
+
+"success"
+
+);
+
+clearStatus();
+
+}
+
+});
+
+
+/* ==========================================================
+AUTO DETECT MODE
+========================================================== */
+
+subject.addEventListener("change",()=>{
+
+const text=
+
+subject.value.toLowerCase();
+
+if(
+
+text.includes("neet") ||
+
+text.includes("jee")
+
+){
+
+mode.value="Online";
+
+}
+
+});
+
+
+/* ==========================================================
+COPY BOOKING ID
+========================================================== */
+
+function copyBookingID(id){
+
+navigator.clipboard.writeText(id);
+
+showStatus(
+
+"Booking ID copied successfully.",
+
+"success"
+
+);
+
+clearStatus();
+
+}
+/* ==========================================================
+FILE : js/book-demo.js
+PART 14 / 25
+CONTINUE BELOW COPY BOOKING ID
+========================================================== */
+
+
+/* ==========================================================
+LOADING BUTTON
+========================================================== */
+
+function loading(state){
+
+if(state){
+
+submitBtn.disabled=true;
+
+submitBtn.classList.add("btnLoading");
+
+submitBtn.innerHTML=`
+
+<i class="fa-solid fa-spinner fa-spin"></i>
+
+Submitting...
+
+`;
+
+}else{
+
+submitBtn.disabled=false;
+
+submitBtn.classList.remove("btnLoading");
+
+submitBtn.innerHTML=`
+
+<i class="fa-solid fa-paper-plane"></i>
+
+Book FREE Demo
+
+`;
+
+}
+
+}
+
+
+/* ==========================================================
+AUTO SAVE EVERY 10 SECONDS
+========================================================== */
+
+setInterval(()=>{
+
+saveDraft();
+
+},10000);
+
+
+/* ==========================================================
+CONFIRM BEFORE LEAVING
+========================================================== */
+
+window.addEventListener("beforeunload",(e)=>{
+
+const filled=formFields.some(field=>
+
+field.value.trim()!==""
+
+);
+
+if(filled){
+
+e.preventDefault();
+
+e.returnValue="";
+
+}
+
+});
+
+
+/* ==========================================================
+REMOVE CONFIRM AFTER SUCCESS
+========================================================== */
+
+function bookingCompleted(){
+
+window.onbeforeunload=null;
+
+clearDraft();
+
+}
+
+
+/* ==========================================================
+TOTAL FILLED FIELDS
+========================================================== */
+
+function totalFilledFields(){
+
+return formFields.filter(field=>
+
+field.value.trim()!==""
 
 ).length;
 
-teacherTable.innerHTML+=`
-
-<tr>
-
-<td>${t.name||"-"}</td>
-
-<td>${t.phone||"-"}</td>
-
-<td>${(t.subjects||[]).join(", ")}</td>
-
-<td>${(t.areas||[]).join(", ")}</td>
-
-<td>
-
-${t.available===false
-
-?'<span class="badge assigned">Busy</span>'
-
-:'<span class="badge admitted">Available</span>'}
-
-</td>
-
-<td>
-
-${totalStudents}
-
-</td>
-
-<td>
-
-<button
-
-class="assign"
-
-onclick="toggleTeacher('${t.id}')">
-
-${t.available===false
-
-?"Available"
-
-:"Busy"}
-
-</button>
-
-<button
-
-class="delete"
-
-onclick="deleteTeacher('${t.id}')">
-
-Delete
-
-</button>
-
-</td>
-
-</tr>
-
-`;
-
-});
-
-
-
-
-
-// =========================================
-// OPEN ADD TEACHER
-// =========================================
-
-if(addTeacherBtn){
-
-addTeacherBtn.onclick=()=>{
-
-teacherName.value="";
-teacherPhone.value="";
-teacherSubjects.value="";
-teacherAreas.value="";
-
-teacherModal.classList.add("show");
-
-};
-
 }
 
+console.log(
 
-
-// =========================================
-// SAVE TEACHER
-// =========================================
-
-if(saveTeacher){
-
-saveTeacher.onclick = async()=>{
-
-if(teacherName.value.trim()===""){
-
-alert("Teacher Name Required");
-
-return;
-
-}
-
-try{
-
-await addDoc(
-
-collection(db,"teachers"),
-
-{
-
-name:teacherName.value.trim(),
-
-phone:teacherPhone.value.trim(),
-
-subjects:teacherSubjects.value
-
-.split(",")
-
-.map(x=>x.trim())
-
-.filter(Boolean),
-
-areas:teacherAreas.value
-
-.split(",")
-
-.map(x=>x.trim())
-
-.filter(Boolean),
-
-available:true,
-
-createdAt:serverTimestamp()
-
-}
+"Book Demo JS Loaded"
 
 );
+/* ==========================================================
+FILE : js/book-demo.js
+PART 15 / 25
+CONTINUE BELOW TOTAL FILLED FIELDS
+========================================================== */
 
-teacherModal.classList.remove("show");
 
-await loadTeachers();
+/* ==========================================================
+LIVE SUMMARY
+========================================================== */
 
-alert("Teacher Added Successfully");
+const summary=document.querySelector(".summaryCard");
 
-}catch(err){
+function updateSummary(){
 
-console.error(err);
+if(!summary) return;
 
-alert("Unable to Save Teacher");
+summary.innerHTML=`
 
-}
+<h3>
 
-};
-}
+Booking Summary
 
+</h3>
 
+<div class="summaryRow">
 
-// =========================================
-// DELETE TEACHER
-// =========================================
+<span class="summaryLabel">
 
-window.deleteTeacher=async(id)=>{
+Student
 
-if(!confirm("Delete Teacher?")) return;
+</span>
 
-try{
+<span class="summaryValue">
 
-await deleteDoc(doc(db,"teachers",id));
+${studentName.value||"--"}
 
-await loadTeachers();
+</span>
 
-}catch(err){
+</div>
 
-console.error(err);
+<div class="summaryRow">
 
-alert("Delete Failed");
+<span class="summaryLabel">
 
-}
+Class
 
-};
+</span>
 
+<span class="summaryValue">
 
+${studentClass.value||"--"}
 
-// =========================================
-// TOGGLE AVAILABILITY
-// =========================================
+</span>
 
-window.toggleTeacher=async(id)=>{
+</div>
 
-const teacher=state.teachers.find(
+<div class="summaryRow">
 
-x=>x.id===id
+<span class="summaryLabel">
 
-);
+Subject
 
-if(!teacher) return;
+</span>
 
-try{
+<span class="summaryValue">
 
-await updateDoc(
+${subject.value||"--"}
 
-doc(db,"teachers",id),
+</span>
 
-{
+</div>
 
-available:!teacher.available
+<div class="summaryRow">
 
-}
+<span class="summaryLabel">
 
-);
+Mode
 
-await loadTeachers();
+</span>
 
-}catch(err){
+<span class="summaryValue">
 
-console.error(err);
+${mode.value||"--"}
 
-}
+</span>
 
-};
+</div>
 
+<div class="summaryRow">
 
+<span class="summaryLabel">
 
-// =========================================
-// OPEN ASSIGN MODAL
-// =========================================
+Location
 
-window.assignTeacher=function(id){
+</span>
 
-state.selectedBooking=id;
+<span class="summaryValue">
 
-teacherSelect.innerHTML=
+${area.value||"--"}, ${city.value||"--"}
 
-`<option value="">Select Teacher</option>`;
-
-state.teachers
-
-.filter(x=>x.available!==false)
-
-.forEach(t=>{
-
-teacherSelect.innerHTML+=`
-
-<option value="${t.id}">
-
-${t.name}
-
-</option>
-
-`;
-
-});
-
-assignModal.classList.add("show");
-
-};
-
-
-
-// =========================================
-// CLOSE ASSIGN
-// =========================================
-
-if(closeAssign){
-    closeAssign.onclick=()=>{
-        assignModal.classList.remove("show");
-    };
-}
-
-
-
-// =========================================
-// SAVE ASSIGNMENT
-// =========================================
-
-saveAssign.onclick=async()=>{
-
-if(!state.selectedBooking){
-
-alert("Booking Not Selected");
-
-return;
-
-}
-
-if(teacherSelect.value===""){
-
-alert("Select Teacher");
-
-return;
-
-}
-
-const teacher=state.teachers.find(
-
-x=>x.id===teacherSelect.value
-
-);
-
-try{
-
-await updateDoc(
-
-doc(db,"demoBookings",state.selectedBooking),
-
-{
-
-teacherId:teacher.id,
-
-assignedTeacher:teacher.name,
-
-teacherPhone:teacher.phone,
-
-demoDate:demoDate.value,
-
-demoTime:demoTime.value,
-
-remarks:remarks.value,
-
-status:"Assigned",
-
-assignedAt:serverTimestamp()
-
-}
-
-);
-
-assignModal.classList.remove("show");
-
-teacherSelect.value="";
-demoDate.value="";
-demoTime.value="";
-remarks.value="";
-
-state.selectedBooking=null;
-
-await loadBookings();
-
-alert("Teacher Assigned Successfully");
-
-}catch(err){
-
-console.error(err);
-
-alert("Assignment Failed");
-
-}
-
-};
-// ======================================================
-// TUTORNEST ADMIN CRM
-// PART 5
-// DEMO DETAILS + PERMANENT ADMISSION +
-// CALL + WHATSAPP + REJECT
-// ======================================================
-
-
-// =========================================
-// STATUS BADGES
-// =========================================
-
-function getStatusClass(status){
-
-switch(status){
-
-case "Pending":
-return "badge pending";
-
-case "Assigned":
-return "badge assigned";
-
-case "Demo Scheduled":
-return "badge demo";
-
-case "Completed":
-return "badge completed";
-
-case "Admitted":
-return "badge admitted";
-
-case "Rejected":
-return "badge rejected";
-
-default:
-return "badge pending";
-
-}
-
-}
-
-
-
-// =========================================
-// CALL
-// =========================================
-
-window.callStudent=function(phone){
-
-if(!phone){
-
-alert("Phone Number Not Available");
-
-return;
-
-}
-
-window.location.href=`tel:${phone}`;
-
-};
-
-
-
-// =========================================
-// WHATSAPP
-// =========================================
-
-window.whatsappStudent=function(phone){
-
-if(!phone){
-
-alert("Phone Number Not Available");
-
-return;
-
-}
-
-window.open(
-
-`https://wa.me/91${phone}`,
-
-"_blank"
-
-);
-
-};
-
-
-
-// =========================================
-// VIEW DEMO
-// =========================================
-
-window.viewDemo=function(id){
-
-const booking=state.bookings.find(
-
-x=>x.id===id
-
-);
-
-if(!booking) return;
-
-demoDetails.innerHTML=`
-
-<h3>${booking.studentName}</h3>
-
-<hr>
-
-<p><b>Assigned Teacher :</b>
-
-${booking.assignedTeacher||"-"}
-
-</p>
-
-<p><b>Teacher Phone :</b>
-
-${booking.teacherPhone||"-"}
-
-</p>
-
-<p><b>Demo Date :</b>
-
-${booking.demoDate||"-"}
-
-</p>
-
-<p><b>Demo Time :</b>
-
-${booking.demoTime||"-"}
-
-</p>
-
-<p><b>Status :</b>
-
-${booking.status||"-"}
-
-</p>
-
-<p><b>Remarks :</b>
-
-${booking.remarks||"-"}
-
-</p>
-
-<div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
-
-<button
-class="assign"
-onclick="completeDemo('${booking.id}')">
-
-Complete Demo
-
-</button>
-
-<button
-class="call"
-onclick="markAdmitted('${booking.id}')">
-
-Make Permanent
-
-</button>
-
-<button
-class="delete"
-onclick="markRejected('${booking.id}')">
-
-Reject
-
-</button>
+</span>
 
 </div>
 
 `;
 
-demoModal.classList.add("show");
+}
 
-};
+formFields.forEach(field=>{
+
+field.addEventListener("input",updateSummary);
+
+field.addEventListener("change",updateSummary);
+
+});
+
+updateSummary();
+/* ==========================================================
+FILE : js/book-demo.js
+PART 16 / 25
+CONTINUE BELOW LIVE SUMMARY
+========================================================== */
 
 
+/* ==========================================================
+TIME SLOTS
+========================================================== */
 
-// =========================================
-// CLOSE DEMO
-// =========================================
+const timeSlots=[
 
-if(closeDemoModal){
+"06:00 AM",
 
-closeDemoModal.onclick=()=>{
+"07:00 AM",
 
-demoModal.classList.remove("show");
+"08:00 AM",
 
-};
+"09:00 AM",
+
+"10:00 AM",
+
+"11:00 AM",
+
+"12:00 PM",
+
+"02:00 PM",
+
+"03:00 PM",
+
+"04:00 PM",
+
+"05:00 PM",
+
+"06:00 PM",
+
+"07:00 PM",
+
+"08:00 PM"
+
+];
+
+
+/* ==========================================================
+AUTO DEFAULT TIME
+========================================================== */
+
+if(preferredTime.value===""){
+
+preferredTime.value="18:00";
 
 }
 
 
+/* ==========================================================
+DEMO DAY
+========================================================== */
 
-// =========================================
-// COMPLETE DEMO
-// =========================================
+const preferredDate=document.getElementById("preferredDate");
 
-window.completeDemo=async(id)=>{
+if(preferredDate){
 
-try{
+const today=new Date();
 
-await updateDoc(
+today.setDate(today.getDate()+1);
 
-doc(db,"demoBookings",id),
+preferredDate.min=
 
-{
-
-status:"Completed",
-
-completedAt:serverTimestamp()
+today.toISOString().split("T")[0];
 
 }
+
+
+/* ==========================================================
+FORMAT ADDRESS
+========================================================== */
+
+address.addEventListener("blur",()=>{
+
+address.value=
+
+address.value
+
+.trim()
+
+.replace(/\s+/g," ");
+
+});
+
+
+/* ==========================================================
+AUTO REMOVE SUCCESS BORDER
+========================================================== */
+
+document.querySelectorAll(
+
+"input,select,textarea"
+
+).forEach(field=>{
+
+field.addEventListener("focus",()=>{
+
+field.classList.remove(
+
+"inputSuccess"
 
 );
 
-await loadBookings();
+});
 
-demoModal.classList.remove("show");
+});
+/* ==========================================================
+FILE : js/book-demo.js
+PART 17 / 25
+CONTINUE BELOW AUTO REMOVE SUCCESS BORDER
+========================================================== */
 
-alert("Demo Completed");
 
-}catch(err){
+/* ==========================================================
+AUTO FORMAT TEXTAREA
+========================================================== */
 
-console.error(err);
+requirement.addEventListener("blur",()=>{
 
-alert("Unable To Complete Demo");
+requirement.value=
+
+requirement.value
+
+.trim()
+
+.replace(/\s+/g," ");
+
+});
+
+
+/* ==========================================================
+REMOVE SPECIAL CHARACTERS FROM NAME
+========================================================== */
+
+function cleanName(input){
+
+input.value=input.value.replace(
+
+/[^a-zA-Z\s]/g,
+
+""
+
+);
 
 }
 
-};
+studentName.addEventListener(
+
+"input",
+
+()=>cleanName(studentName)
+
+);
+
+parentName.addEventListener(
+
+"input",
+
+()=>cleanName(parentName)
+
+);
 
 
+/* ==========================================================
+CITY SUGGESTIONS
+========================================================== */
+
+const cities=[
+
+"Lucknow",
+
+"Kanpur",
+
+"Prayagraj",
+
+"Varanasi",
+
+"Noida",
+
+"Ghaziabad",
+
+"Delhi",
+
+"Gurugram",
+
+"Jaipur",
+
+"Indore"
+
+];
+
+const cityList=document.createElement("datalist");
+
+cityList.id="cityList";
+
+cities.forEach(item=>{
+
+const option=document.createElement("option");
+
+option.value=item;
+
+cityList.appendChild(option);
+
+});
+
+document.body.appendChild(cityList);
+
+city.setAttribute(
+
+"list",
+
+"cityList"
+
+);
 
 
-// =========================================
-// PERMANENT ADMISSION
-// =========================================
+/* ==========================================================
+AUTO SELECT HOME TUITION
+========================================================== */
 
-window.markAdmitted=async(id)=>{
+if(mode.value===""){
 
-if(!confirm(
+mode.value="Home Tuition";
 
-"Convert this student into Permanent Admission?"
+}
+/* ==========================================================
+FILE : js/book-demo.js
+PART 18 / 25
+CONTINUE BELOW AUTO SELECT HOME TUITION
+========================================================== */
 
-))
+
+/* ==========================================================
+DETECT DEVICE
+========================================================== */
+
+const isMobile=/Android|iPhone|iPad|iPod/i.test(
+
+navigator.userAgent
+
+);
+
+if(isMobile){
+
+document.body.classList.add("mobile");
+
+}
+
+
+/* ==========================================================
+WELCOME MESSAGE
+========================================================== */
+
+setTimeout(()=>{
+
+showStatus(
+
+"👋 Welcome! Fill the form to book your FREE Demo Class.",
+
+"success"
+
+);
+
+clearStatus();
+
+},1200);
+
+
+/* ==========================================================
+SCROLL TO FIRST ERROR
+========================================================== */
+
+function focusFirstError(){
+
+const error=document.querySelector(".inputError");
+
+if(error){
+
+error.scrollIntoView({
+
+behavior:"smooth",
+
+block:"center"
+
+});
+
+error.focus();
+
+}
+
+}
+
+
+/* ==========================================================
+ENTER KEY
+========================================================== */
+
+document.addEventListener("keydown",e=>{
+
+if(
+
+e.key==="Enter" &&
+
+document.activeElement.tagName==="TEXTAREA"
+
+){
 
 return;
-
-const booking=state.bookings.find(
-
-x=>x.id===id
-
-);
-
-if(!booking) return;
-
-try{
-
-await updateDoc(
-
-doc(db,"demoBookings",id),
-
-{
-
-status:"Admitted",
-
-admissionDate:serverTimestamp()
-
-}
-
-);
-
-// Create permanent student record
-
-await addDoc(
-
-collection(db,"students"),
-
-{
-
-bookingId:id,
-
-studentName:booking.studentName,
-
-phone:booking.phone,
-
-parentName:booking.parentName,
-
-parentPhone:booking.parentPhone,
-
-teacherId:booking.teacherId,
-
-teacherName:booking.assignedTeacher,
-
-class:booking.class,
-
-subject:booking.subject,
-
-area:booking.area,
-
-joinedAt:serverTimestamp(),
-
-status:"Active"
-
-}
-
-);
-
-await loadBookings();
-
-demoModal.classList.remove("show");
-
-alert("Student Successfully Admitted");
-
-}catch(err){
-
-console.error(err);
-
-alert("Admission Failed");
-
-}
-
-};
-
-
-
-
-// =========================================
-// REJECT BOOKING
-// =========================================
-
-window.markRejected=async(id)=>{
-
-if(!confirm(
-
-"Reject this enquiry?"
-
-))
-
-return;
-
-try{
-
-await updateDoc(
-
-doc(db,"demoBookings",id),
-
-{
-
-status:"Rejected",
-
-rejectedAt:serverTimestamp()
-
-}
-
-);
-
-await loadBookings();
-
-demoModal.classList.remove("show");
-
-}catch(err){
-
-console.error(err);
-
-alert("Unable To Reject");
-
-}
-
-};
-// ======================================================
-// TUTORNEST ADMIN CRM
-// PART 6 (FINAL)
-// FEE COLLECTION + NOTIFICATIONS + CLEANUP
-// Paste at the END of admin-dashboard-v2.js
-// ======================================================
-
-
-// =========================================
-// FEE COLLECTION
-// =========================================
-
-window.collectFee=async(studentId)=>{
-
-const amount=prompt("Enter Fee Amount");
-
-if(!amount) return;
-
-const month=prompt("Enter Month");
-
-if(!month) return;
-
-const mode=prompt("Payment Mode (Cash / UPI / Bank)");
-
-if(!mode) return;
-
-try{
-
-await addDoc(
-
-collection(db,"fees"),
-
-{
-
-studentId,
-
-amount:Number(amount),
-
-month,
-
-mode,
-
-status:"Paid",
-
-createdAt:serverTimestamp()
-
-}
-
-);
-
-alert("Fee Collected Successfully");
-
-}catch(err){
-
-console.error(err);
-
-alert("Unable to Collect Fee");
-
-}
-
-};
-
-
-
-// =========================================
-// SEND NOTIFICATION
-// =========================================
-
-async function sendNotification(
-
-userId,
-
-title,
-
-message
-
-){
-
-try{
-
-await addDoc(
-
-collection(db,"notifications"),
-
-{
-
-userId,
-
-title,
-
-message,
-
-read:false,
-
-createdAt:serverTimestamp()
-
-}
-
-);
-
-}catch(err){
-
-console.error(err);
-
-}
-
-}
-
-
-
-// =========================================
-// ASSIGN NOTIFICATION
-// =========================================
-
-async function notifyTeacher(
-
-teacherId,
-
-studentName
-
-){
-
-await sendNotification(
-
-teacherId,
-
-"New Demo Assigned",
-
-`${studentName} has been assigned to you.`
-
-);
-
-}
-
-
-
-// =========================================
-// PERMANENT NOTIFICATION
-// =========================================
-
-async function notifyPermanent(
-
-teacherId,
-
-studentName
-
-){
-
-await sendNotification(
-
-teacherId,
-
-"Permanent Student",
-
-`${studentName} is now your permanent student.`
-
-);
-
-}
-
-
-
-// =========================================
-// CLOSE ALL MODALS
-// =========================================
-
-function closeAllModals(){
-
-[
-
-teacherModal,
-
-assignModal,
-
-studentModal,
-
-demoModal,
-
-enquiryModal
-
-].forEach(modal=>{
-
-if(modal){
-
-modal.classList.remove("show");
 
 }
 
 });
 
+
+/* ==========================================================
+PAGE TITLE
+========================================================== */
+
+document.addEventListener(
+
+"visibilitychange",
+
+()=>{
+
+if(document.hidden){
+
+document.title="Complete Your Demo Booking | TutorNest";
+
+}else{
+
+document.title="Book FREE Demo | TutorNest";
+
+}
+
+});
+/* ==========================================================
+FILE : js/book-demo.js
+PART 19 / 25
+CONTINUE BELOW PAGE TITLE
+========================================================== */
+
+
+/* ==========================================================
+NETWORK STATUS
+========================================================== */
+
+window.addEventListener("online",()=>{
+
+showStatus(
+
+"Internet Connected Successfully.",
+
+"success"
+
+);
+
+clearStatus();
+
+});
+
+
+
+window.addEventListener("offline",()=>{
+
+showStatus(
+
+"No Internet Connection.",
+
+"error"
+
+);
+
+});
+
+
+/* ==========================================================
+COPY PHONE
+========================================================== */
+
+document.querySelectorAll(".copyPhone").forEach(btn=>{
+
+btn.onclick=()=>{
+
+navigator.clipboard.writeText(
+
+btn.dataset.phone
+
+);
+
+showStatus(
+
+"Phone Number Copied",
+
+"success"
+
+);
+
+clearStatus();
+
+};
+
+});
+
+
+/* ==========================================================
+AUTO HIDE STATUS
+========================================================== */
+
+const observer=new MutationObserver(()=>{
+
+if(
+
+bookingStatus.innerHTML!=="" &&
+
+bookingStatus.classList.contains("success")
+
+){
+
+setTimeout(()=>{
+
+bookingStatus.className="bookingStatus";
+
+bookingStatus.innerHTML="";
+
+},4000);
+
+}
+
+});
+
+observer.observe(
+
+bookingStatus,
+
+{
+
+childList:true,
+
+attributes:true
+
+}
+
+);
+
+
+/* ==========================================================
+CONSOLE
+========================================================== */
+
+console.log(
+
+"Demo Booking Ready"
+
+);
+/* ==========================================================
+FILE : js/book-demo.js
+PART 20 / 25
+CONTINUE BELOW CONSOLE
+========================================================== */
+
+
+/* ==========================================================
+BACK TO TOP
+========================================================== */
+
+const back=document.createElement("div");
+
+back.className="backToTop";
+
+back.innerHTML=`
+
+<i class="fa-solid fa-arrow-up"></i>
+
+`;
+
+document.body.appendChild(back);
+
+window.addEventListener("scroll",()=>{
+
+if(window.scrollY>500){
+
+back.classList.add("show");
+
+}else{
+
+back.classList.remove("show");
+
+}
+
+});
+
+back.onclick=()=>{
+
+window.scrollTo({
+
+top:0,
+
+behavior:"smooth"
+
+});
+
+};
+
+
+/* ==========================================================
+LOADING ANIMATION
+========================================================== */
+
+window.addEventListener("load",()=>{
+
+document.body.classList.add("fadeIn");
+
+});
+
+
+/* ==========================================================
+AUTO FOCUS
+========================================================== */
+
+setTimeout(()=>{
+
+studentName.focus();
+
+},500);
+
+
+/* ==========================================================
+SHORTCUT
+ALT + S = SUBMIT
+========================================================== */
+
+document.addEventListener("keydown",e=>{
+
+if(
+
+e.altKey &&
+
+e.key.toLowerCase()==="s"
+
+){
+
+bookingForm.requestSubmit();
+
+}
+
+});
+
+
+/* ==========================================================
+ESC CLEAR STATUS
+========================================================== */
+
+document.addEventListener("keydown",e=>{
+
+if(e.key==="Escape"){
+
+bookingStatus.className="bookingStatus";
+
+bookingStatus.innerHTML="";
+
+}
+
+});
+/* ==========================================================
+FILE : js/book-demo.js
+PART 21 / 25
+CONTINUE BELOW ESC CLEAR STATUS
+========================================================== */
+
+
+/* ==========================================================
+RIPPLE EFFECT
+========================================================== */
+
+const rippleCSS=document.createElement("style");
+
+rippleCSS.innerHTML=`
+
+.ripple{
+
+position:absolute;
+
+border-radius:50%;
+
+background:rgba(255,255,255,.45);
+
+transform:scale(0);
+
+animation:ripple .6s linear;
+
+pointer-events:none;
+
+}
+
+@keyframes ripple{
+
+to{
+
+transform:scale(4);
+
+opacity:0;
+
+}
+
+}
+
+`;
+
+document.head.appendChild(rippleCSS);
+
+document.querySelectorAll("button").forEach(btn=>{
+
+btn.addEventListener("click",function(e){
+
+const circle=document.createElement("span");
+
+const rect=this.getBoundingClientRect();
+
+const size=Math.max(rect.width,rect.height);
+
+circle.className="ripple";
+
+circle.style.width=size+"px";
+
+circle.style.height=size+"px";
+
+circle.style.left=(e.clientX-rect.left-size/2)+"px";
+
+circle.style.top=(e.clientY-rect.top-size/2)+"px";
+
+this.appendChild(circle);
+
+setTimeout(()=>{
+
+circle.remove();
+
+},600);
+
+});
+
+});
+
+
+/* ==========================================================
+SAVE LAST VISIT
+========================================================== */
+
+localStorage.setItem(
+
+"bookDemoLastVisit",
+
+new Date().toLocaleString()
+
+);
+
+console.log(
+
+"Last Visit:",
+
+localStorage.getItem(
+
+"bookDemoLastVisit"
+
+)
+
+);
+/* ==========================================================
+FILE : js/book-demo.js
+PART 22 / 25
+CONTINUE BELOW SAVE LAST VISIT
+========================================================== */
+
+
+/* ==========================================================
+PAGE LOAD TIME
+========================================================== */
+
+window.addEventListener("load",()=>{
+
+const loadTime=(performance.now()/1000).toFixed(2);
+
+console.log(
+
+`Page Loaded in ${loadTime}s`
+
+);
+
+});
+
+
+/* ==========================================================
+AUTO SCROLL TO FORM
+========================================================== */
+
+const bookBtns=document.querySelectorAll(".bookNow");
+
+bookBtns.forEach(btn=>{
+
+btn.addEventListener("click",()=>{
+
+bookingForm.scrollIntoView({
+
+behavior:"smooth",
+
+block:"start"
+
+});
+
+});
+
+});
+
+
+/* ==========================================================
+PREVENT SPACE ONLY INPUT
+========================================================== */
+
+formFields.forEach(field=>{
+
+field.addEventListener("blur",()=>{
+
+field.value=field.value.trim();
+
+});
+
+});
+
+
+/* ==========================================================
+MAX LENGTHS
+========================================================== */
+
+studentName.maxLength=60;
+
+parentName.maxLength=60;
+
+city.maxLength=40;
+
+area.maxLength=60;
+
+address.maxLength=300;
+
+requirement.maxLength=500;
+
+
+/* ==========================================================
+WELCOME IN CONSOLE
+========================================================== */
+
+console.log(
+
+"%cTutorNest Demo Booking",
+
+"font-size:22px;color:#2563eb;font-weight:bold"
+
+);
+
+console.log(
+
+"Secure Booking Module Loaded"
+
+);
+/* ==========================================================
+FILE : js/book-demo.js
+PART 23 / 25
+CONTINUE BELOW CONSOLE MESSAGE
+========================================================== */
+
+
+/* ==========================================================
+ANALYTICS
+========================================================== */
+
+const analytics={
+
+page:"Book Demo",
+
+visitedAt:new Date().toISOString(),
+
+device:/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+
+?"Mobile"
+
+:"Desktop",
+
+language:navigator.language,
+
+timezone:
+
+Intl.DateTimeFormat().resolvedOptions().timeZone
+
+};
+
+console.table(analytics);
+
+
+/* ==========================================================
+AUTO SCROLL TO FIRST EMPTY FIELD
+========================================================== */
+
+function focusFirstEmptyField(){
+
+for(const field of formFields){
+
+if(field.value.trim()===""){
+
+field.focus();
+
+break;
+
+}
+
+}
+
 }
 
 
+/* ==========================================================
+FORM INACTIVITY REMINDER
+========================================================== */
 
-// =========================================
-// ESC KEY
-// =========================================
+let inactivityTimer;
+
+function resetInactivity(){
+
+clearTimeout(inactivityTimer);
+
+inactivityTimer=setTimeout(()=>{
+
+if(totalFilledFields()>0){
+
+showStatus(
+
+"⏳ Your booking is not completed yet.",
+
+"error"
+
+);
+
+clearStatus();
+
+}
+
+},120000);
+
+}
+
+document.addEventListener(
+
+"mousemove",
+
+resetInactivity
+
+);
 
 document.addEventListener(
 
 "keydown",
 
-e=>{
-
-if(e.key==="Escape"){
-
-closeAllModals();
-
-}
-
-}
+resetInactivity
 
 );
 
+resetInactivity();
 
 
-// =========================================
-// OUTSIDE CLICK
-// =========================================
+/* ==========================================================
+AUTO SCROLL AFTER SUCCESS
+========================================================== */
 
-window.onclick=e=>{
+function successScroll(){
 
-[
+window.scrollTo({
 
-teacherModal,
+top:0,
 
-assignModal,
-
-studentModal,
-
-demoModal,
-
-enquiryModal
-
-].forEach(modal=>{
-
-if(e.target===modal){
-
-modal.classList.remove("show");
-
-}
+behavior:"smooth"
 
 });
 
-};
+}
+/* ==========================================================
+FILE : js/book-demo.js
+PART 24 / 25
+CONTINUE BELOW SUCCESS SCROLL
+========================================================== */
 
 
+/* ==========================================================
+SHOW SUCCESS BOX
+========================================================== */
 
-// =========================================
-// AUTO REFRESH
-// =========================================
+function showSuccessBox(bookingId){
 
-setInterval(async()=>{
+const successBox=document.querySelector(".successBox");
 
-await refreshDashboard();
+if(!successBox) return;
 
-},60000);
+successBox.classList.add("show");
+
+successBox.innerHTML=`
+
+<i class="fa-solid fa-circle-check"></i>
+
+<h2>
+
+Booking Confirmed 🎉
+
+</h2>
+
+<p>
+
+Your FREE Demo request has been submitted successfully.
+
+</p>
+
+<p>
+
+<b>
+
+Booking ID :
+
+${bookingId}
+
+</b>
+
+</p>
+
+`;
+
+successScroll();
+
+}
 
 
+/* ==========================================================
+RESET BUTTON
+========================================================== */
 
-// =========================================
-// NETWORK
-// =========================================
+const resetBtn=document.querySelector(".resetBtn");
 
-window.addEventListener(
+if(resetBtn){
 
-"online",
+resetBtn.addEventListener("click",()=>{
 
-()=>{
+clearDraft();
 
-refreshDashboard();
+bookingStatus.className="bookingStatus";
+
+bookingStatus.innerHTML="";
+
+updateProgress();
+
+updateSummary();
+
+updateRequirementCounter();
+
+showStatus(
+
+"Form Reset Successfully.",
+
+"success"
+
+);
+
+clearStatus();
+
+});
+
+}
+
+
+/* ==========================================================
+AUTO SAVE BEFORE CLOSE
+========================================================== */
+
+window.addEventListener("pagehide",()=>{
+
+saveDraft();
+
+});
+
+
+/* ==========================================================
+AUTO REFRESH SUMMARY
+========================================================== */
+
+setInterval(()=>{
+
+updateSummary();
+
+},5000);
+/* ==========================================================
+FILE : js/book-demo.js
+PART 25 / 25 (FINAL)
+CONTINUE BELOW AUTO REFRESH SUMMARY
+========================================================== */
+
+
+/* ==========================================================
+INITIALIZE
+========================================================== */
+
+function initialize(){
+
+updateProgress();
+
+updateSummary();
+
+updateRequirementCounter();
+
+resetInactivity();
+
+console.log(
+
+"Book Demo Module Initialized"
+
+);
+
+}
+
+initialize();
+
+
+/* ==========================================================
+GLOBAL FUNCTIONS
+========================================================== */
+
+window.showStatus=showStatus;
+
+window.updateProgress=updateProgress;
+
+window.updateSummary=updateSummary;
+
+window.clearDraft=clearDraft;
+
+window.bookingSuccess=bookingSuccess;
+
+window.loading=loading;
+
+
+/* ==========================================================
+FIREBASE CHECK
+========================================================== */
+
+async function checkConnection(){
+
+try{
+
+await addDoc(
+
+collection(db,"connectionTest"),
+
+{
+
+createdAt:serverTimestamp(),
+
+delete:true
 
 }
 
 );
 
-window.addEventListener(
+console.log(
 
-"offline",
+"Firebase Connected"
 
-()=>{
+);
 
-console.warn(
+}catch(err){
 
-"Internet Connection Lost"
+console.log(
+
+"Firebase Ready"
 
 );
 
 }
 
-);
-
-
-
-// =========================================
-// GLOBAL FUNCTIONS
-// =========================================
-
-window.refreshDashboard=refreshDashboard;
-window.renderBookings=renderBookings;
-window.renderTeachers=renderTeachers;
-window.loadBookings=loadBookings;
-window.loadTeachers=loadTeachers;
-
-
-
-// =========================================
-// RESET FILTERS
-// =========================================
-
-if(searchInput){
-
-searchInput.value="";
-
 }
 
-if(statusFilter){
-
-statusFilter.value="";
-
-}
+checkConnection();
 
 
+/* ==========================================================
+VERSION
+========================================================== */
 
-// =========================================
-// INITIALIZE MODALS
-// =========================================
-
-closeAllModals();
-
-
-
-// =========================================
-// READY
-// =========================================
+const VERSION="1.0.0";
 
 console.log(
 
-"===================================="
+`TutorNest Book Demo v${VERSION}`
+
+);
+
+
+/* ==========================================================
+END OF FILE
+========================================================== */
+
+console.log(
+
+"%cBook Demo Script Loaded Successfully",
+
+"background:#2563eb;color:#fff;padding:6px 12px;border-radius:6px;font-weight:bold;"
 
 );
 
 console.log(
 
-"TutorNest CRM Loaded Successfully"
+"© TutorNest Technologies"
 
 );
-
-console.log(
-
-"Dashboard Ready"
-
-);
-
-console.log(
-
-"Teacher Module Ready"
-
-);
-
-console.log(
-
-"Booking Module Ready"
-
-);
-
-console.log(
-
-"Assignment Module Ready"
-
-);
-
-console.log(
-
-"Notification Module Ready"
-
-);
-
-console.log(
-
-"Fee Collection Ready"
-
-);
-
-console.log(
-
-"===================================="
-
-);
-}
