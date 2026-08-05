@@ -2224,9 +2224,11 @@ async function convertDemoToStudent() {
 
     const teacher = cache.teachers.find(
 
-        item => item.id === selectedDemo.teacherId
+    item =>
+    item.id === selectedDemo.teacherId ||
+    item.id === selectedDemo.assignedTutorId
 
-    );
+);
 
     showLoader();
 
@@ -2263,10 +2265,10 @@ async function convertDemoToStudent() {
             selectedDemo.city || "",
 
         teacherId:
-    teacher?.id || selectedDemo.teacherId || "",
+teacher?.id || selectedDemo.teacherId || "",
 
-        teacherName:
-    teacher?.name || selectedDemo.teacherName || "",
+teacherName:
+teacher?.name || selectedDemo.teacherName || "",
         monthlyFees:
             Number(
                 $("monthlyFees").value || 0
@@ -2294,31 +2296,33 @@ if(teacher?.id){
 
     await updateDoc(
 
-        doc(
-            db,
-            "tutors",
-            teacher.id
-        ),
+    doc(db, "demoBookings", selectedDemo.id),
 
-        {
+    {
 
-            assignedStudents: arrayUnion({
+        teacherId: teacher.id,
 
-                studentId: studentDoc.id,
+        teacherName: teacher.name,
 
-                name: selectedDemo.studentName || "",
+        assignedTutorId: teacher.id,
 
-                class: selectedDemo.class || "",
+        assignedTutorName: teacher.name,
 
-                subject: selectedDemo.subject || "",
+        teacherPhone: teacher.phone || "",
 
-                area: selectedDemo.area || ""
+        demoDate: $("demoDate").value,
 
-            })
+        demoTime: $("demoTime").value,
 
-        }
+        notes: $("assignNotes").value.trim(),
 
-    );
+        status: "Assigned",
+
+        assignedAt: serverTimestamp()
+
+    }
+
+);
 
 }
         await updateDoc(
