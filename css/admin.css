@@ -3069,32 +3069,3 @@ table{
 }
 
 
-/* Small phones */
-@media(max-width:480px){
-
-.quickActions{
-    grid-template-columns:1fr;
-}
-
-
-.sectionCard{
-    padding:18px;
-}
-
-
-.headerActions{
-    width:100%;
-}
-
-.headerActions input,
-.headerActions select,
-.headerActions button{
-    width:100%;
-}
-
-}
-
-
-/* ===========================
-END
-=========================== */
