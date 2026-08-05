@@ -79,11 +79,25 @@ return;
 
 }
 
-tutorUID=user.uid;
-
-const snap=await getDoc(
-doc(db,"tutors",user.uid)
+const q = query(
+    collection(db,"tutors"),
+    where("email","==",user.email)
 );
+
+const tutorSnap = await getDocs(q);
+
+if(tutorSnap.empty){
+
+    alert("Tutor Not Found");
+    return;
+
+}
+
+const tutorDoc = tutorSnap.docs[0];
+
+tutorUID = tutorDoc.id;
+
+tutorData = tutorDoc.data();
 
 if(!snap.exists()){
 
@@ -202,7 +216,7 @@ studentTableBody.innerHTML+=`
 
 <td>
 
-${s.studentName||"-"}
+${s.name || s.studentName || "-"}
 
 </td>
 

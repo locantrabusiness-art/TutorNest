@@ -3,6 +3,20 @@
 // ==============================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import {
+    collection,
+    query,
+    where,
+    orderBy,
+    limit,
+    onSnapshot,
+    doc,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+    serverTimestamp,
+    arrayUnion
+} from "firebase/firestore";
 
 import {
     getAuth,
@@ -67,6 +81,6 @@ export {
 
     storage,
 
-    googleProvider
+    googleProvider,
 
 };
