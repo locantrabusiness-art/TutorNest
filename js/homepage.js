@@ -405,11 +405,6 @@ Verified
 </div>
 
 </div>
-/* ==========================================================
-FILE : js/homepage.js
-PART 3 / 25
-CONTINUE BELOW tutorTop
-========================================================== */
 
 <div class="tutorInfo">
 

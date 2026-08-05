@@ -402,6 +402,7 @@ grid-template-columns:1fr;
 
 }
 
+
 @media(max-width:700px){
 
 .sidebar{
@@ -432,11 +433,56 @@ grid-template-columns:1fr;
 
 }
 
+.menuBtn{
+display:none;
+}
+
+#overlay{
+display:none;
+}
+
+@media(max-width:700px){
+
+.menuBtn{
+display:block;
+background:#0f4c81;
+color:#fff;
+padding:12px;
+border-radius:8px;
+margin:0;
+}
+
+.sidebar{
+left:-260px;
+transition:.3s;
+z-index:1001;
+}
+
+.sidebar.show{
+left:0;
+}
+
+#overlay.show{
+display:block;
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.4);
+z-index:1000;
+}
+
+}
 </style>
 
 </head>
 
 <body>
+<div id="overlay"></div>
+
+<button id="menuToggle" class="menuToggle">
+    <i class="fa-solid fa-bars"></i>
+</button>
+
+<div id="overlay" class="overlay"></div>
 
 <div class="sidebar">
 
@@ -533,7 +579,9 @@ Logout
 <div class="main">
 
 <div class="topBar">
-
+<button id="menuToggle" class="menuBtn">
+    <i class="fa-solid fa-bars"></i>
+</button>
 <div>
 
 <h1>

@@ -1,4 +1,4 @@
-import { auth, db } from "../firebase.js";
+import { auth, db } from "./firebase.js";
 
 import {
 onAuthStateChanged
@@ -43,22 +43,25 @@ let oldData={};
 // LOGIN
 //=====================================
 
-onAuthStateChanged(auth,async(user)=>{
+onAuthStateChanged(auth, async (user) => {
+    try {
 
-if(!user){
+        if (!user) {
+            location.href = "login.html";
+            return;
+        }
 
-location.href="login.html";
+        currentUser = user;
+        emailInput.value = user.email;
 
-return;
+        await loadProfile(user.uid);
 
-}
+    } catch (e) {
 
-currentUser=user;
+        console.error(e);
+        alert(e.message);
 
-emailInput.value=user.email;
-
-await loadProfile(user.uid);
-
+    }
 });
 
 //=====================================

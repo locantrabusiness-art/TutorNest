@@ -1,6 +1,4 @@
-import { auth, db }
-from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-
+import { auth, db } from "../firebase.js";
 import {
 onAuthStateChanged,
 signOut
@@ -97,34 +95,17 @@ if(tutorSnap.empty){
 const tutorDoc = tutorSnap.docs[0];
 
 tutorUID = tutorDoc.id;
-
 tutorData = tutorDoc.data();
-
-if(!snap.exists()){
-
-alert("Tutor Not Found");
-
-await signOut(auth);
-
-location.href="tutor-login.html";
-
-return;
-
-}
-
-tutorData=snap.data();
 
 loadProfile(user);
 
 await Promise.all([
-
-loadStudents(),
-loadTodaySchedule(),
-loadHomework(),
-loadNotes(),
-loadLeaveHistory(),
-loadAnalytics()
-
+    loadStudents(),
+    loadTodaySchedule(),
+    loadHomework(),
+    loadNotes(),
+    loadLeaveHistory(),
+    loadAnalytics()
 ]);
 
 });
@@ -2294,7 +2275,6 @@ await refreshLiveDashboard();
 await loadLatestHomework();
 
 };
-v
 /* =========================================================
 DASHBOARD CHARTS + UPCOMING FEATURES
 PASTE AT END OF dashboard.js
@@ -3108,6 +3088,43 @@ await dashboardBoot();
 await refreshEverything();
 
 };
+const menuToggle=document.getElementById("menuToggle");
+
+const sidebar=document.querySelector(".sidebar");
+
+const overlay=document.getElementById("overlay");
+
+menuToggle?.addEventListener("click",()=>{
+
+sidebar.classList.toggle("show");
+
+overlay.classList.toggle("show");
+
+});
+
+overlay?.addEventListener("click",()=>{
+
+sidebar.classList.remove("show");
+
+overlay.classList.remove("show");
+
+});
+
+document.querySelectorAll(".sidebar a").forEach(link=>{
+
+link.addEventListener("click",()=>{
+
+if(window.innerWidth<=768){
+
+sidebar.classList.remove("show");
+
+overlay.classList.remove("show");
+
+}
+
+});
+
+});
 
 /* =========================================================
 END OF TUTOR DASHBOARD V3
