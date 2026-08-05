@@ -20,6 +20,7 @@ import {
     doc,
     addDoc,
     getDoc,
+    arrayUnion,
     getDocs,
     updateDoc,
     deleteDoc,
@@ -2231,7 +2232,7 @@ async function convertDemoToStudent() {
 
     try {
 
-        await addDoc(
+        const studentDoc = await addDoc(
     studentRef,
     {
 
@@ -2262,11 +2263,10 @@ async function convertDemoToStudent() {
             selectedDemo.city || "",
 
         teacherId:
-            selectedDemo.teacherId || "",
+    teacher?.id || selectedDemo.teacherId || "",
 
         teacherName:
-            selectedDemo.teacherName || "",
-
+    teacher?.name || selectedDemo.teacherName || "",
         monthlyFees:
             Number(
                 $("monthlyFees").value || 0
@@ -2290,6 +2290,37 @@ async function convertDemoToStudent() {
 
     }
 );
+if(teacher?.id){
+
+    await updateDoc(
+
+        doc(
+            db,
+            "tutors",
+            teacher.id
+        ),
+
+        {
+
+            assignedStudents: arrayUnion({
+
+                studentId: studentDoc.id,
+
+                name: selectedDemo.studentName || "",
+
+                class: selectedDemo.class || "",
+
+                subject: selectedDemo.subject || "",
+
+                area: selectedDemo.area || ""
+
+            })
+
+        }
+
+    );
+
+}
         await updateDoc(
 
             doc(
