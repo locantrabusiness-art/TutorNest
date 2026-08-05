@@ -8,7 +8,7 @@ import {
     db,
     auth,
     storage,
-} from "./firebase.js";
+} from "../firebase.js";
 
 import {
     onAuthStateChanged,
