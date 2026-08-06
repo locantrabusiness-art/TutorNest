@@ -3067,5 +3067,424 @@ table{
 }
 
 }
+/* ==========================================================
+   MOBILE RESPONSIVE ADMIN PANEL
+========================================================== */
 
+@media (max-width:1200px){
 
+.dashboard{
+grid-template-columns:80px 1fr;
+}
+
+.sidebar{
+padding:20px 12px;
+}
+
+.brand h2,
+.brand p,
+.menu a span,
+.adminProfile,
+.logoutBtn{
+display:none;
+}
+
+.menu a{
+justify-content:center;
+padding:16px;
+}
+
+.mainContent{
+padding:25px;
+}
+
+.statsGrid{
+grid-template-columns:repeat(2,1fr);
+}
+
+.quickActions{
+grid-template-columns:repeat(3,1fr);
+}
+
+.settingsGrid{
+grid-template-columns:1fr;
+}
+
+}
+
+@media (max-width:992px){
+
+.topbar{
+flex-direction:column;
+align-items:flex-start;
+gap:18px;
+}
+
+.topRight{
+width:100%;
+justify-content:flex-end;
+}
+
+.sectionHeader{
+flex-direction:column;
+align-items:flex-start;
+}
+
+.headerActions{
+width:100%;
+}
+
+.headerActions input,
+.headerActions select,
+.headerActions button{
+width:100%;
+min-width:unset;
+}
+
+.quickActions{
+grid-template-columns:repeat(2,1fr);
+}
+
+.statsGrid{
+grid-template-columns:1fr 1fr;
+}
+
+.modalContent.large{
+max-width:95%;
+}
+
+}
+.mobileMenu{
+
+display:none;
+
+width:48px;
+
+height:48px;
+
+border:none;
+
+border-radius:12px;
+
+background:linear-gradient(135deg,var(--primary),var(--accent));
+
+color:#fff;
+
+font-size:20px;
+
+cursor:pointer;
+
+box-shadow:var(--shadow);
+
+margin-bottom:18px;
+
+}
+
+.sidebarOverlay{
+
+position:fixed;
+
+inset:0;
+
+background:rgba(15,23,42,.45);
+
+backdrop-filter:blur(4px);
+
+opacity:0;
+
+visibility:hidden;
+
+transition:.3s;
+
+z-index:9998;
+
+}
+
+.sidebarOverlay.show{
+
+opacity:1;
+
+visibility:visible;
+
+}
+.mobileMenu{
+
+display:flex;
+
+align-items:center;
+
+justify-content:center;
+
+}
+@media (max-width:768px){
+
+.dashboard{
+display:block;
+}
+
+.sidebar{
+position:fixed;
+left:-300px;
+top:0;
+width:280px;
+height:100vh;
+z-index:9999;
+transition:.35s;
+padding:25px;
+}
+
+.sidebar.show{
+left:0;
+}
+
+.brand h2,
+.brand p,
+.menu a span,
+.adminProfile,
+.logoutBtn{
+display:block;
+}
+
+.menu a{
+justify-content:flex-start;
+}
+
+.mainContent{
+padding:16px;
+}
+
+.topbar{
+margin-bottom:20px;
+}
+
+.topLeft h1{
+font-size:26px;
+}
+
+.statsGrid{
+grid-template-columns:1fr;
+gap:16px;
+}
+
+.quickActions{
+grid-template-columns:1fr 1fr;
+gap:14px;
+}
+
+.sectionCard{
+padding:18px;
+margin-bottom:20px;
+}
+
+.sectionHeader h2{
+font-size:22px;
+}
+
+.tableWrapper{
+overflow-x:auto;
+}
+
+table{
+min-width:900px;
+}
+
+.modal{
+padding:12px;
+}
+
+.modalContent,
+.modalContent.large,
+.modalContent.small{
+max-width:100%;
+border-radius:18px;
+}
+
+.modalBody{
+padding:18px;
+}
+
+.detailsGrid{
+grid-template-columns:1fr;
+}
+
+.settingsGrid{
+grid-template-columns:1fr;
+}
+
+.settingActions{
+justify-content:stretch;
+}
+
+.settingActions button{
+width:100%;
+}
+
+.actionButtons{
+flex-wrap:wrap;
+}
+
+}
+
+@media (max-width:480px){
+
+.mainContent{
+padding:12px;
+}
+
+.quickActions{
+grid-template-columns:1fr;
+}
+
+.topRight{
+gap:10px;
+}
+
+.topRight button{
+width:44px;
+height:44px;
+}
+
+.profileImage{
+width:44px;
+height:44px;
+}
+
+.statCard{
+padding:20px;
+}
+
+.statCard h2{
+font-size:28px;
+}
+
+.statCard i{
+font-size:34px;
+}
+
+.headerActions{
+flex-direction:column;
+align-items:stretch;
+}
+
+.headerActions button,
+.headerActions input,
+.headerActions select{
+width:100%;
+}
+
+.modalHeader{
+padding:18px;
+}
+
+.modalHeader h2{
+font-size:20px;
+}
+
+.modalActions{
+flex-direction:column;
+}
+
+.modalActions button{
+width:100%;
+}
+
+}
+/* ==========================================================
+   MOBILE TABLE IMPROVEMENTS
+========================================================== */
+
+.mobileTable{
+
+overflow-x:auto;
+
+-webkit-overflow-scrolling:touch;
+
+scrollbar-width:thin;
+
+}
+
+.mobileTable table{
+
+min-width:900px;
+
+}
+
+.mobileTable::-webkit-scrollbar{
+
+height:7px;
+
+}
+
+.mobileTable::-webkit-scrollbar-thumb{
+
+background:#cbd5e1;
+
+border-radius:50px;
+
+}
+
+.mobileTable::-webkit-scrollbar-track{
+
+background:#f8fafc;
+
+}
+
+.tableWrapper{
+
+scroll-behavior:smooth;
+
+}
+
+.actionButtons{
+
+min-width:max-content;
+
+}
+
+tbody tr{
+
+transition:.25s;
+
+}
+
+tbody tr:hover{
+
+transform:scale(.995);
+
+}
+
+@media(max-width:768px){
+
+tbody td{
+
+padding:14px;
+
+font-size:13px;
+
+}
+
+thead th{
+
+padding:14px;
+
+font-size:13px;
+
+}
+
+.actionBtn{
+
+width:38px;
+
+height:38px;
+
+}
+
+.status{
+
+padding:7px 14px;
+
+font-size:12px;
+
+}
+
+}

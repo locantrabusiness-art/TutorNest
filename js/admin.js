@@ -74,7 +74,28 @@ const attendanceRef = collection(db, "attendance");
 const feesRef = collection(db, "fees");
 const settingsRef = collection(db, "settings");
 const commissionRef = collection(db, "commission");
+const homeworkRef=collection(db,"homework");
+const demoStatus = {
 
+    PENDING:"Pending",
+
+    ASSIGNED:"Assigned",
+
+    ACCEPTED:"Accepted",
+
+    SCHEDULED:"Scheduled",
+
+    STARTED:"Demo Started",
+
+    COMPLETED:"Demo Completed",
+
+    WAITING:"Waiting Decision",
+
+    CONVERTED:"Converted",
+
+    REJECTED:"Rejected"
+
+};
 
 
 //=====================================================
@@ -93,7 +114,19 @@ const teachersTable = $("teachersTable");
 const attendanceTable = $("attendanceTable");
 const feesTable = $("feesTable");
 const commissionTable = $("commissionTable");
+const homeworkTable=$("homeworkTable");
+const homeworkSearch=$("homeworkSearch");
+const homeworkModal=$("homeworkModal");
 
+const homeworkStudent=$("homeworkStudent");
+
+const homeworkSubject=$("homeworkSubject");
+
+const homeworkTitle=$("homeworkTitle");
+
+const homeworkDescription=$("homeworkDescription");
+
+const homeworkDueDate=$("homeworkDueDate");
 const demoCount = $("demoCount");
 const studentCount = $("studentCount");
 const teacherCount = $("teacherCount");
@@ -107,11 +140,29 @@ const teacherSearch = $("teacherSearch");
 
 const notificationBtn = $("notificationBtn");
 const themeBtn = $("themeBtn");
-
+const menuToggle=$("menuToggle");
+const sidebar=document.querySelector(".sidebar");
+const sidebarOverlay=$("sidebarOverlay");
 const assignTutorModal = $("assignTutorModal");
 const studentModal = $("studentModal");
 const convertStudentModal = $("convertStudentModal");
 const deleteModal = $("deleteModal");
+const teacherDashboardModal = $("teacherDashboardModal");
+const decisionModal=$("decisionModal");
+
+const decisionType=$("decisionType");
+
+const rejectReason=$("rejectReason");
+
+const otherReason=$("otherReason");
+
+let selectedDecisionDemo=null;
+const teacherStudentsTable = $("teacherStudentsTable");
+
+const teacherTotalStudents = $("teacherTotalStudents");
+const teacherPresentStudents = $("teacherPresentStudents");
+const teacherMonthlyEarning = $("teacherMonthlyEarning");
+const teacherAttendancePercent = $("teacherAttendancePercent");
 
 
 
@@ -403,6 +454,7 @@ async function initializeDashboard() {
         startRealtimeListeners();
 
         bindEvents();
+        initializeMobileUI();
 
         renderAnalytics();
 
@@ -434,6 +486,7 @@ const cache = {
     attendance: [],
     fees: [],
     commissions: [],
+    homeworks: [],
     settings: {}
 };
 
@@ -565,7 +618,31 @@ function startRealtimeListeners() {
 
     );
 
+unsubscribe.homework=onSnapshot(
 
+    query(
+
+        homeworkRef,
+
+        orderBy("createdAt","desc")
+
+    ),
+
+    snapshot=>{
+
+        cache.homeworks=snapshot.docs.map(doc=>({
+
+            id:doc.id,
+
+            ...doc.data()
+
+        }));
+
+        renderHomeworkTable();
+
+    }
+
+);
 
     unsubscribe.commission = onSnapshot(
 
@@ -801,73 +878,68 @@ $("saveSettings")?.addEventListener(
 // DEMO BOOKINGS TABLE
 //============================================================
 
-function renderDemoTable() {
+function renderDemoTable(){
 
-    if (!demoTable) return;
+    if(!demoTable) return;
 
-    const keyword = demoSearch.value.trim().toLowerCase();
+    const keyword=(demoSearch?.value||"")
+        .trim()
+        .toLowerCase();
 
-    const filter = demoFilter.value;
+    const filter=demoFilter?.value||"All";
 
-    let records = [...cache.demos];
+    let records=[...cache.demos];
 
-    if (keyword) {
+    if(keyword){
 
-        records = records.filter(item => {
+        records=records.filter(item=>
 
-            return (
+            (item.studentName||"")
+            .toLowerCase()
+            .includes(keyword)
 
-                (item.studentName || "")
-                .toLowerCase()
-                .includes(keyword)
+            ||
 
-                ||
+            (item.parentName||"")
+            .toLowerCase()
+            .includes(keyword)
 
-                (item.parentName || "")
-                .toLowerCase()
-                .includes(keyword)
+            ||
 
-                ||
+            (item.phone||"")
+            .includes(keyword)
 
-                (item.phone || "")
-                .toLowerCase()
-                .includes(keyword)
+            ||
 
-                ||
-
-                (item.city || "")
-                .toLowerCase()
-                .includes(keyword)
-
-            );
-
-        });
-
-    }
-
-    if (filter !== "All") {
-
-        records = records.filter(
-
-            item => item.status === filter
+            (item.city||"")
+            .toLowerCase()
+            .includes(keyword)
 
         );
 
     }
 
-    if (!records.length) {
+    if(filter!=="All"){
 
-        demoTable.innerHTML = emptyTable(
+        records=records.filter(
 
-            "No Demo Booking Found"
+            item=>item.status===filter
 
         );
+
+    }
+
+    if(!records.length){
+
+        demoTable.innerHTML=
+
+            emptyTable("No Demo Booking Found");
 
         return;
 
     }
 
-    let html = `
+    let html=`
 
 <table>
 
@@ -881,11 +953,9 @@ function renderDemoTable() {
 
 <th>Phone</th>
 
-<th>Class</th>
+<th>Teacher</th>
 
-<th>Subject</th>
-
-<th>Area</th>
+<th>Demo Date</th>
 
 <th>Status</th>
 
@@ -899,29 +969,85 @@ function renderDemoTable() {
 
 `;
 
-    records.forEach(item => {
+    records.forEach(item=>{
 
-        html += `
+        const status=item.status||demoStatus.PENDING;
+
+        html+=`
 
 <tr>
 
-<td>${item.studentName || "--"}</td>
+<td>
 
-<td>${item.parentName || "--"}</td>
+<b>
 
-<td>${item.phone || "--"}</td>
+${item.studentName||"--"}
 
-<td>${item.class || "--"}</td>
+</b>
 
-<td>${item.subject || "--"}</td>
+<br>
 
-<td>${item.area || "--"}</td>
+<small>
+
+${item.class||"--"}
+
+ •
+
+${item.subject||"--"}
+
+</small>
+
+</td>
 
 <td>
 
-<span class="status ${String(item.status).toLowerCase()}">
+${item.parentName||"--"}
 
-${item.status}
+</td>
+
+<td>
+
+${item.phone||"--"}
+
+</td>
+
+<td>
+
+${item.teacherName||"<span style='color:#ef4444'>Not Assigned</span>"}
+
+</td>
+
+<td>
+
+${formatDate(item.demoDate)}
+
+</td>
+
+<td>
+
+<span class="status ${
+
+status===demoStatus.REJECTED
+?"rejected"
+
+:
+
+status===demoStatus.WAITING
+?"warning"
+
+:
+
+status===demoStatus.CONVERTED
+?"completed"
+
+:
+
+status.toLowerCase().replace(/\s/g,"")
+
+}">
+${status.toLowerCase().replace(/\s/g,"")}">
+
+${status}
 
 </span>
 
@@ -933,35 +1059,116 @@ ${item.status}
 
 <button
 class="actionBtn viewDemo"
-data-id="${item.id}">
+data-id="${item.id}"
+title="View">
 
 <i class="fa-solid fa-eye"></i>
 
 </button>
 
-<button class="actionBtn deleteDemo" data-id="${item.id}">
-<i class="fa-solid fa-trash"></i>
-</button>
+${!item.teacherId?`
 
 <button
 class="actionBtn assignDemo"
-data-id="${item.id}">
+data-id="${item.id}"
+title="Assign Teacher">
 
 <i class="fa-solid fa-user-check"></i>
 
 </button>
 
+`:``}
+
+${item.status===demoStatus.ASSIGNED?`
+
 <button
-class="actionBtn convertDemo"
-data-id="${item.id}">
+class="actionBtn acceptDemo"
+data-id="${item.id}"
+title="Accept Demo">
+
+<i class="fa-solid fa-circle-check"></i>
+
+</button>
+
+`:``}
+
+${item.status===demoStatus.ACCEPTED?`
+
+<button
+class="actionBtn startDemo"
+data-id="${item.id}"
+title="Start Demo">
+
+<i class="fa-solid fa-play"></i>
+
+</button>
+
+`:``}
+
+${item.status===demoStatus.STARTED?`
+
+<button
+class="actionBtn completeDemo"
+data-id="${item.id}"
+title="Complete Demo">
+
+<i class="fa-solid fa-flag-checkered"></i>
+
+</button>
+
+`:``}
+
+${item.status===demoStatus.WAITING?`
+
+<button
+class="actionBtn decisionDemo"
+data-id="${item.id}"
+title="Decision">
+
+<i class="fa-solid fa-scale-balanced"></i>
+
+</button>
+
+`:``}
+
+${item.status===demoStatus.REJECTED &&
+item.rejectReason==="Need New Tutor"?`
+
+<button
+class="actionBtn reassignDemo"
+data-id="${item.id}"
+title="Assign New Teacher">
+
+<i class="fa-solid fa-user-gear"></i>
+
+</button>
+
+`:``}
+
+${item.status===demoStatus.CONVERTED?`
+
+<span
+class="status completed">
+
+Converted To Student
+
+</span>
+
+<button
+class="actionBtn permanentStudent"
+data-id="${item.id}"
+title="Permanent Student">
 
 <i class="fa-solid fa-user-graduate"></i>
 
 </button>
 
+`:``}
+
 <button
 class="actionBtn deleteDemo"
-data-id="${item.id}">
+data-id="${item.id}"
+title="Delete">
 
 <i class="fa-solid fa-trash"></i>
 
@@ -974,7 +1181,6 @@ data-id="${item.id}">
 </tr>
 
 `;
-
     });
 
     html += `
@@ -987,9 +1193,309 @@ data-id="${item.id}">
 
     demoTable.innerHTML = html;
 
+    bindDemoActions();
+
+}
+//============================================================
+// DEMO ACTIONS
+//============================================================
+
+function bindDemoActions(){
+
+document.querySelectorAll(".assignDemo").forEach(btn=>{
+
+btn.onclick=()=>{
+
+const demo=cache.demos.find(
+
+x=>x.id===btn.dataset.id
+
+);
+
+if(!demo) return;
+
+selectedDemo=demo;
+
+$("assignStudent").value=
+
+demo.studentName||"";
+
+$("assignTutor").value=
+
+demo.teacherId||"";
+
+$("demoDate").value=
+
+demo.demoDate||"";
+
+$("demoTime").value=
+
+demo.demoTime||"";
+
+$("assignNotes").value=
+
+demo.notes||"";
+
+assignTutorModal.classList.add("show");
+
+};
+
+});
+
+document.querySelectorAll(".acceptDemo").forEach(btn=>{
+
+btn.onclick=async()=>{
+
+try{
+
+await updateDoc(
+
+doc(db,"demoBookings",btn.dataset.id),
+
+{
+
+status:demoStatus.ACCEPTED,
+
+acceptedAt:serverTimestamp(),
+
+demoHistory:arrayUnion({
+
+status:demoStatus.ACCEPTED,
+
+time:new Date().toISOString()
+
+})
+
 }
 
+);
 
+showToast("Demo Accepted");
+
+}
+
+catch(e){
+
+console.error(e);
+
+showToast("Unable To Accept","error");
+
+}
+
+};
+
+});
+
+document.querySelectorAll(".startDemo").forEach(btn=>{
+
+btn.onclick=async()=>{
+
+try{
+
+await updateDoc(
+
+doc(db,"demoBookings",btn.dataset.id),
+
+{
+
+status:demoStatus.STARTED,
+
+startedAt:serverTimestamp(),
+
+demoHistory:arrayUnion({
+
+status:demoStatus.STARTED,
+
+time:new Date().toISOString()
+
+})
+
+}
+
+);
+
+showToast("Demo Started");
+
+}
+
+catch(e){
+
+showToast("Error","error");
+
+}
+
+};
+
+});
+
+document.querySelectorAll(".completeDemo").forEach(btn=>{
+
+btn.onclick=async()=>{
+
+try{
+
+await updateDoc(
+
+doc(db,"demoBookings",btn.dataset.id),
+
+{
+
+status:demoStatus.WAITING,
+
+completedAt:serverTimestamp(),
+
+demoHistory:arrayUnion({
+
+status:demoStatus.COMPLETED,
+
+time:new Date().toISOString()
+
+})
+
+}
+
+);
+
+showToast(
+
+"Waiting For Decision"
+
+);
+
+}
+
+catch(e){
+
+showToast("Error","error");
+
+}
+
+};
+
+});
+document.querySelectorAll(".reassignDemo").forEach(btn=>{
+
+    btn.onclick=()=>{
+
+        const demo=cache.demos.find(
+
+            x=>x.id===btn.dataset.id
+
+        );
+
+        if(!demo) return;
+
+        selectedDemo=demo;
+
+        $("assignTutor").value="";
+
+            demo.studentName;
+
+        $("assignTutor").value="";
+
+        $("demoDate").value=
+
+            demo.demoDate||"";
+
+        $("demoTime").value=
+
+            demo.demoTime||"";
+
+        $("assignNotes").value=
+
+            "Previous tutor rejected. Assign New Tutor.";
+
+        assignTutorModal.classList.add("show");
+        $("assignNotes").value="Need New Tutor";
+
+    };
+
+});
+
+document.querySelectorAll(".viewDemo").forEach(btn=>{
+
+btn.onclick=()=>{
+
+const demo=cache.demos.find(
+
+x=>x.id===btn.dataset.id
+
+);
+
+if(!demo) return;
+
+$("studentNameView").textContent=
+
+demo.studentName||"--";
+
+$("studentClassView").textContent=
+
+`${demo.class||"--"} • ${demo.subject||"--"}`;
+
+$("studentPhoneView").textContent=
+
+demo.phone||"--";
+
+$("parentNameView").textContent=
+
+demo.parentName||"--";
+
+$("parentPhoneView").textContent=
+
+demo.parentPhone||"--";
+
+$("studentSubjectView").textContent=
+
+demo.subject||"--";
+
+$("studentAreaView").textContent=
+
+demo.area||"--";
+
+$("studentCityView").textContent=
+
+demo.city||"--";
+
+studentStatusView.textContent=
+
+demo.status||"--";
+
+studentModal.classList.add("show");
+
+};
+
+});
+document.querySelectorAll(".decisionDemo").forEach(btn=>{
+
+    btn.onclick=()=>{
+
+        const demo=cache.demos.find(
+
+            x=>x.id===btn.dataset.id
+
+        );
+
+        if(!demo) return;
+
+        selectedDecisionDemo=demo;
+
+        decisionType.value="convert";
+
+        rejectReason.value="";
+
+        otherReason.value="";
+
+        $("rejectReasonBox").style.display="none";
+
+        $("otherReasonBox").style.display="none";
+
+        decisionModal.classList.add("show");
+
+    };
+
+});
+
+}
 
 //============================================================
 // STUDENTS TABLE
@@ -1133,7 +1639,13 @@ data-id="${student.id}">
 <i class="fa-solid fa-money-bill-wave"></i>
 
 </button>
+<button
+class="actionBtn assignTeacher"
+data-id="${student.id}"
+title="Assign Teacher">
 
+<i class="fa-solid fa-chalkboard-user"></i>
+</button>
 <button
 class="actionBtn deleteStudent"
 data-id="${student.id}">
@@ -1207,132 +1719,109 @@ function renderTeachersTable() {
 
     if (keyword) {
 
-        records = records.filter(teacher => {
+        records = records.filter(t =>
 
-            return (
+            (t.name || "")
+            .toLowerCase()
+            .includes(keyword)
 
-                (teacher.name || "")
-                .toLowerCase()
-                .includes(keyword)
+            ||
 
-                ||
+            (t.phone || "")
+            .toLowerCase()
+            .includes(keyword)
 
-                (teacher.phone || "")
-                .includes(keyword)
+            ||
 
-                ||
+            (t.subject || "")
+            .toLowerCase()
+            .includes(keyword)
 
-                (teacher.subject || "")
-                .toLowerCase()
-                .includes(keyword)
-
-                ||
-
-                (teacher.city || "")
-                .toLowerCase()
-                .includes(keyword)
-
-            );
-
-        });
+        );
 
     }
 
     if (!records.length) {
 
-        teachersTable.innerHTML = emptyTable(
-            "No Teacher Found"
-        );
+        teachersTable.innerHTML = emptyTable("No Teacher Found");
 
         return;
 
     }
 
     let html = `
+    <table>
 
-<table>
+        <thead>
 
-<thead>
+            <tr>
 
-<tr>
+                <th>Teacher</th>
 
-<th>Teacher</th>
+                <th>Subject</th>
 
-<th>Phone</th>
+                <th>Phone</th>
 
-<th>Subject</th>
+                <th>Students</th>
 
-<th>Students</th>
+                <th>Status</th>
 
-<th>Commission</th>
+                <th>Action</th>
 
-<th>Status</th>
+            </tr>
 
-<th>Action</th>
+        </thead>
 
-</tr>
-
-</thead>
-
-<tbody>
-
-`;
+        <tbody>
+    `;
 
     records.forEach(teacher => {
 
-        const totalStudents = cache.students.filter(
-
-            student => student.teacherId === teacher.id
-
+        const totalStudents = cache.students.filter(student =>
+            student.teacherId === teacher.id
         ).length;
 
         html += `
 
-<tr>
+        <tr>
 
-<td>${teacher.name}</td>
+            <td>${teacher.name || "--"}</td>
 
-<td>${teacher.phone || "--"}</td>
+            <td>${teacher.subject || "--"}</td>
 
-<td>${teacher.subject || "--"}</td>
+            <td>${teacher.phone || "--"}</td>
 
-<td>${totalStudents}</td>
+            <td>${totalStudents}</td>
 
-<td>${teacher.commission || 10}%</td>
+            <td>
 
-<td>
+                <span class="status active">
 
-<span class="status active">
+                    Active
 
-${teacher.active === false ? "Inactive" : "Active"}
+                </span>
 
-</span>
+            </td>
 
-</td>
+            <td>
 
-<td>
+                <div class="actionButtons">
 
 <div class="actionButtons">
 
 <button
-class="actionBtn teacherView"
-data-id="${teacher.id}">
+class="actionBtn teacherStudents"
+data-id="${teacher.id}"
+title="Students">
 
-<i class="fa-solid fa-eye"></i>
-
-</button>
-
-<button onclick="toggleFeatured('${teacher.id}',${teacher.featured || false})">
-
-${teacher.featured 
-? "Remove Feature"
-: "Feature Tutor"}
+<i class="fa-solid fa-users"></i>
 
 </button>
 
 <button
 class="actionBtn teacherEdit"
-data-id="${teacher.id}">
+data-id="${teacher.id}"
+title="Edit">
 
 <i class="fa-solid fa-pen"></i>
 
@@ -1340,7 +1829,8 @@ data-id="${teacher.id}">
 
 <button
 class="actionBtn teacherDelete"
-data-id="${teacher.id}">
+data-id="${teacher.id}"
+title="Delete">
 
 <i class="fa-solid fa-trash"></i>
 
@@ -1348,26 +1838,24 @@ data-id="${teacher.id}">
 
 </div>
 
-</td>
+            </td>
 
-</tr>
+        </tr>
 
-`;
+        `;
 
     });
 
     html += `
-
-</tbody>
-
-</table>
-
-`;
+        </tbody>
+    </table>
+    `;
 
     teachersTable.innerHTML = html;
 
-}
+    bindTeacherActions();
 
+}
 
 
 //============================================================
@@ -2119,8 +2607,22 @@ demoTime:$("demoTime").value,
 notes:$("assignNotes").value.trim(),
 
 status:"Assigned",
+teacherId:teacher.id,
+
+demoHistory:arrayUnion({
+
+status:"Assigned",
+
+teacherId:teacher.id,
+
+teacherName:teacher.name,
+
+time:new Date().toISOString()
+
+}),
 
 assignedAt:serverTimestamp()
+
 
 }
 
@@ -2150,6 +2652,88 @@ assignedAt:serverTimestamp()
     }
 
 }
+$("saveDecision")?.addEventListener(
+
+"click",
+
+async()=>{
+
+if(!selectedDecisionDemo) return;
+
+if(decisionType.value==="convert"){
+
+openConvertModal(selectedDecisionDemo.id);
+
+decisionModal.classList.remove("show");
+
+return;
+
+}
+
+let reason=rejectReason.value;
+
+if(reason==="Others"){
+
+reason=otherReason.value.trim();
+
+}
+
+const update={
+
+status:demoStatus.REJECTED,
+
+rejectReason:reason,
+
+decisionAt:serverTimestamp(),
+
+demoHistory:arrayUnion({
+
+status:demoStatus.REJECTED,
+
+reason,
+
+time:new Date().toISOString()
+
+})
+
+};
+
+if(reason==="Need New Tutor"){
+
+update.teacherId="";
+
+update.teacherName="";
+
+update.assignedTutorId="";
+
+update.status=demoStatus.REJECTED;
+
+}
+
+await updateDoc(
+
+doc(
+
+db,
+
+"demoBookings",
+
+selectedDecisionDemo.id
+
+),
+
+update
+
+);
+
+decisionModal.classList.remove("show");
+
+showToast("Decision Saved");
+
+}
+
+);
+
 
 
 
@@ -9159,7 +9743,7 @@ assignedTutorName:tutor.name || "",
 assignedTutorPhone:tutor.phone || "",
 
 assignedAt:serverTimestamp(),
-
+currentStage:"Assigned",
 status:"Assigned",
 
 updatedAt:serverTimestamp()
@@ -9325,3 +9909,1139 @@ convertedAt:serverTimestamp()
 alert("Student Created Successfully");
 
 };
+
+
+//============================================================
+// STUDENT ACTIONS
+//============================================================
+
+function bindStudentActions(){
+
+    document.querySelectorAll(".assignTeacher").forEach(button=>{
+
+        button.onclick=()=>{
+
+            const id=button.dataset.id;
+
+            const student=cache.students.find(x=>x.id===id);
+
+            if(!student) return;
+
+            selectedStudent=student;
+
+            $("assignStudent").value=student.name || "";
+
+            $("assignTutor").value=student.teacherId || "";
+
+            $("demoDate").value="";
+
+            $("demoTime").value="";
+
+            $("assignNotes").value="";
+
+            assignTutorModal.classList.add("show");
+
+        };
+
+    });
+
+}
+
+document.querySelectorAll(".closeModal").forEach(btn=>{
+
+    btn.addEventListener("click",()=>{
+
+        btn.closest(".modal").classList.remove("show");
+
+    });
+
+});
+
+window.addEventListener("click",e=>{
+
+    document.querySelectorAll(".modal.show").forEach(modal=>{
+
+        if(e.target===modal){
+
+            modal.classList.remove("show");
+
+        }
+
+    });
+
+});
+
+$("confirmAssign")?.addEventListener(
+
+    "click",
+
+    assignTeacherToDemo
+
+);
+async function assignTeacherToDemo(){
+
+    if(!selectedStudent){
+
+        showToast("Student not found","error");
+
+        return;
+
+    }
+
+    const teacherId=$("assignTutor").value;
+
+    if(!teacherId){
+
+        showToast("Select Teacher","warning");
+
+        return;
+
+    }
+
+    const teacher=cache.teachers.find(x=>x.id===teacherId);
+
+    if(!teacher){
+
+        showToast("Teacher not found","error");
+
+        return;
+
+    }
+
+    try{
+
+        await updateDoc(
+
+doc(
+
+    db,
+
+    "demoBookings",
+
+    selectedDemo.id
+
+),
+            {
+    teacherId: teacher.id,
+
+    teacherName: teacher.name,
+
+    status: demoStatus.ASSIGNED,
+
+    assignedAt: serverTimestamp(),
+
+    demoHistory: arrayUnion({
+
+        status: demoStatus.ASSIGNED,
+
+        teacherId: teacher.id,
+
+        teacherName: teacher.name,
+
+        time: new Date().toISOString()
+
+    })
+
+}
+
+        );
+
+        assignTutorModal.classList.remove("show");
+
+        showToast("Demo Assigned To Teacher");
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+        showToast("Assignment Failed","error");
+
+    }
+
+}
+//============================================================
+// TEACHER STUDENTS
+//============================================================
+
+function bindTeacherActions(){
+
+    document.querySelectorAll(".teacherStudents").forEach(btn=>{
+
+        btn.onclick=()=>{
+
+    const teacherId=btn.dataset.id;
+
+    const teacher=cache.teachers.find(
+
+        x=>x.id===teacherId
+
+    );
+
+    if(!teacher) return;
+
+    const students=cache.students.filter(
+
+        x=>x.teacherId===teacherId
+
+    );
+
+    teacherTotalStudents.textContent=students.length;
+
+    const present=cache.attendance.filter(
+
+        x=>
+
+            x.teacherId===teacherId &&
+
+            x.status==="Present"
+
+    ).length;
+
+    teacherPresentStudents.textContent=present;
+
+    const earning=students.reduce(
+
+        (sum,s)=>sum+Number(
+
+            s.commission || 0
+
+        ),
+
+        0
+
+    );
+
+    teacherMonthlyEarning.textContent=
+
+        formatMoney(earning);
+
+    teacherAttendancePercent.textContent=
+
+        students.length
+
+        ?
+
+        Math.round(
+
+            (present/students.length)*100
+
+        )+"%"
+
+        :
+
+        "0%";
+
+    let html=`
+
+    <table>
+
+    <thead>
+
+    <tr>
+
+    <th>Student</th>
+
+    <th>Class</th>
+
+    <th>Phone</th>
+
+    <th>Parent</th>
+
+    <th>Fees</th>
+
+    <th>Status</th>
+
+    </tr>
+
+    </thead>
+
+    <tbody>
+
+    `;
+
+    students.forEach(student=>{
+
+        html+=`
+
+        <tr>
+
+        <td>${student.name}</td>
+
+        <td>${student.class}</td>
+
+        <td>${student.phone||"--"}</td>
+
+        <td>${student.parentName||"--"}</td>
+
+        <td>${formatMoney(student.monthlyFees)}</td>
+
+        <td>
+
+            <span class="status active">
+
+                Active
+
+            </span>
+
+        </td>
+
+        </tr>
+
+        `;
+
+    });
+
+    html+=`
+
+    </tbody>
+
+    </table>
+
+    `;
+
+    teacherStudentsTable.innerHTML=html;
+
+    teacherDashboardModal.classList.add("show");
+
+};
+});
+    document.querySelectorAll(".teacherEdit").forEach(btn=>{
+
+    btn.onclick=()=>{
+
+        const teacher=cache.teachers.find(
+
+            x=>x.id===btn.dataset.id
+
+        );
+
+        if(!teacher) return;
+
+        showToast("Edit Teacher Module Coming Soon","warning");
+
+    };
+
+});
+
+document.querySelectorAll(".teacherDelete").forEach(btn=>{
+
+    btn.onclick=async()=>{
+
+        const teacher=cache.teachers.find(
+
+            x=>x.id===btn.dataset.id
+
+        );
+
+        if(!teacher) return;
+
+        const assigned=cache.students.filter(
+
+            s=>s.teacherId===teacher.id
+
+        );
+
+        if(assigned.length){
+
+            showToast(
+
+                "Teacher has assigned students",
+
+                "warning"
+
+            );
+
+            return;
+
+        }
+
+        if(!confirm(
+
+            `Delete ${teacher.name}?`
+
+        )) return;
+
+        try{
+
+            await deleteDoc(
+
+                doc(
+
+                    db,
+
+                    "tutors",
+
+                    teacher.id
+
+                )
+
+            );
+
+            showToast(
+
+                "Teacher Deleted"
+
+            );
+
+        }
+
+        catch(error){
+
+            console.error(error);
+
+            showToast(
+
+                "Delete Failed",
+
+                "error"
+
+            );
+
+        }
+
+    };
+
+});
+
+}
+//============================================================
+// STUDENT PROFILE
+//============================================================
+
+document.addEventListener("click",e=>{
+
+    const btn=e.target.closest(".studentView");
+
+    if(!btn) return;
+
+    const student=cache.students.find(
+
+        x=>x.id===btn.dataset.id
+
+    );
+
+    if(!student) return;
+
+    $("studentNameView").textContent=
+        student.name || "--";
+
+    $("studentClassView").textContent=
+        `${student.class || "--"} • ${student.subject || "--"}`;
+
+    $("studentPhoneView").textContent=
+        student.phone || "--";
+
+    $("parentNameView").textContent=
+        student.parentName || "--";
+
+    $("parentPhoneView").textContent=
+        student.parentPhone || "--";
+
+    $("studentSubjectView").textContent=
+        student.subject || "--";
+
+    $("studentAreaView").textContent=
+        student.area || "--";
+
+    $("studentCityView").textContent=
+        student.city || "--";
+
+    $("studentStatusView").className=
+        "status active";
+
+    $("studentStatusView").textContent=
+        "Active";
+
+    studentModal.classList.add("show");
+
+});
+//============================================================
+// MOBILE SIDEBAR
+//============================================================
+
+menuToggle?.addEventListener("click",()=>{
+
+    sidebar.classList.add("show");
+
+    sidebarOverlay?.classList.add("show");
+
+});
+
+sidebarOverlay?.addEventListener("click",()=>{
+
+    sidebar.classList.remove("show");
+
+    sidebarOverlay.classList.remove("show");
+
+});
+
+document.querySelectorAll(".menu a").forEach(link=>{
+
+    link.addEventListener("click",()=>{
+
+        if(window.innerWidth<=768){
+
+            sidebar.classList.remove("show");
+
+            sidebarOverlay.classList.remove("show");
+
+        }
+
+    });
+
+});
+
+window.addEventListener("resize",()=>{
+
+    if(window.innerWidth>768){
+
+        sidebar.classList.remove("show");
+
+        sidebarOverlay.classList.remove("show");
+
+    }
+
+});
+//============================================================
+// MOBILE UI INITIALIZER
+//============================================================
+
+function initializeMobileUI(){
+
+    updateResponsiveTables();
+
+    window.addEventListener(
+
+        "resize",
+
+        updateResponsiveTables
+
+    );
+
+}
+
+function updateResponsiveTables(){
+
+    const mobile=window.innerWidth<=768;
+
+    document.querySelectorAll(".tableWrapper").forEach(wrapper=>{
+
+        wrapper.classList.toggle(
+
+            "mobileTable",
+
+            mobile
+
+        );
+
+    });
+
+}
+//============================================================
+// HOMEWORK TABLE
+//============================================================
+
+function renderHomeworkTable(){
+
+    if(!homeworkTable) return;
+
+    const keyword=
+
+        homeworkSearch?.value
+
+        ?.toLowerCase()
+
+        .trim() || "";
+
+    let records=[...cache.homeworks];
+
+    if(keyword){
+
+        records=records.filter(x=>
+
+            (x.studentName||"")
+
+            .toLowerCase()
+
+            .includes(keyword)
+
+            ||
+
+            (x.teacherName||"")
+
+            .toLowerCase()
+
+            .includes(keyword)
+
+            ||
+
+            (x.subject||"")
+
+            .toLowerCase()
+
+            .includes(keyword)
+
+        );
+
+    }
+
+    if(!records.length){
+
+        homeworkTable.innerHTML=
+
+            emptyTable("No Homework Found");
+
+        return;
+
+    }
+
+    let html=`
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Student</th>
+
+<th>Teacher</th>
+
+<th>Subject</th>
+
+<th>Homework</th>
+
+<th>Date</th>
+
+<th>Status</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+`;
+
+    records.forEach(hw=>{
+
+        html+=`
+
+<tr>
+
+<td>${hw.studentName||"--"}</td>
+
+<td>${hw.teacherName||"--"}</td>
+
+<td>${hw.subject||"--"}</td>
+
+<td>${hw.title||"--"}</td>
+
+<td>${formatDate(hw.createdAt)}</td>
+
+<td>
+
+<span class="status active">
+
+Assigned
+
+</span>
+
+</td>
+
+</tr>
+
+`;
+
+    });
+
+    html+=`
+
+</tbody>
+
+</table>
+
+`;
+
+    homeworkTable.innerHTML=html;
+
+}
+
+homeworkSearch?.addEventListener(
+
+    "input",
+
+    renderHomeworkTable
+
+);
+//============================================================
+// HOMEWORK MODULE
+//============================================================
+
+$("addHomeworkBtn")?.addEventListener(
+
+"click",
+
+()=>{
+
+populateHomeworkStudents();
+
+homeworkModal.classList.add("show");
+
+}
+
+);
+
+function populateHomeworkStudents(){
+
+if(!homeworkStudent) return;
+
+homeworkStudent.innerHTML="";
+
+cache.students.forEach(student=>{
+
+const option=document.createElement("option");
+
+option.value=student.id;
+
+option.textContent=
+
+student.name+
+
+" • "+
+
+(student.class||"--");
+
+homeworkStudent.appendChild(option);
+
+});
+
+}
+
+$("saveHomework")?.addEventListener(
+
+"click",
+
+saveHomework
+
+);
+
+async function saveHomework(){
+
+const studentId=homeworkStudent.value;
+
+const student=cache.students.find(
+
+x=>x.id===studentId
+
+);
+
+if(!student){
+
+showToast(
+
+"Select Student",
+
+"warning"
+
+);
+
+return;
+
+}
+
+try{
+
+await addDoc(
+
+homeworkRef,
+
+{
+
+studentId,
+
+studentName:student.name,
+
+teacherId:student.teacherId||"",
+
+teacherName:student.teacherName||"",
+
+subject:homeworkSubject.value.trim(),
+
+title:homeworkTitle.value.trim(),
+
+description:homeworkDescription.value.trim(),
+
+dueDate:homeworkDueDate.value,
+
+status:"Assigned",
+
+createdAt:serverTimestamp()
+
+}
+
+);
+
+homeworkModal.classList.remove("show");
+
+homeworkSubject.value="";
+
+homeworkTitle.value="";
+
+homeworkDescription.value="";
+
+homeworkDueDate.value="";
+
+showToast(
+
+"Homework Assigned"
+
+);
+
+}
+
+catch(error){
+
+console.error(error);
+
+showToast(
+
+"Homework Failed",
+
+"error"
+
+);
+
+}
+
+}
+//============================================================
+// DEMO LIFECYCLE - PART 1
+//============================================================
+
+document.addEventListener("click",async e=>{
+
+const accept=e.target.closest(".acceptDemo");
+
+if(accept){
+
+const id=accept.dataset.id;
+
+await updateDoc(
+
+doc(db,"demoBookings",id),
+
+{
+
+status:demoStatus.ACCEPTED,
+
+acceptedAt:serverTimestamp(),
+
+demoHistory:arrayUnion({
+
+status:demoStatus.ACCEPTED,
+
+time:new Date().toISOString()
+
+})
+
+}
+
+);
+
+showToast("Demo Accepted");
+
+return;
+
+}
+
+const complete=e.target.closest(".completeDemo");
+
+if(complete){
+
+const id=complete.dataset.id;
+
+await updateDoc(
+
+doc(db,"demoBookings",id),
+
+{
+
+status:demoStatus.WAITING,
+
+completedAt:serverTimestamp(),
+
+demoHistory:arrayUnion({
+
+status:demoStatus.COMPLETED,
+
+time:new Date().toISOString()
+
+})
+
+}
+
+);
+
+showToast("Waiting For Decision");
+
+return;
+
+}
+
+});
+//============================================================
+// DEMO DECISION
+//============================================================
+
+decisionType?.addEventListener("change",()=>{
+
+$("rejectReasonBox").style.display=
+
+decisionType.value==="reject"
+
+?
+
+"block"
+
+:
+
+"none";
+
+});
+
+rejectReason?.addEventListener("change",()=>{
+
+$("otherReasonBox").style.display=
+
+rejectReason.value==="Others"
+
+?"block"
+
+:"none";
+
+});
+
+document.addEventListener("click",e=>{
+
+const btn=e.target.closest(".decisionDemo");
+
+if(!btn) return;
+
+selectedDecisionDemo=
+
+cache.demos.find(
+
+x=>x.id===btn.dataset.id
+
+);
+
+if(!selectedDecisionDemo) return;
+
+decisionModal.classList.add("show");
+
+});
+
+$("saveDecision")?.addEventListener(
+
+"click",
+
+async()=>{
+
+if(!selectedDecisionDemo) return;
+
+if(decisionType.value==="convert"){
+
+await convertDemoToPermanent(
+
+selectedDecisionDemo
+
+);
+
+decisionModal.classList.remove("show");
+
+return;
+
+}
+
+let reason=rejectReason.value;
+
+if(reason==="Others"){
+
+reason=otherReason.value.trim();
+
+}
+
+await updateDoc(
+
+doc(
+
+db,
+
+"demoBookings",
+
+selectedDecisionDemo.id
+
+),
+
+{
+
+status:demoStatus.REJECTED,
+
+rejectReason:reason,
+
+decisionAt:serverTimestamp(),
+
+demoHistory:arrayUnion({
+
+status:demoStatus.REJECTED,
+
+reason,
+
+time:new Date().toISOString()
+
+})
+
+}
+
+);
+
+decisionModal.classList.remove("show");
+
+showToast(
+
+"Demo Rejected"
+
+);
+
+}
+
+);
+decisionType?.addEventListener("change",()=>{
+
+const reject=decisionType.value==="reject";
+
+$("rejectReasonBox").style.display=
+
+reject?"block":"none";
+
+$("otherReasonBox").style.display="none";
+
+});
+//============================================================
+// CONVERT DEMO TO PERMANENT
+//============================================================
+
+async function convertDemoToPermanent(demo){
+
+    try{
+
+        const teacher=cache.teachers.find(
+
+            x=>x.id===demo.teacherId
+
+        );
+
+        await addDoc(
+
+            collection(db,"students"),
+
+            {
+
+                name:demo.studentName,
+
+                parentName:demo.parentName,
+
+                parentPhone:demo.parentPhone,
+
+                phone:demo.phone,
+
+                class:demo.class,
+
+                subject:demo.subject,
+
+                city:demo.city,
+
+                area:demo.area,
+
+                address:demo.address||"",
+
+                teacherId:demo.teacherId,
+
+                teacherName:demo.teacherName,
+
+                monthlyFees:demo.monthlyFees||0,
+
+                admissionDate:serverTimestamp(),
+
+                status:"Active",
+
+                source:"Demo",
+
+                demoBookingId:demo.id,
+
+                createdAt:serverTimestamp()
+
+            }
+
+        );
+
+        await updateDoc(
+
+            doc(
+
+                db,
+
+                "demoBookings",
+
+                demo.id
+
+            ),
+
+            {
+
+                status:demoStatus.CONVERTED,
+
+                convertedAt:serverTimestamp(),
+
+                demoHistory:arrayUnion({
+
+                    status:demoStatus.CONVERTED,
+
+                    teacherId:demo.teacherId,
+
+                    teacherName:demo.teacherName,
+
+                    time:new Date().toISOString()
+
+                })
+
+            }
+
+        );
+
+        showToast(
+
+            "Student Converted Successfully"
+
+        );
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+        showToast(
+
+            "Conversion Failed",
+
+            "error"
+
+        );
+
+    }
+
+}

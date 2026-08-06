@@ -133,6 +133,18 @@ Teachers
 </span>
 
 </a>
+<a
+href="#homework">
+
+<i class="fa-solid fa-book-open"></i>
+
+<span>
+
+Homework
+
+</span>
+
+</a>
 
 <a
 href="#attendance">
@@ -245,6 +257,11 @@ Logout
 </div>
 
 </aside>
+<div
+class="sidebarOverlay"
+id="sidebarOverlay">
+
+</div>
 
 <!-- ===========================
 MAIN CONTENT
@@ -253,6 +270,11 @@ MAIN CONTENT
 <main class="mainContent">
 
 <header class="topbar">
+    <button id="menuToggle" class="mobileMenu">
+
+    <i class="fa-solid fa-bars"></i>
+
+</button>
 
 <div class="topLeft">
 
@@ -680,6 +702,45 @@ CONTINUE BELOW TEACHERS
 <!-- ===========================
 ATTENDANCE
 =========================== -->
+<!-- ========================================================= -->
+<!-- HOMEWORK -->
+<!-- ========================================================= -->
+
+<section
+id="homework"
+class="sectionCard">
+
+    <div class="sectionHeader">
+
+        <h2>Homework</h2>
+
+        <div class="headerActions">
+
+            <input
+                type="search"
+                id="homeworkSearch"
+                placeholder="Search Student...">
+
+            <button
+                id="addHomeworkBtn">
+
+                <i class="fa-solid fa-book"></i>
+
+                Add Homework
+
+            </button>
+
+        </div>
+
+    </div>
+
+    <div
+        class="tableWrapper"
+        id="homeworkTable">
+
+    </div>
+
+</section>
 
 <section
 id="attendance"
@@ -717,7 +778,231 @@ class="tableWrapper"
 id="attendanceTable">
 
 </div>
+<!-- ========================================================= -->
+<!-- DEMO DECISION MODAL -->
+<!-- ========================================================= -->
 
+<div class="modal" id="decisionModal">
+
+    <div class="modalContent">
+
+        <div class="modalHeader">
+
+            <h2>Demo Decision</h2>
+
+            <button class="closeModal">
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+        <div class="modalBody">
+
+            <div class="formGroup">
+
+                <label>Decision</label>
+
+                <select id="decisionType">
+
+                    <option value="convert">
+
+                        Convert To Permanent
+
+                    </option>
+
+                    <option value="reject">
+
+                        Reject Demo
+
+                    </option>
+
+                </select>
+
+            </div>
+
+            <div
+            id="rejectReasonBox"
+            style="display:none;">
+
+                <div class="formGroup">
+
+                    <label>
+
+                        Reject Reason
+
+                    </label>
+
+                    <select id="rejectReason">
+
+                        <option>
+
+                            Fees Discrepancy
+
+                        </option>
+
+                        <option>
+
+                            Not Satisfied
+
+                        </option>
+
+                        <option>
+
+                            Need New Tutor
+
+                        </option>
+
+                        <option>
+
+                            Parents Cancelled
+
+                        </option>
+
+                        <option>
+
+                            Timing Issue
+
+                        </option>
+
+                        <option>
+
+                            Location Issue
+
+                        </option>
+
+                        <option>
+
+                            Others
+
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div
+                class="formGroup"
+                id="otherReasonBox"
+                style="display:none;">
+
+                    <label>
+
+                        Other Reason
+
+                    </label>
+
+                    <textarea
+                    id="otherReason">
+
+                    </textarea>
+
+                </div>
+
+            </div>
+
+            <div class="modalActions">
+
+                <button id="saveDecision">
+
+                    Save Decision
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+<!-- ========================================================= -->
+<!-- HOMEWORK MODAL -->
+<!-- ========================================================= -->
+
+<div class="modal" id="homeworkModal">
+
+    <div class="modalContent">
+
+        <div class="modalHeader">
+
+            <h2>Assign Homework</h2>
+
+            <button class="closeModal">
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+        <div class="modalBody">
+
+            <div class="formGroup">
+
+                <label>Student</label>
+
+                <select id="homeworkStudent"></select>
+
+            </div>
+
+            <div class="formGroup">
+
+                <label>Subject</label>
+
+                <input
+                id="homeworkSubject"
+                type="text">
+
+            </div>
+
+            <div class="formGroup">
+
+                <label>Homework Title</label>
+
+                <input
+                id="homeworkTitle"
+                type="text">
+
+            </div>
+
+            <div class="formGroup">
+
+                <label>Description</label>
+
+                <textarea
+                id="homeworkDescription"></textarea>
+
+            </div>
+
+            <div class="formGroup">
+
+                <label>Due Date</label>
+
+                <input
+                id="homeworkDueDate"
+                type="date">
+
+            </div>
+
+            <div class="modalActions">
+
+                <button id="saveHomework">
+
+                    <i class="fa-solid fa-floppy-disk"></i>
+
+                    Save Homework
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 </section>
 
 <!-- ===========================
@@ -1117,16 +1402,24 @@ placeholder="Additional Instructions..."></textarea>
 
 </div>
 
-<div class="modalActions">
+<<div class="modalActions">
 
-<button
-id="confirmAssign">
+    <button
+    type="button"
+    class="secondaryBtn closeModal">
 
-<i class="fa-solid fa-user-check"></i>
+        Cancel
 
-Assign Tutor
+    </button>
 
-</button>
+    <button
+    id="confirmAssign">
+
+        <i class="fa-solid fa-user-check"></i>
+
+        Assign Demo
+
+    </button>
 
 </div>
 
@@ -1639,6 +1932,99 @@ FILE : admin-dashboard-v2.html
 PART 12 / 40
 CONTINUE BELOW CONVERT STUDENT MODAL
 ========================================================== -->
+<!-- ========================================================= -->
+<!-- TEACHER DASHBOARD MODAL -->
+<!-- ========================================================= -->
+
+<div class="modal" id="teacherDashboardModal">
+
+    <div class="modalContent large">
+
+        <div class="modalHeader">
+
+            <h2>Teacher Dashboard</h2>
+
+            <button class="closeModal">
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+        <div class="modalBody">
+
+            <div class="statsGrid teacherStats">
+
+                <div class="statCard blue">
+
+                    <div>
+
+                        <h5>Total Students</h5>
+
+                        <h2 id="teacherTotalStudents">0</h2>
+
+                    </div>
+
+                    <i class="fa-solid fa-users"></i>
+
+                </div>
+
+                <div class="statCard green">
+
+                    <div>
+
+                        <h5>Present Today</h5>
+
+                        <h2 id="teacherPresentStudents">0</h2>
+
+                    </div>
+
+                    <i class="fa-solid fa-user-check"></i>
+
+                </div>
+
+                <div class="statCard purple">
+
+                    <div>
+
+                        <h5>Monthly Earnings</h5>
+
+                        <h2 id="teacherMonthlyEarning">₹0</h2>
+
+                    </div>
+
+                    <i class="fa-solid fa-wallet"></i>
+
+                </div>
+
+                <div class="statCard orange">
+
+                    <div>
+
+                        <h5>Attendance %</h5>
+
+                        <h2 id="teacherAttendancePercent">0%</h2>
+
+                    </div>
+
+                    <i class="fa-solid fa-chart-pie"></i>
+
+                </div>
+
+            </div>
+
+            <div
+                id="teacherStudentsTable"
+                class="tableWrapper">
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 
 <!-- ===========================
 DELETE CONFIRM MODAL

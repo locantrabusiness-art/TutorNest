@@ -535,7 +535,7 @@ date:leaveDate.value,
 
 reason:leaveReason.value,
 
-status:"Pending",
+status:"Need New Tutor",
 
 createdAt:serverTimestamp()
 
@@ -3260,62 +3260,102 @@ Complete
 });
 
 }
-window.acceptDemo=async(id)=>{
+window.acceptDemo = async (id) => {
 
-await updateDoc(
+    await updateDoc(
 
-doc(db,"demoBookings",id),
+        doc(db, "demoBookings", id),
 
-{
+        {
 
-status:"Accepted",
+            status: "Accepted",
 
-acceptedAt:serverTimestamp()
+            acceptedAt: serverTimestamp(),
 
-}
+            demoHistory: arrayUnion({
 
-);
+                status: "Accepted",
 
-};
+                by: tutorUID,
 
-window.rejectDemo=async(id)=>{
+                time: new Date().toISOString()
 
-const reason=prompt("Reason");
+            })
 
-if(reason===null)return;
+        }
 
-await updateDoc(
-
-doc(db,"demoBookings",id),
-
-{
-
-status:"Rejected",
-
-rejectReason:reason,
-
-updatedAt:serverTimestamp()
-
-}
-
-);
+    );
 
 };
 
-window.completeDemo=async(id)=>{
+window.rejectDemo = async (id) => {
 
-await updateDoc(
+    const reason = prompt(
 
-doc(db,"demoBookings",id),
+`Reason:
 
-{
+1. Fees Discrepancy
+2. Not Satisfied
+3. Need New Tutor
+4. Others`
 
-status:"Completed",
+    );
 
-completedAt:serverTimestamp()
+    if (!reason) return;
 
-}
+    await updateDoc(
 
-);
+        doc(db, "demoBookings", id),
 
-};acceptDemo
+        {
+
+            status: "Rejected",
+
+            rejectReason: reason,
+
+            updatedAt: serverTimestamp(),
+
+            demoHistory: arrayUnion({
+
+                status: "Rejected",
+
+                by: tutorUID,
+
+                reason,
+
+                time: new Date().toISOString()
+
+            })
+
+        }
+
+    );
+
+};
+window.completeDemo = async (id) => {
+
+    await updateDoc(
+
+        doc(db, "demoBookings", id),
+
+        {
+
+            status: "Waiting Decision",
+
+            completedAt: serverTimestamp(),
+
+            demoHistory: arrayUnion({
+
+                status: "Completed",
+
+                by: tutorUID,
+
+                time: new Date().toISOString()
+
+            })
+
+        }
+
+    );
+
+};
