@@ -3151,6 +3151,7 @@ overlay.classList.remove("show");
 function loadAssignedDemos(){
 
 const tbody=document.getElementById("demoTable");
+console.log("Current Login UID :", tutorUID);
 
 const q=query(
 
@@ -3161,6 +3162,7 @@ where("assignedTutorId","==",tutorUID)
 );
 
 onSnapshot(q,(snapshot)=>{
+    console.log("Total Docs :", snapshot.size);
 
 tbody.innerHTML="";
 

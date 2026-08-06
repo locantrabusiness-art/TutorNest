@@ -9729,6 +9729,11 @@ return;
 }
 
 const tutor = tutorSnap.data();
+console.log("Tutor Doc ID :", tutorId);
+
+console.log("Tutor Auth UID :", tutor.uid);
+
+console.log("Tutor Name :", tutor.name);
 
 await updateDoc(
 
