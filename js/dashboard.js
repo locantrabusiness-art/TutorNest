@@ -14,7 +14,9 @@ query,
 where,
 getDocs,
 addDoc,
+updateDoc,
 serverTimestamp,
+arrayUnion,
 orderBy,
 onSnapshot
 
@@ -926,7 +928,7 @@ const q=query(
 
 collection(db,"demoBookings"),
 
-where("teacherId","==",tutorUID),
+where("assignedTutorId","==",tutorUID),
 
 orderBy("createdAt","desc")
 
@@ -982,9 +984,9 @@ ${d.subject||"-"}
 
 <td>
 
-${d.demoDate||"-"}<br>
+${d.preferredDate||"-"}<br>
 
-${d.demoTime||"-"}
+${d.preferredTime||"-"}
 
 </td>
 
@@ -2876,7 +2878,7 @@ query(
 
 collection(db,"demoBookings"),
 
-where("teacherId","==",tutorUID),
+where("assignedTutorId","==",tutorUID),
 
 orderBy("date")
 
