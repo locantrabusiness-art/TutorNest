@@ -2,6 +2,9 @@
 <html lang="en">
 
 <head>
+    <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2563eb">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1185,7 +1188,11 @@ Loading Analytics...
 </div>
 
 <script type="module" src="js/dashboard.js"></script>
-
+<script>
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+}
+</script>
 </body>
 
 </html>
